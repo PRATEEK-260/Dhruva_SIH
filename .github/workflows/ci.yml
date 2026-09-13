@@ -46,3 +46,17 @@ jobs:
           curl -fsS http://localhost:8000/health | tee /dev/stderr | grep -q '"status":"ok"'
           curl -fsS http://localhost:8000/health/ready | tee /dev/stderr | grep -q '"ready":true'
           docker compose down -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: '22', cache: npm, cache-dependency-path: frontend/package-lock.json}
+      - run: npm ci
+        working-directory: frontend
+      # Need to make sure eval/render_parity.json exists for TS tests. Wait, backend tests run in a different job. We need to generate it or check it in.
+      # If we generate it here, we need python? Or we can check it in!
+      # Actually, let's just generate it since python is easy to setup, OR we can check `eval/render_parity.json` into git so frontend tests can use it directly offline.
+      - run: npm run test
+        working-directory: frontend
