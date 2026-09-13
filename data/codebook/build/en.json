@@ -258,6 +258,53 @@
     "b3f7m7": "No advice can be given. Conditions could not be confirmed. Seek the official bulletin before going out. Advisory only, follow official INCOIS and IMD warnings."
   },
   "language": "en",
+  "lexicon": {
+    "bnd_type": {
+      "closed": "a closed area",
+      "imbl": "the maritime boundary",
+      "mpa": "a marine protected area",
+      "none": "no boundary"
+    },
+    "chl_class": {
+      "high": "high",
+      "low": "low",
+      "moderate": "moderate",
+      "very_high": "very high"
+    },
+    "compass": {
+      "0": "north",
+      "1": "north-northeast",
+      "2": "northeast",
+      "3": "east-northeast",
+      "4": "east",
+      "5": "east-southeast",
+      "6": "southeast",
+      "7": "south-southeast",
+      "8": "south",
+      "9": "south-southwest",
+      "10": "southwest",
+      "11": "west-southwest",
+      "12": "west",
+      "13": "west-northwest",
+      "14": "northwest",
+      "15": "north-northwest"
+    },
+    "language": "en",
+    "msg_type": {
+      "advisory": "advisory",
+      "alert": "alert",
+      "all_clear": "all clear",
+      "test": "test"
+    },
+    "notice": "Advisory only, follow official INCOIS and IMD warnings.",
+    "units": {
+      "degC": "degrees Celsius",
+      "kt": "knots",
+      "m": "metres",
+      "min": "minutes",
+      "nm": "nautical miles"
+    }
+  },
   "notice": "Advisory only, follow official INCOIS and IMD warnings.",
   "reachable": [
     "b0f0m0",

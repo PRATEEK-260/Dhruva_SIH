@@ -178,9 +178,14 @@ DIRECT_SLOTS: frozenset[str] = frozenset(
     }
 )
 
-# The only unit conversions CLAUDE.md permits. Declared, not open-ended.
+# The only unit conversions CLAUDE.md permits. Declared, not open-ended, and
+# using the exact same factors as evidence/firewall.py's DECLARED_CONVERSIONS —
+# two independently-declared tables for the same physical conversion is exactly
+# the kind of drift that lets the firewall reject a codebook sentence for using
+# a "wrong" number that is actually just a different rounding of the same unit.
+# test_codebook_render.py::test_conversion_factors_match_the_firewall pins this.
 CONVERTED_SLOTS: dict[str, tuple[str, float]] = {
-    "wave_hs_ft": ("wave_hs_m", 3.28084),
+    "wave_hs_ft": ("wave_hs_m", 3.280839895),
     "wind_kmh": ("wind_kt", 1.852),
 }
 
@@ -212,7 +217,14 @@ def _number(value: float) -> str:
 
 
 def _compass(degrees: float, lexicon: dict[str, Any]) -> str:
-    return lexicon["compass"][round(float(degrees) / 22.5) % 16]
+    """The lexicon `fill` receives always comes from a JSON build artifact now
+    (render() reads it out of load_codebook()[...]["lexicon"]), and JSON object
+    keys are always strings — the YAML source has integer keys, but that
+    distinction does not survive the JSON round-trip generate_codebook.py
+    performs. str(index), not index, is the correct lookup on the runtime
+    path."""
+    index = round(float(degrees) / 22.5) % 16
+    return lexicon["compass"][str(index)]
 
 
 def fill(template: str, capsule: Capsule, lexicon: dict[str, Any]) -> str:
@@ -322,7 +334,12 @@ def decode_reason(code: int, risk_class: int, language: str = "en") -> ReasonRen
 
 def render(capsule: Capsule, language: str = "en") -> str:
     """The whole offline path: capsule in, spoken sentence out. Pure apart from
-    the one cached codebook read."""
+    the one cached codebook read.
+
+    Reads the lexicon from the SAME build artifact as the entries (embedded by
+    generate_codebook.py), not a second load_lexicon() file open — one artifact
+    per language is also what the TypeScript port imports, so the two runtimes
+    read identically-shaped data."""
     risk_class = _BAND_OF[capsule.risk_class]
     chosen = decode_reason(capsule.reason_code, risk_class, language)
-    return fill(chosen.text, capsule, load_lexicon(language))
+    return fill(chosen.text, capsule, load_codebook(language)["lexicon"])

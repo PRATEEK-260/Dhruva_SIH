@@ -112,3 +112,25 @@ def test_no_entry_repeats_a_sentence() -> None:
             sentences = [s.strip() for s in text.split(".") if s.strip()]
             duplicates = {s for s in sentences if sentences.count(s) > 1}
             assert not duplicates, f"{path.name}:{key} repeats {duplicates}"
+
+
+def test_conversion_factors_match_the_firewall() -> None:
+    """Two independently-declared tables for the same physical conversion is
+    exactly the kind of drift that lets the firewall reject a codebook sentence
+    for using a "wrong" number that is really just a different rounding of the
+    same unit."""
+    from dhruva.codec.codebook import CONVERTED_SLOTS
+    from dhruva.evidence.firewall import DECLARED_CONVERSIONS
+
+    checks = {
+        "wave_hs_ft": ("m", "ft"),
+        "wind_kmh": ("kt", "km/h"),
+    }
+    for slot, (from_unit, to_unit) in checks.items():
+        _source, codebook_factor = CONVERTED_SLOTS[slot]
+        firewall_factor = next(
+            factor for unit, factor, _delta in DECLARED_CONVERSIONS[from_unit] if unit == to_unit
+        )
+        assert codebook_factor == firewall_factor, (
+            f"{slot}: codebook uses {codebook_factor}, firewall declares {firewall_factor}"
+        )

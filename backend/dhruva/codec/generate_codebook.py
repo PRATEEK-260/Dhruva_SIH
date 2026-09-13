@@ -136,6 +136,12 @@ def build_language(language: str) -> dict[str, Any]:
         "notice": notice,
         "reachable": sorted(wanted),
         "entries": dict(sorted(entries.items())),
+        # Embedded rather than left as a second file: the TypeScript port needs
+        # exactly one artifact per language to import statically, and the
+        # Python runtime path (codebook.render) gets to stop opening a second
+        # file per render call. The generator itself still reads the source
+        # YAML directly (_load_yaml above) — this is only about what ships.
+        "lexicon": lexicon,
     }
 
 
