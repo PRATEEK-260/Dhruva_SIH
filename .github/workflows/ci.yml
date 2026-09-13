@@ -55,8 +55,23 @@ jobs:
         with: {node-version: '22', cache: npm, cache-dependency-path: frontend/package-lock.json}
       - run: npm ci
         working-directory: frontend
-      # Need to make sure eval/render_parity.json exists for TS tests. Wait, backend tests run in a different job. We need to generate it or check it in.
-      # If we generate it here, we need python? Or we can check it in!
-      # Actually, let's just generate it since python is easy to setup, OR we can check `eval/render_parity.json` into git so frontend tests can use it directly offline.
+
+      # eval/render_parity.json (Python's rendering of all 500 corpus capsules
+      # in all 12 languages) is checked in for local-dev convenience, but this
+      # job regenerates it fresh rather than trusting the checked-in copy — the
+      # `backend` job above runs in an independent checkout with no shared
+      # filesystem, so its own run of this test does not reach this job. A
+      # stale checked-in file would make the parity check compare TypeScript
+      # against yesterday's Python output instead of today's, silently
+      # defeating the point: CLAUDE.md's capsule section and IMPLEMENTATION.md
+      # Gate 4 both require Python and TypeScript to run the SAME corpus in CI.
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+      - name: Install backend (for the Python side of the parity check)
+        run: uv pip install --system -e "backend[dev]"
+      - name: Regenerate the cross-language parity fixture
+        run: pytest backend/tests/test_codebook_languages.py -k test_every_corpus_capsule_renders_in_every_language -q
+
       - run: npm run test
         working-directory: frontend

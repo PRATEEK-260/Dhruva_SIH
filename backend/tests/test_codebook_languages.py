@@ -86,10 +86,10 @@ def test_every_corpus_capsule_renders_in_every_language() -> None:
         for line in pathlib.Path("eval/capsule_corpus.jsonl").read_text().splitlines()
     ]
     assert len(corpus) == 500
-    
+
     # Dump for cross-language parity
     parity_dump: dict[str, dict[str, str]] = {}
-    
+
     for row in corpus:
         capsule = Capsule(**row["capsule"])
         parity_dump[row["id"]] = {}
@@ -98,9 +98,13 @@ def test_every_corpus_capsule_renders_in_every_language() -> None:
             assert text, f"{row['id']}:{language} rendered empty"
             assert not SLOT.search(text), f"{row['id']}:{language} left a slot unfilled"
             parity_dump[row["id"]][language] = text
-            
-    # Write to file so TypeScript can verify byte-for-byte
-    pathlib.Path("eval/render_parity.json").write_text(json.dumps(parity_dump, indent=2, sort_keys=True), encoding="utf-8")
+
+    # Checked in for local-dev convenience; CI's frontend job regenerates this
+    # fresh (see .github/workflows/ci.yml) rather than trusting the checked-in
+    # copy, so a stale file here cannot make the parity check pass silently
+    # against yesterday's Python output.
+    payload = json.dumps(parity_dump, indent=2, sort_keys=True)
+    pathlib.Path("eval/render_parity.json").write_text(payload, encoding="utf-8")
 
 
 def test_notice_differs_per_language_rather_than_falling_back_to_english() -> None:
