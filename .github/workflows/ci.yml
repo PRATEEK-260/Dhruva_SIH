@@ -16,7 +16,15 @@ jobs:
           enable-cache: true
 
       - name: Install
-        run: uv pip install --system -e "backend[dev]"
+        # dev alone is not enough: dhruva.app now imports the advisory router,
+        # which imports dhruva.graph.build at module load time (langgraph),
+        # which itself needs xarray/dask (data) and shapely/geopandas (geo) to
+        # import. Before this session's /advisory and /geo routes existed,
+        # dhruva.app only imported the health router and dev alone was
+        # correct — this needed to grow with the app's real import graph, not
+        # stay pinned to what was true when it was written. Matches
+        # backend/Dockerfile's install line, which needed the same fix.
+        run: uv pip install --system -e "backend[dev,data,geo,graph]"
 
       - name: Lint
         run: |

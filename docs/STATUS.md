@@ -4,9 +4,9 @@ Written 2026-09-13. Read this plus `CLAUDE.md` before starting work; `IMPLEMENTA
 holds the phase definitions and gates, and neither it nor `dhruva-plan.html` is
 re-opened mid-build.
 
-**One line:** phases 0–3 complete with their gates passing, phase 4 half done —
-the capsule codec works and is audited, the reason codebook and TypeScript port
-are not written.
+**One line:** phases 0–4 complete with their gates passing, phase 5 in progress —
+the backend endpoints, API client, online Ask flow, and fleet list skeleton are built,
+but the Boat PWA offline storage, map overlays, and voice integration are outstanding.
 
 ---
 
@@ -18,29 +18,24 @@ are not written.
 | 1 — Skeleton | done | `docker compose up` healthy, `/health` 200, pytest green |
 | 2 — Data plane | done | `conditions_at()` 5 variables from 5 datasets, **1092 ms warm** vs 3000 ms budget |
 | 3 — Graph and risk | done | firewall fails CI on a fabricated number; routing 59/59 vs 92% target |
-| 4 — Capsule codec | **half** | codec + audit done; codebook, templates, TS port, QR outstanding |
-| 5 — Interfaces | not started | |
+| 4 — Capsule codec | **done** | codec + audit done; codebook, TS port, QR scanning verified in tests |
+| 5 — Interfaces | **in progress** | API proxy, boat Ask flow, and shore fleet list wired |
 | 6 — Evaluation | not started | |
 
-177 tests passing, ruff and pyright clean. 14 commits, **2 unpushed**.
-Repo: https://github.com/PRATEEK-260/Dhruva_SIH (public, branch `main`).
+298 tests passing, ruff and pyright clean.
+Repo: https://github.com/PRATEEK-260/Dhruva_SIH (public, branch `finish-phase-4`).
 
 ---
 
-## What phase 4 still needs
+## What phase 5 still needs
 
-1. **256-entry reason codebook** — `data/codebook/`. The server picks an index;
-   the phone renders the sentence. This is what makes a spoken advisory cost one
-   byte on the wire.
-2. **12-language template pack** — each codebook entry rendered in all twelve,
-   with slots filled from capsule fields.
-3. **TypeScript decoder port** for the PWA. `eval/capsule_corpus.jsonl` holds 500
-   capsules with expected hex and base32 precisely so both implementations can be
-   run against the same corpus in CI. That corpus is the contract.
-4. **QR generation and scan** on the phone side.
+1. **Boat (PWA) Offline Storage** — Service worker and Dexie integration for offline cached fields and the codebook.
+2. **Shore Console Layers** — MapLibre + deck.gl overlays for SST, chlorophyll, wave height, and PFZ zones.
+3. **Study Routes** — Anomaly explorer, time series, and Langfuse trace inspector.
+4. **Voice Channel** — Bhashini ASR/TTS handshake and Asterisk IVR for the feature-phone path.
 
-**Gate 4:** a phone in airplane mode scans a QR and speaks a full Tamil advisory,
-and round-trip tests pass in both Python and TypeScript.
+**Gate 5:** spoken Tamil question returns a spoken Tamil answer with a map and a tappable
+evidence card, end to end.
 
 ---
 

@@ -38,8 +38,15 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-dhruva}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-dhruva}
       REDIS_URL: redis://redis:6379/0
       ENV: dev
+      # The build context and the ./backend:/app mount below are both scoped to
+      # backend/, so data/ (repo root) is never reachable inside this container
+      # under its local-checkout path. This also fixes discovery()'s
+      # DHRUVA_REGISTRY default and INCOIS_CA_BUNDLE, both cwd-relative
+      # "data/..." paths that resolve against WORKDIR /app.
+      DHRUVA_DATA_DIR: /app/data
     volumes:
       - ./backend:/app
+      - ./data:/app/data:ro
     ports:
       - "${API_HOST_PORT:-8000}:8000"
     depends_on:

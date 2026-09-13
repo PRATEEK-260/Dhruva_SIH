@@ -9,7 +9,7 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 # Dependency layer first so code edits do not reinstall the world.
 COPY pyproject.toml ./
 COPY dhruva/__init__.py ./dhruva/
-RUN uv pip install --system --no-cache -e ".[dev]"
+RUN uv pip install --system --no-cache -e ".[dev,data,geo,graph]"
 
 COPY . .
 

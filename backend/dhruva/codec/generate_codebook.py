@@ -19,14 +19,19 @@ from typing import Any
 import yaml
 
 from dhruva.codec.codebook import (
+    _DATA_DIR,
     SLOT_RE,
     VALID_SLOTS,
     entry_key,
     is_reachable,
 )
 
-ROOT = Path(__file__).resolve().parents[3]
-CODEBOOK = ROOT / "data" / "codebook"
+# Reuses codebook.py's own DHRUVA_DATA_DIR-aware path rather than recomputing
+# parents[3] a second time — two independent computations of "where is the
+# repo root" is exactly the kind of drift that broke the api container (this
+# file's copy would have been wrong in the same way, just not on the path that
+# happened to crash first).
+CODEBOOK = _DATA_DIR / "codebook"
 BUILD = CODEBOOK / "build"
 
 LANGUAGES = ("en", "ta", "te", "ml", "kn", "mr", "kok", "gu", "or", "bn", "hi", "ur")

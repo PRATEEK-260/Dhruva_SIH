@@ -21,6 +21,7 @@ docs/superpowers/specs/2026-09-13-reason-codebook-design.md.
 from __future__ import annotations
 
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
@@ -31,7 +32,18 @@ import yaml
 from dhruva.codec.codec import Capsule, saturating_fields
 from dhruva.codec.fields import RISK_CLASSES
 
-_STRUCTURE_PATH = Path(__file__).resolve().parents[3] / "data" / "codebook" / "structure.yaml"
+# parents[3] from this file's local-checkout depth (backend/dhruva/codec/
+# codebook.py, four levels below the repo root) is only correct for that exact
+# layout. docker-compose.yml's api service builds from a `backend/` context and
+# bind-mounts ./backend:/app, so inside the container this file lives at
+# /app/dhruva/codec/codebook.py — two levels below /app, not four below the
+# repo root — and data/ was never part of that build context at all. Found by
+# the api container crash-looping on this exact FileNotFoundError once the
+# graph deps were fixed. DHRUVA_DATA_DIR lets the container set the real path
+# (data/ bind-mounted separately) rather than this module guessing a depth
+# that only ever matches one deployment shape.
+_DATA_DIR = Path(os.environ.get("DHRUVA_DATA_DIR", str(Path(__file__).resolve().parents[3] / "data")))
+_STRUCTURE_PATH = _DATA_DIR / "codebook" / "structure.yaml"
 
 
 def _load() -> dict[str, Any]:
