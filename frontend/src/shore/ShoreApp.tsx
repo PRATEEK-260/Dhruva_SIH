@@ -4,6 +4,8 @@ import {
   ChevronRight, Calendar, Layers, Maximize, Plus, Minus,
   Thermometer, Leaf, Waves, Target, CheckCircle2, AlertTriangle, Info, Send
 } from 'lucide-react';
+import ReactMapGL, { MapProvider, Marker } from 'react-map-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 
 export function ShoreApp() {
   return (
@@ -82,39 +84,52 @@ export function ShoreApp() {
 
         {/* Map Area */}
         <div className="flex-1 bg-slate-200 relative p-4 pb-0 flex flex-col min-h-0">
-          <div className="flex-1 bg-[url('https://upload.wikimedia.org/wikipedia/commons/4/4b/India_topographic_map-en.svg')] bg-cover bg-center rounded-t-xl border-t border-l border-r border-gray-300 relative overflow-hidden flex flex-col shadow-inner">
-            {/* Map Overlay placeholder to simulate the dark/satellite look */}
-            <div className="absolute inset-0 bg-slate-900/40 mix-blend-multiply pointer-events-none"></div>
+          <div className="flex-1 rounded-t-xl border-t border-l border-r border-gray-300 relative overflow-hidden flex flex-col shadow-inner bg-slate-800">
             
-            {/* Map Controls */}
-            <div className="absolute top-4 left-4 flex gap-2 z-10">
-              <LayerBtn label="SST" active />
-              <LayerBtn label="Chlorophyll" />
-              <LayerBtn label="Wave Height" />
-              <LayerBtn label="PFZ" />
-              <LayerBtn label="IMBL/MPA" />
-            </div>
-            <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
-              <button className="bg-white p-2 rounded shadow text-gray-700 hover:text-black"><Maximize className="w-5 h-5" /></button>
-              <div className="bg-white rounded shadow flex flex-col text-gray-700">
-                <button className="p-2 border-b border-gray-100 hover:text-black"><Plus className="w-5 h-5" /></button>
-                <button className="p-2 hover:text-black"><Minus className="w-5 h-5" /></button>
-              </div>
-              <button className="bg-white p-2 rounded shadow text-gray-700 hover:text-black"><Layers className="w-5 h-5" /></button>
-            </div>
+            <MapProvider>
+              <ReactMapGL
+                initialViewState={{
+                  longitude: 80.5,
+                  latitude: 13.5,
+                  zoom: 6
+                }}
+                mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+                style={{ width: '100%', height: '100%' }}
+                attributionControl={false}
+              >
+                {/* Map Controls (Overlay) */}
+                <div className="absolute top-4 left-4 flex gap-2 z-10">
+                  <LayerBtn label="SST" active />
+                  <LayerBtn label="Chlorophyll" />
+                  <LayerBtn label="Wave Height" />
+                  <LayerBtn label="PFZ" />
+                  <LayerBtn label="IMBL/MPA" />
+                </div>
+                <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
+                  <button className="bg-white p-2 rounded shadow text-gray-700 hover:text-black"><Maximize className="w-5 h-5" /></button>
+                  <div className="bg-white rounded shadow flex flex-col text-gray-700">
+                    <button className="p-2 border-b border-gray-100 hover:text-black"><Plus className="w-5 h-5" /></button>
+                    <button className="p-2 hover:text-black"><Minus className="w-5 h-5" /></button>
+                  </div>
+                  <button className="bg-white p-2 rounded shadow text-gray-700 hover:text-black"><Layers className="w-5 h-5" /></button>
+                </div>
 
-            {/* Boat Marker (DH-007) */}
-            <div className="absolute top-[40%] left-[60%] flex flex-col items-center">
-              <div className="bg-danger text-white p-1.5 rounded-sm shadow-lg mb-1 relative">
-                <Ship className="w-4 h-4" />
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-danger"></div>
-              </div>
-              <span className="bg-black/75 text-white text-[10px] px-1.5 py-0.5 rounded shadow">DH-007</span>
-            </div>
-            
-            <div className="absolute bottom-4 right-4 bg-black/75 text-white text-xs px-3 py-1.5 rounded shadow z-10">
-              Lat: 13.805° N &nbsp;|&nbsp; Lon: 80.955° E
-            </div>
+                {/* Boat Marker (DH-007) */}
+                <Marker longitude={80.955} latitude={13.805} anchor="bottom">
+                  <div className="flex flex-col items-center">
+                    <div className="bg-danger text-white p-1.5 rounded-sm shadow-lg mb-1 relative">
+                      <Ship className="w-4 h-4" />
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-danger"></div>
+                    </div>
+                    <span className="bg-black/75 text-white text-[10px] px-1.5 py-0.5 rounded shadow">DH-007</span>
+                  </div>
+                </Marker>
+
+                <div className="absolute bottom-4 right-4 bg-black/75 text-white text-xs px-3 py-1.5 rounded shadow z-10">
+                  Lat: 13.805° N &nbsp;|&nbsp; Lon: 80.955° E
+                </div>
+              </ReactMapGL>
+            </MapProvider>
           </div>
         </div>
 
