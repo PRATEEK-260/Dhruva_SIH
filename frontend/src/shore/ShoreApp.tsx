@@ -1,13 +1,41 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Ship, Map as MapIcon, Radio, BarChart2, Settings, Search, 
   ChevronRight, Calendar, Layers, Maximize, Plus, Minus,
   Thermometer, Leaf, Waves, Target, CheckCircle2, AlertTriangle, Info, Send
 } from 'lucide-react';
-import ReactMapGL, { MapProvider, Marker } from 'react-map-gl/maplibre';
+import ReactMapGL, { MapProvider, Marker, Source, Layer } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
+import { fetchGeoLayer, fetchRecentAdvisories, type AdvisoryLogEntry, type GeoFeatureCollection } from '../shared/api/client';
+import { verdictOf } from '../boat/BoatApp';
+
+/** risk_class ("safe" | "caution" | "no_go" | "unknown") to the display label
+ * this UI already uses everywhere else (BoatApp's own verdict banners say
+ * "NO-GO", not "no_go"). The one place this comparison happens, so the same
+ * uppercase/lowercase mismatch that broke BoatApp's verdict card cannot
+ * reappear here silently. */
+export function displayStatus(riskClass: string): string {
+  // No cast needed: Capsule["risk_class"] is declared as plain `string` in
+  // decode.ts, so verdictOf already accepts exactly this type.
+  const verdict = verdictOf(riskClass);
+  if (verdict === "no_go") return "NO-GO";
+  if (verdict === "caution") return "CAUTION";
+  if (verdict === "safe") return "SAFE";
+  return "UNKNOWN";
+}
 
 export function ShoreApp() {
+  const [boundaries, setBoundaries] = useState<GeoFeatureCollection | null>(null);
+  const [pfz, setPfz] = useState<GeoFeatureCollection | null>(null);
+  const [fleet, setFleet] = useState<AdvisoryLogEntry[]>([]);
+  const [layersOn, setLayersOn] = useState({ pfz: true, boundaries: true });
+
+  useEffect(() => {
+    fetchGeoLayer("boundaries").then(setBoundaries).catch(() => setBoundaries(null));
+    fetchGeoLayer("pfz").then(setPfz).catch(() => setPfz(null));
+    fetchRecentAdvisories(20).then(setFleet).catch(() => setFleet([]));
+  }, []);
+
   return (
     <div className="flex h-screen bg-gray-100 font-sans overflow-hidden text-gray-800">
       
@@ -29,7 +57,7 @@ export function ShoreApp() {
       {/* Fleet Panel */}
       <div className="w-80 bg-white border-r border-gray-200 flex flex-col z-10 shadow-sm">
         <div className="p-4 border-b border-gray-100 flex justify-between items-center">
-          <h2 className="font-bold text-lg">Fleet (12)</h2>
+          <h2 className="font-bold text-lg">Fleet ({fleet.length})</h2>
           <Maximize className="w-4 h-4 text-gray-400" />
         </div>
         <div className="p-4 border-b border-gray-100 space-y-3">
@@ -49,12 +77,21 @@ export function ShoreApp() {
           </div>
         </div>
         <div className="flex-1 overflow-y-auto">
-          <FleetItem name="DH-001" lat="13.221° N" lon="80.145° E" time="Updated 12 min ago" status="SAFE" />
-          <FleetItem name="DH-002" lat="13.912° N" lon="80.732° E" time="Updated 8 min ago" status="CAUTION" breach />
-          <FleetItem name="DH-007" lat="13.805° N" lon="80.955° E" time="Updated 2 hrs ago" status="NO-GO" breach active />
-          <FleetItem name="DH-012" lat="13.120° N" lon="80.412° E" time="Updated 15 min ago" status="SAFE" />
-          <FleetItem name="DH-015" lat="13.660° N" lon="80.601° E" time="Updated 31 min ago" status="CAUTION" />
-          <FleetItem name="DH-018" lat="14.005° N" lon="80.321° E" time="Updated 28 min ago" status="SAFE" />
+          {fleet.length === 0 ? (
+            <p className="p-4 text-sm text-gray-400">No advisories requested yet.</p>
+          ) : (
+            fleet.map((entry) => (
+              <FleetItem
+                key={entry.id}
+                name={entry.boat_class}
+                lat={`${entry.lat.toFixed(3)}° N`}
+                lon={`${entry.lon.toFixed(3)}° E`}
+                time={new Date(entry.issued_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                status={displayStatus(entry.risk_class)}
+                breach={displayStatus(entry.risk_class) !== "SAFE"}
+              />
+            ))
+          )}
         </div>
       </div>
 
@@ -102,8 +139,16 @@ export function ShoreApp() {
                   <LayerBtn label="SST" active />
                   <LayerBtn label="Chlorophyll" />
                   <LayerBtn label="Wave Height" />
-                  <LayerBtn label="PFZ" />
-                  <LayerBtn label="IMBL/MPA" />
+                  <LayerBtn
+                    label="PFZ"
+                    active={layersOn.pfz}
+                    onClick={() => setLayersOn((s) => ({ ...s, pfz: !s.pfz }))}
+                  />
+                  <LayerBtn
+                    label="IMBL/MPA"
+                    active={layersOn.boundaries}
+                    onClick={() => setLayersOn((s) => ({ ...s, boundaries: !s.boundaries }))}
+                  />
                 </div>
                 <div className="absolute top-4 right-4 flex flex-col gap-2 z-10">
                   <button className="bg-white p-2 rounded shadow text-gray-700 hover:text-black"><Maximize className="w-5 h-5" /></button>
@@ -114,16 +159,46 @@ export function ShoreApp() {
                   <button className="bg-white p-2 rounded shadow text-gray-700 hover:text-black"><Layers className="w-5 h-5" /></button>
                 </div>
 
-                {/* Boat Marker (DH-007) */}
-                <Marker longitude={80.955} latitude={13.805} anchor="bottom">
-                  <div className="flex flex-col items-center">
-                    <div className="bg-danger text-white p-1.5 rounded-sm shadow-lg mb-1 relative">
-                      <Ship className="w-4 h-4" />
-                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-danger"></div>
-                    </div>
-                    <span className="bg-black/75 text-white text-[10px] px-1.5 py-0.5 rounded shadow">DH-007</span>
+                {layersOn.boundaries && boundaries && (
+                  <Source id="boundaries" type="geojson" data={boundaries}>
+                    {/* Dashed: these lines are indicative, never legal (CLAUDE.md) */}
+                    <Layer
+                      id="boundaries-line"
+                      type="line"
+                      paint={{ "line-color": "#f59e0b", "line-width": 2, "line-dasharray": [2, 2] }}
+                    />
+                  </Source>
+                )}
+                {layersOn.pfz && pfz && (
+                  <Source id="pfz" type="geojson" data={pfz}>
+                    <Layer
+                      id="pfz-points"
+                      type="circle"
+                      paint={{ "circle-radius": 5, "circle-color": "#22c55e" }}
+                    />
+                  </Source>
+                )}
+                {layersOn.boundaries && boundaries && boundaries.features.length > 0 && (
+                  <div className="absolute bottom-4 left-4 bg-black/75 text-white text-[10px] px-3 py-1.5 rounded shadow z-10">
+                    Boundaries shown are indicative only, not a legal line.
                   </div>
-                </Marker>
+                )}
+
+                {fleet.map((entry) => (
+                  <Marker key={entry.id} longitude={entry.lon} latitude={entry.lat} anchor="bottom">
+                    <div className="flex flex-col items-center">
+                      <div className={`p-1.5 rounded-sm shadow-lg mb-1 relative ${
+                        displayStatus(entry.risk_class) === "NO-GO" ? "bg-danger" :
+                        displayStatus(entry.risk_class) === "CAUTION" ? "bg-caution" : "bg-safe"
+                      } text-white`}>
+                        <Ship className="w-4 h-4" />
+                      </div>
+                      <span className="bg-black/75 text-white text-[10px] px-1.5 py-0.5 rounded shadow">
+                        {entry.boat_class}
+                      </span>
+                    </div>
+                  </Marker>
+                ))}
 
                 <div className="absolute bottom-4 right-4 bg-black/75 text-white text-xs px-3 py-1.5 rounded shadow z-10">
                   Lat: 13.805° N &nbsp;|&nbsp; Lon: 80.955° E
@@ -141,7 +216,7 @@ export function ShoreApp() {
             <StatCard icon={<Leaf className="w-4 h-4 text-green-600" />} label="Chlorophyll" value="0.42" unit="mg/m³" trend="+12%" />
             <StatCard icon={<Waves className="w-4 h-4 text-blue-500" />} label="Wave Height" value="2.4" unit="m" trend="+0.3" />
             <StatCard icon={<Target className="w-4 h-4 text-blue-600" />} label="Active PFZ Zones" value="14" unit="" trend="+2" />
-            <StatCard icon={<Ship className="w-4 h-4 text-indigo-600" />} label="Vessels Tracked" value="12" unit="" status="Online" />
+            <StatCard icon={<Ship className="w-4 h-4 text-indigo-600" />} label="Advisories (recent)" value={String(fleet.length)} unit="" status="Live" />
           </div>
 
           {/* Broadcast Composer */}
@@ -246,9 +321,9 @@ function FleetItem({ name, lat, lon, time, status, breach, active }: { name: str
   );
 }
 
-function LayerBtn({ label, active }: { label: string, active?: boolean }) {
+function LayerBtn({ label, active, onClick }: { label: string, active?: boolean, onClick?: () => void }) {
   return (
-    <button className={`px-3 py-1.5 rounded shadow text-xs font-medium backdrop-blur-sm ${
+    <button onClick={onClick} className={`px-3 py-1.5 rounded shadow text-xs font-medium backdrop-blur-sm ${
       active ? 'bg-blue-600 text-white' : 'bg-slate-900/70 text-white hover:bg-slate-900/90'
     }`}>
       {label}
