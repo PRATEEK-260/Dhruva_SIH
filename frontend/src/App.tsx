@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { BoatApp } from "./boat/BoatApp";
 import { ShoreApp } from "./shore/ShoreApp";
 

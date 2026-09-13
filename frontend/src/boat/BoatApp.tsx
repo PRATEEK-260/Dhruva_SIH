@@ -1,11 +1,31 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Menu, TriangleAlert, ShieldAlert, Clock, Waves, Wind, Navigation, Map, Target, QrCode, Volume2, WifiOff, CheckCircle2 } from 'lucide-react';
 import { ScanView, speak } from './ScanView';
 import type { Capsule } from '../shared/capsule/decode';
 import type { Language } from '../shared/capsule/codebook';
 
+/** Which verdict banner a decoded capsule should show.
+ *
+ * Exported and pure so it can be tested against the real RISK_CLASSES values
+ * without a DOM: risk_class decodes to fields.ts's lowercase-with-underscore
+ * form ("safe" | "caution" | "no_go" | "unknown"), matching
+ * backend/dhruva/codec/fields.py exactly, NOT the uppercase display labels the
+ * banners themselves show. Comparing against the display label was the exact
+ * bug that made NO-GO render no banner, no override notice, and no PFZ
+ * suppression at all — this helper is the one place that comparison happens.
+ */
+export function verdictOf(
+  riskClass: Capsule["risk_class"] | undefined,
+): "no_go" | "caution" | "safe" | null {
+  if (riskClass === "no_go" || riskClass === "caution" || riskClass === "safe") return riskClass;
+  return null;
+}
+
 export function BoatApp() {
-  const [lang, setLang] = useState<Language>("ta");
+  // setLang is unused until a language-switcher control is wired up; kept
+  // rather than removed since Language is already plumbed through ScanView
+  // and speak() below.
+  const [lang, _setLang] = useState<Language>("ta");
   const [isScanning, setIsScanning] = useState(false);
   const [capsule, setCapsule] = useState<Capsule | null>(null);
   const [advisoryText, setAdvisoryText] = useState<string>("");
@@ -26,9 +46,10 @@ export function BoatApp() {
     if (advisoryText) speak(advisoryText, lang);
   };
 
-  const isNoGo = capsule?.risk_class === "NO_GO";
-  const isCaution = capsule?.risk_class === "CAUTION";
-  const isSafe = capsule?.risk_class === "SAFE";
+  const verdict = verdictOf(capsule?.risk_class);
+  const isNoGo = verdict === "no_go";
+  const isCaution = verdict === "caution";
+  const isSafe = verdict === "safe";
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans max-w-md mx-auto shadow-2xl overflow-hidden flex flex-col relative">
