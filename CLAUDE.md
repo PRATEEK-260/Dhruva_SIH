@@ -9,6 +9,8 @@ regional-language explanation from a shipped codebook with no network.
 Plan: `dhruva-plan.html`. Build contract and phase gates: `IMPLEMENTATION.md`. Neither is
 re-opened mid-build; if a decision here looks wrong, say so and stop, do not quietly change it.
 
+**Current state, what is done and what is outstanding: `docs/STATUS.md`. Read it first.**
+
 ---
 
 ## Settled decisions that keep getting re-litigated
