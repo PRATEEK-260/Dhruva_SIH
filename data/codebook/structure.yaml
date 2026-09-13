@@ -1,0 +1,103 @@
+# Reason codebook structure — the single source of truth.
+#
+# The 8-bit reason_code is not an enumeration. It decomposes:
+#
+#   bits 7-6  band      mirrors risk_class (offset 57) exactly
+#   bits 5-3  family    deciding-rule family
+#   bits 2-0  modifier  secondary clause
+#
+# Band mirroring is the whole safety property: the capsule carries the verdict
+# twice, 68 bits apart, so `reason_code >> 6 == risk_class` is a coherence check.
+# See docs/superpowers/specs/2026-09-13-reason-codebook-design.md.
+
+version: 1
+
+bands:
+  0: safe
+  1: caution
+  2: no_go
+  3: unknown
+
+families:
+  0: generic
+  1: wave
+  2: wind
+  3: cyclone
+  4: lightning
+  5: tsunami
+  6: data_missing
+  7: reserved
+
+modifiers:
+  0: none
+  1: saturated
+  2: boundary_near
+  3: pfz_reachable
+  4: pfz_outranked
+  5: return_now
+  6: provisional
+  7: reserved
+
+# rule_id prefix -> family. The suffix (S1/C2/N3/A*/U0) already encodes the
+# verdict, so band and family are derived independently and their agreement is
+# itself worth asserting.
+rule_family:
+  WAVE-S1: 1
+  WAVE-C2: 1
+  WAVE-N3: 1
+  WIND-S1: 2
+  WIND-C2: 2
+  WIND-N3: 2
+  CYCLONE-A1: 3
+  LIGHTNING-A2: 4
+  TSUNAMI-A3: 5
+  DATA-U0: 6
+
+# Absolute overrides return early from assess(), so they can only ever be no-go.
+# DATA-U0 yields UNKNOWN and nothing else.
+reachable_families:
+  0: [0, 1, 2]
+  1: [0, 1, 2]
+  2: [0, 1, 2, 3, 4, 5]
+  3: [0, 6]
+
+# An empty constraint means the modifier is valid anywhere.
+modifier_constraints:
+  none: {}
+  saturated: {families: [1, 2]}
+  boundary_near: {}
+  pfz_reachable: {bands: [0, 1]}
+  pfz_outranked: {bands: [1, 2]}
+  return_now: {bands: [2]}
+  provisional: {}
+  reserved: {bands: []}
+
+# Only one modifier fits in the byte. Highest priority first: a crew needs the
+# most actionable clause, not the first one that happens to apply.
+modifier_priority:
+  - saturated
+  - return_now
+  - pfz_outranked
+  - boundary_near
+  - pfz_reachable
+  - provisional
+  - none
+
+# saturating_fields() returns WIRE names; templates read DECODED attributes.
+# The two namespaces differ and an unmapped name would silently disable the
+# saturated modifier — a 9 m sea spoken as an exact 7.75 m.
+saturated_bridge:
+  wave_hs: wave_hs_m
+  wind_kt: wind_kt
+  curr_kt: curr_kt
+  sst: sst_c
+  pfz_dist_nm: pfz_dist_nm
+  bnd_dist_nm: bnd_dist_nm
+  bnd_eta_min: bnd_eta_min
+
+# Narration triggers. These decide which CLAUSE is spoken, never whether a
+# verdict is safe — the risk verdict is decided in risk/rules.py alone. Still
+# PROVISIONAL: they are engineering placeholders, not INCOIS criteria.
+narration_triggers:
+  boundary_near_nm: 5
+  pfz_min_confidence: 2
