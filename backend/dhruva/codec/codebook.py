@@ -20,6 +20,9 @@ docs/superpowers/specs/2026-09-13-reason-codebook-design.md.
 
 from __future__ import annotations
 
+import json
+import re
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -153,3 +156,173 @@ def reason_index(assessment: Any, capsule: Capsule | None = None) -> int:
         family = 0
     modifier = _modifier_for(band, family, capsule)
     return join_reason(band, family, modifier)
+
+
+# --------------------------------------------------------------- rendering ----
+#
+# Slots bind to decoded Capsule attributes, NEVER to wire field names. A slot is
+# the only way a number reaches a sentence, which is what makes the codebook
+# firewall-clean by construction rather than by inspection.
+
+# Rendered as a number, straight off the capsule.
+DIRECT_SLOTS: frozenset[str] = frozenset(
+    {
+        "wave_hs_m",
+        "wind_kt",
+        "curr_kt",
+        "sst_c",
+        "pfz_dist_nm",
+        "bnd_dist_nm",
+        "bnd_eta_min",
+        "valid_hours",
+    }
+)
+
+# The only unit conversions CLAUDE.md permits. Declared, not open-ended.
+CONVERTED_SLOTS: dict[str, tuple[str, float]] = {
+    "wave_hs_ft": ("wave_hs_m", 3.28084),
+    "wind_kmh": ("wind_kt", 1.852),
+}
+
+# Rendered as a WORD via the per-language lexicon, so they carry no digits.
+# Named _name so {wind_dir_deg} (the number) can never be confused with
+# {wind_dir_name} ("north-northwest"). A bearing spoken as a number is useless.
+LEXICON_SLOTS: dict[str, tuple[str, str]] = {
+    "wind_dir_name": ("wind_dir_deg", "compass"),
+    "curr_dir_name": ("curr_dir_deg", "compass"),
+    "pfz_bearing_name": ("pfz_bearing_deg", "compass"),
+    "bnd_type_name": ("bnd_type", "bnd_type"),
+    "chl_class_name": ("chl_class", "chl_class"),
+    "msg_type_name": ("msg_type", "msg_type"),
+}
+
+VALID_SLOTS: frozenset[str] = frozenset(DIRECT_SLOTS | set(CONVERTED_SLOTS) | set(LEXICON_SLOTS))
+
+SLOT_RE = re.compile(r"\{([a-z_]+)\}")
+
+
+def entry_key(band: int, family: int, modifier: int) -> str:
+    return f"b{band}f{family}m{modifier}"
+
+
+def _number(value: float) -> str:
+    """Two decimals, trimmed. Matches evidence/firewall.py so the online card and
+    the offline card agree on screen, and so the validator recognises the token."""
+    return f"{round(float(value), 2):g}"
+
+
+def _compass(degrees: float, lexicon: dict[str, Any]) -> str:
+    return lexicon["compass"][round(float(degrees) / 22.5) % 16]
+
+
+def fill(template: str, capsule: Capsule, lexicon: dict[str, Any]) -> str:
+    """Substitute slots. Raises on an unknown slot rather than leaving it visible."""
+
+    def replace(match: re.Match[str]) -> str:
+        name = match.group(1)
+        if name in DIRECT_SLOTS:
+            return _number(getattr(capsule, name))
+        if name in CONVERTED_SLOTS:
+            source, factor = CONVERTED_SLOTS[name]
+            return _number(getattr(capsule, source) * factor)
+        if name in LEXICON_SLOTS:
+            source, table = LEXICON_SLOTS[name]
+            raw = getattr(capsule, source)
+            return _compass(raw, lexicon) if table == "compass" else lexicon[table][raw]
+        raise KeyError(f"unknown slot {{{name}}}")
+
+    return SLOT_RE.sub(replace, template)
+
+
+# ------------------------------------------------------------- degradation ----
+
+_BUILD_DIR = _STRUCTURE_PATH.parent / "build"
+_CODEBOOK_CACHE: dict[str, dict[str, Any]] = {}
+
+
+def load_codebook(language: str) -> dict[str, Any]:
+    """Read a built codebook, cached. Read once at first use, never per decode."""
+    if language not in _CODEBOOK_CACHE:
+        path = _BUILD_DIR / f"{language}.json"
+        if not path.exists():
+            raise FileNotFoundError(
+                f"no codebook for {language!r}; run python -m dhruva.codec.generate_codebook"
+            )
+        with path.open(encoding="utf-8") as fh:
+            _CODEBOOK_CACHE[language] = json.load(fh)
+    return _CODEBOOK_CACHE[language]
+
+
+_LEXICON_CACHE: dict[str, dict[str, Any]] = {}
+
+
+def load_lexicon(language: str) -> dict[str, Any]:
+    """Compass points and enum labels. Words only — nothing here carries a digit."""
+    if language not in _LEXICON_CACHE:
+        path = _STRUCTURE_PATH.parent / "lexicons" / f"{language}.yaml"
+        if not path.exists():
+            raise FileNotFoundError(f"no lexicon for {language!r}")
+        with path.open(encoding="utf-8") as fh:
+            _LEXICON_CACHE[language] = yaml.safe_load(fh)
+    return _LEXICON_CACHE[language]
+
+
+@dataclass(frozen=True, slots=True)
+class ReasonRender:
+    """What the phone should say, and whether it had to fall back to say it."""
+
+    band: int
+    family: int
+    modifier: int
+    degraded: bool
+    text: str
+
+
+def _severity_of_band(band: int) -> int:
+    """Reuse the risk engine's own ordering rather than keeping a second copy."""
+    from dhruva.graph.state import RiskClass
+    from dhruva.risk.rules import _SEVERITY
+
+    return _SEVERITY[RiskClass(RISK_CLASSES[band])]
+
+
+def decode_reason(code: int, risk_class: int, language: str = "en") -> ReasonRender:
+    """Expand the byte, cross-checking it against the capsule's other copy of the
+    verdict.
+
+    Three cases, in the order they are tested:
+
+    1. Coherent and reachable — render the authored entry.
+    2. The band disagrees with risk_class — take the MORE SEVERE of the two and
+       render that band's generic entry. Family and modifier are discarded: if
+       the band bits are corrupt the rest may be too.
+    3. Coherent but unreachable — render the band's generic entry.
+
+    Taking the worse band rather than trusting either copy follows the rule the
+    risk engine already states: answering "safe" when you do not know is worse
+    than answering nothing.
+    """
+    band, family, modifier = split_reason(code)
+    entries = load_codebook(language)["entries"]
+
+    degraded = False
+    if band != risk_class:
+        if not 0 <= risk_class <= 3:
+            raise ValueError(f"risk_class must fit two bits, got {risk_class}")
+        band = band if _severity_of_band(band) >= _severity_of_band(risk_class) else risk_class
+        family, modifier = 0, 0
+        degraded = True
+    elif not is_reachable(band, family, modifier):
+        family, modifier = 0, 0
+        degraded = True
+
+    key = entry_key(band, family, modifier)
+    return ReasonRender(band, family, modifier, degraded, entries[key])
+
+
+def render(capsule: Capsule, language: str = "en") -> str:
+    """The whole offline path: capsule in, spoken sentence out. Pure apart from
+    the one cached codebook read."""
+    risk_class = _BAND_OF[capsule.risk_class]
+    chosen = decode_reason(capsule.reason_code, risk_class, language)
+    return fill(chosen.text, capsule, load_lexicon(language))

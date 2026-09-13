@@ -1,0 +1,48 @@
+# English lexicon. Words, never numbers — the numeric firewall polices digits, so
+# anything here must stay digit-free. A wrong compass point sends a boat the wrong
+# way, which is why these are translated rather than transliterated.
+language: en
+notice: Advisory only, follow official INCOIS and IMD warnings.
+
+compass:
+  0: north
+  1: north-northeast
+  2: northeast
+  3: east-northeast
+  4: east
+  5: east-southeast
+  6: southeast
+  7: south-southeast
+  8: south
+  9: south-southwest
+  10: southwest
+  11: west-southwest
+  12: west
+  13: west-northwest
+  14: northwest
+  15: north-northwest
+
+bnd_type:
+  none: no boundary
+  imbl: the maritime boundary
+  mpa: a marine protected area
+  closed: a closed area
+
+chl_class:
+  low: low
+  moderate: moderate
+  high: high
+  very_high: very high
+
+msg_type:
+  advisory: advisory
+  alert: alert
+  all_clear: all clear
+  test: test
+
+units:
+  m: metres
+  kt: knots
+  nm: nautical miles
+  min: minutes
+  degC: degrees Celsius
