@@ -67,37 +67,67 @@ def _check_digits(language: str, key: str, text: str) -> None:
         )
 
 
+def compose(
+    band: int,
+    family: int,
+    modifier: int,
+    templates: dict[str, Any],
+    notice: str,
+) -> str:
+    """Join complete sentences: verdict, evidence, clause, notice.
+
+    Never splices fragments into one sentence — that is what keeps composition
+    safe in SOV languages, where clause order inside a sentence differs from
+    English but sentence order does not.
+    """
+    parts = [templates["band"][band], templates["evidence"][f"{band}.{family}"]]
+    clause = templates["modifier"].get(modifier)
+    if clause:
+        parts.append(clause)
+    parts.append(notice)
+    return " ".join(part.strip() for part in parts)
+
+
 def build_language(language: str) -> dict[str, Any]:
     templates = _load_yaml(CODEBOOK / "templates" / f"{language}.yaml")
     lexicon = _load_yaml(CODEBOOK / "lexicons" / f"{language}.yaml")
     notice = lexicon["notice"]
 
-    authored = {k: v for k, v in templates.items() if k.startswith("b") and k[1:2].isdigit()}
     wanted = set(reachable_keys())
+    wanted_pairs = {(b, f) for b in range(4) for f in range(8) if is_reachable(b, f, 0)}
+    wanted_modifiers = {
+        m for b in range(4) for f in range(8) for m in range(8) if is_reachable(b, f, m)
+    }
 
-    extra = set(authored) - wanted
-    if extra:
-        raise ValueError(f"{language}: authored keys that are not reachable: {sorted(extra)}")
-    missing = wanted - set(authored)
-    if missing:
-        raise ValueError(f"{language}: reachable keys with no template: {sorted(missing)}")
+    have_pairs = {tuple(int(x) for x in k.split(".")) for k in templates["evidence"]}
+    if have_pairs != wanted_pairs:
+        raise ValueError(
+            f"{language}: evidence keys do not match the reachable band.family set. "
+            f"missing={sorted(wanted_pairs - have_pairs)} extra={sorted(have_pairs - wanted_pairs)}"
+        )
+    if set(templates["band"]) != set(range(4)):
+        raise ValueError(f"{language}: needs exactly four band openers")
+    missing_mods = (wanted_modifiers - {0}) - set(templates["modifier"])
+    if missing_mods:
+        raise ValueError(f"{language}: no clause for modifier(s) {sorted(missing_mods)}")
 
-    for key, text in authored.items():
-        _check_slots(language, key, text)
-        _check_digits(language, key, text)
+    for section in ("band", "evidence", "modifier"):
+        for key, text in templates[section].items():
+            _check_slots(language, f"{section}[{key}]", text)
+            _check_digits(language, f"{section}[{key}]", text)
     _check_digits(language, "notice", notice)
 
     entries: dict[str, str] = {}
     for band in range(4):
-        generic = f"{authored[entry_key(band, 0, 0)].rstrip()} {notice}"
+        generic = compose(band, 0, 0, templates, notice)
         for family in range(8):
             for modifier in range(8):
                 key = entry_key(band, family, modifier)
-                if key in authored:
-                    entries[key] = f"{authored[key].rstrip()} {notice}"
+                if is_reachable(band, family, modifier):
+                    entries[key] = compose(band, family, modifier, templates, notice)
                 else:
-                    # Unreachable: degrade to the band's generic text rather than
-                    # inventing a sentence for a combination that cannot happen.
+                    # Unreachable: speak the band's generic sentence rather than
+                    # inventing one for a combination the engine cannot produce.
                     entries[key] = generic
 
     return {

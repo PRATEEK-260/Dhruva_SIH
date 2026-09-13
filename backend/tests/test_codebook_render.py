@@ -101,3 +101,14 @@ def test_generator_is_deterministic() -> None:
     )
     after = {p.name: p.read_bytes() for p in BUILD.glob("*.json")}
     assert before == after, "generator output drifted from the checked-in build"
+
+
+def test_no_entry_repeats_a_sentence() -> None:
+    """Composition can make the band opener and the evidence say the same thing
+    twice. Spoken aloud that sounds like a fault, so it is a test, not a habit."""
+    for path in BUILD.glob("*.json"):
+        entries = json.loads(path.read_text(encoding="utf-8"))["entries"]
+        for key, text in entries.items():
+            sentences = [s.strip() for s in text.split(".") if s.strip()]
+            duplicates = {s for s in sentences if sentences.count(s) > 1}
+            assert not duplicates, f"{path.name}:{key} repeats {duplicates}"

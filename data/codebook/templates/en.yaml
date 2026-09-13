@@ -1,87 +1,49 @@
-# English reason templates, keyed b<band>f<family>m<modifier>.
+# English reason templates, composed rather than enumerated.
 #
-# Spoken aloud over engine noise: short, imperative, hazard first. Only reachable
-# combinations are authored here; the generator fills the rest from each band's
-# b<band>f0m0 generic entry. The advisory notice is appended by the generator, so
-# it must not be repeated inline.
+# A rendered sentence is:  band opener + evidence + modifier clause + notice
 #
-# No literal digits. Every number comes from a slot bound to a decoded Capsule
-# attribute, which is what makes these templates firewall-clean by construction.
+# All four are COMPLETE SENTENCES joined with a space, never fragments spliced
+# into one sentence. That is what makes this safe across SOV languages like Tamil
+# and Telugu: each piece is independently well-formed, so no piece has to know
+# the word order of the piece beside it.
+#
+# ~25 authored strings per language instead of 69. That matters because
+# machine-authored safety text has to be checked by a native speaker before a
+# crew acts on it, and a reviewer will actually finish 25.
+#
+# No literal digits anywhere. Every number arrives through a slot bound to a
+# decoded Capsule attribute.
 language: en
 
-# ---- band 0: safe -------------------------------------------------------------
-b0f0m0: Conditions are within limits for your boat.
-b0f0m2: Conditions are within limits. You are {bnd_dist_nm} nautical miles from {bnd_type_name}.
-b0f0m3: Conditions are within limits. A fishing zone lies {pfz_dist_nm} nautical miles {pfz_bearing_name}.
-b0f0m6: Conditions are within limits for your boat. These limits are provisional and not official criteria.
-b0f1m0: Conditions are within limits. Waves {wave_hs_m} metres.
-b0f1m2: Waves {wave_hs_m} metres, within limits. You are {bnd_dist_nm} nautical miles from {bnd_type_name}.
-b0f1m3: Waves {wave_hs_m} metres, within limits. A fishing zone lies {pfz_dist_nm} nautical miles {pfz_bearing_name}.
-b0f1m6: Waves {wave_hs_m} metres, within limits. These limits are provisional and not official criteria.
-b0f2m0: Conditions are within limits. Wind {wind_kt} knots.
-b0f2m2: Wind {wind_kt} knots, within limits. You are {bnd_dist_nm} nautical miles from {bnd_type_name}.
-b0f2m3: Wind {wind_kt} knots, within limits. A fishing zone lies {pfz_dist_nm} nautical miles {pfz_bearing_name}.
-b0f2m6: Wind {wind_kt} knots, within limits. These limits are provisional and not official criteria.
-b0f1m1: Waves are at least {wave_hs_m} metres. The reading is at the top of its scale.
-b0f2m1: Wind is at least {wind_kt} knots. The reading is at the top of its scale.
+# ---- the verdict, one per band ------------------------------------------------
+band:
+  0: Conditions are within limits for your boat.
+  1: Take care.
+  2: Do not go out.
+  3: No advice can be given.
 
-# ---- band 1: caution ----------------------------------------------------------
-b1f0m0: Take care. Conditions are near the limit for your boat.
-b1f0m2: Take care. You are {bnd_dist_nm} nautical miles from {bnd_type_name}, about {bnd_eta_min} minutes at your present drift.
-b1f0m3: Take care. A fishing zone lies {pfz_dist_nm} nautical miles {pfz_bearing_name}.
-b1f0m4: Take care. Conditions are near the limit. A fishing zone is nearby but conditions come first.
-b1f0m6: Take care. Conditions are near the limit. These limits are provisional and not official criteria.
-b1f1m0: Take care. Waves {wave_hs_m} metres, near the limit for your boat.
-b1f1m1: Take care. Waves are at least {wave_hs_m} metres. The reading is at the top of its scale.
-b1f1m2: Take care. Waves {wave_hs_m} metres. You are {bnd_dist_nm} nautical miles from {bnd_type_name}, about {bnd_eta_min} minutes at your present drift.
-b1f1m3: Take care. Waves {wave_hs_m} metres. A fishing zone lies {pfz_dist_nm} nautical miles {pfz_bearing_name}.
-b1f1m4: Take care. Waves {wave_hs_m} metres, near the limit. A fishing zone is nearby but conditions come first.
-b1f1m6: Take care. Waves {wave_hs_m} metres. These limits are provisional and not official criteria.
-b1f2m0: Take care. Wind {wind_kt} knots, near the limit for your boat.
-b1f2m1: Take care. Wind is at least {wind_kt} knots. The reading is at the top of its scale.
-b1f2m2: Take care. Wind {wind_kt} knots. You are {bnd_dist_nm} nautical miles from {bnd_type_name}, about {bnd_eta_min} minutes at your present drift.
-b1f2m3: Take care. Wind {wind_kt} knots. A fishing zone lies {pfz_dist_nm} nautical miles {pfz_bearing_name}.
-b1f2m4: Take care. Wind {wind_kt} knots, near the limit. A fishing zone is nearby but conditions come first.
-b1f2m6: Take care. Wind {wind_kt} knots. These limits are provisional and not official criteria.
+# ---- why, keyed "<band>.<family>" ---------------------------------------------
+evidence:
+  "0.0": No hazard was recorded.
+  "0.1": Waves {wave_hs_m} metres.
+  "0.2": Wind {wind_kt} knots.
+  "1.0": Conditions are near the limit for your boat.
+  "1.1": Waves {wave_hs_m} metres, near the limit for your boat.
+  "1.2": Wind {wind_kt} knots, near the limit for your boat.
+  "2.0": Conditions are past the limit for your boat.
+  "2.1": Waves {wave_hs_m} metres, past the limit for your boat.
+  "2.2": Wind {wind_kt} knots, past the limit for your boat.
+  "2.3": A cyclone warning is in force near you.
+  "2.4": Lightning has been reported near you.
+  "2.5": A tsunami alert is in force. Move away from the shore.
+  "3.0": Conditions could not be confirmed. Seek the official bulletin before going out.
+  "3.6": A reading needed for the verdict was not available. Seek the official bulletin before going out.
 
-# ---- band 2: no-go ------------------------------------------------------------
-b2f0m0: Do not go out. Conditions are past the limit for your boat.
-b2f0m2: Do not go out. You are {bnd_dist_nm} nautical miles from {bnd_type_name}, about {bnd_eta_min} minutes at your present drift.
-b2f0m4: Do not go out. A fishing zone is nearby but conditions are past the limit.
-b2f0m5: Do not go out. Return to the nearest harbour now.
-b2f0m6: Do not go out. Conditions are past the limit. These limits are provisional and not official criteria.
-b2f1m0: Do not go out. Waves {wave_hs_m} metres, past the limit for your boat.
-b2f1m1: Do not go out. Waves are at least {wave_hs_m} metres. The reading is at the top of its scale.
-b2f1m2: Do not go out. Waves {wave_hs_m} metres. You are {bnd_dist_nm} nautical miles from {bnd_type_name}, about {bnd_eta_min} minutes at your present drift.
-b2f1m4: Do not go out. Waves {wave_hs_m} metres. A fishing zone is nearby but conditions are past the limit.
-b2f1m5: Do not go out. Waves {wave_hs_m} metres. Return to the nearest harbour now.
-b2f1m6: Do not go out. Waves {wave_hs_m} metres. These limits are provisional and not official criteria.
-b2f2m0: Do not go out. Wind {wind_kt} knots, past the limit for your boat.
-b2f2m1: Do not go out. Wind is at least {wind_kt} knots. The reading is at the top of its scale.
-b2f2m2: Do not go out. Wind {wind_kt} knots. You are {bnd_dist_nm} nautical miles from {bnd_type_name}, about {bnd_eta_min} minutes at your present drift.
-b2f2m4: Do not go out. Wind {wind_kt} knots. A fishing zone is nearby but conditions are past the limit.
-b2f2m5: Do not go out. Wind {wind_kt} knots. Return to the nearest harbour now.
-b2f2m6: Do not go out. Wind {wind_kt} knots. These limits are provisional and not official criteria.
-b2f3m0: Do not go out. A cyclone warning is in force near you.
-b2f3m2: Do not go out. A cyclone warning is in force. You are {bnd_dist_nm} nautical miles from {bnd_type_name}.
-b2f3m4: Do not go out. A cyclone warning is in force. A fishing zone is nearby but the warning comes first.
-b2f3m5: Do not go out. A cyclone warning is in force. Return to the nearest harbour now.
-b2f3m6: Do not go out. A cyclone warning is in force near you. These limits are provisional and not official criteria.
-b2f4m0: Do not go out. Lightning has been reported near you.
-b2f4m2: Do not go out. Lightning is near. You are {bnd_dist_nm} nautical miles from {bnd_type_name}.
-b2f4m4: Do not go out. Lightning is near. A fishing zone is nearby but the hazard comes first.
-b2f4m5: Do not go out. Lightning is near. Return to the nearest harbour now.
-b2f4m6: Do not go out. Lightning has been reported near you. These limits are provisional and not official criteria.
-b2f5m0: Do not go out. A tsunami alert is in force. Move away from the shore.
-b2f5m2: Do not go out. A tsunami alert is in force. You are {bnd_dist_nm} nautical miles from {bnd_type_name}.
-b2f5m4: Do not go out. A tsunami alert is in force. Ignore any fishing zone and move away from the shore.
-b2f5m5: Do not go out. A tsunami alert is in force. Return to harbour and move away from the shore now.
-b2f5m6: Do not go out. A tsunami alert is in force. Move away from the shore.
-
-# ---- band 3: unknown ----------------------------------------------------------
-b3f0m0: Conditions could not be confirmed, so no advice can be given. Seek the official bulletin before going out.
-b3f0m2: Conditions could not be confirmed, so no advice can be given. You are {bnd_dist_nm} nautical miles from {bnd_type_name}.
-b3f0m6: Conditions could not be confirmed, so no advice can be given. These limits are provisional and not official criteria.
-b3f6m0: A reading needed for the verdict was not available, so no advice can be given. Seek the official bulletin before going out.
-b3f6m2: A reading needed for the verdict was not available, so no advice can be given. You are {bnd_dist_nm} nautical miles from {bnd_type_name}.
-b3f6m6: A reading needed for the verdict was not available, so no advice can be given. These limits are provisional and not official criteria.
+# ---- the secondary clause. Modifier 0 adds nothing. ---------------------------
+modifier:
+  1: This reading is at the top of its scale. Take it as at least that much.
+  2: You are {bnd_dist_nm} nautical miles from {bnd_type_name}, about {bnd_eta_min} minutes at your present drift.
+  3: A fishing zone lies {pfz_dist_nm} nautical miles {pfz_bearing_name}.
+  4: A fishing zone is nearby, but conditions come first.
+  5: Return to the nearest harbour now.
+  6: These limits are provisional and are not official criteria.
