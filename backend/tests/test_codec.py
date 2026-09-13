@@ -179,6 +179,47 @@ class TestClampingNeverWraps:
         assert saturating_fields(_demo()) == []
 
 
+class TestNonFiniteIsRefused:
+    """NaN is not a measurement, it is the residue of a failed computation —
+    an ocean model filling a land cell, a division that went wrong. Clamping it
+    to zero would encode "calm sea" from a value that means "no idea", which is
+    the same direction of error as wrapping."""
+
+    @pytest.mark.parametrize("bad", [float("nan"), float("inf"), float("-inf")])
+    def test_every_field_refuses_a_non_finite_value(self, bad):
+        for f in FIELDS:
+            with pytest.raises(ValueError, match="non-finite"):
+                f.to_raw(bad)
+
+    def test_encoding_a_nan_wave_height_raises_rather_than_reading_calm(self):
+        c = _demo()
+        c.wave_hs_m = float("nan")
+        with pytest.raises(ValueError, match="non-finite"):
+            encode(c)
+
+    def test_the_error_names_the_field(self):
+        c = _demo()
+        c.sst_c = float("inf")
+        with pytest.raises(ValueError, match="sst"):
+            encode(c)
+
+    def test_a_non_finite_value_is_not_reported_as_merely_saturated(self):
+        """Saying "saturated" would imply a reading was taken."""
+        c = _demo()
+        c.wave_hs_m = float("nan")
+        assert "wave_hs" not in saturating_fields(c)
+
+
+class TestFuzz:
+    def test_any_19_byte_payload_decodes_without_raising(self):
+        """A corrupted capsule off a scanner must degrade into a wrong-looking
+        advisory, not a crash on a boat with no signal."""
+        import secrets
+
+        for _ in range(500):
+            decode(secrets.token_bytes(CAPSULE_BYTES))
+
+
 class TestRoundTrip:
     def test_the_demo_advisory_survives_exactly(self):
         c = _demo()

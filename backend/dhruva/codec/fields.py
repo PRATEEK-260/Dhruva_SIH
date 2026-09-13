@@ -68,10 +68,29 @@ class Field:
 
         A value above the top of the scale saturates at the top, which reads as
         "at least this bad". Wrapping would turn a 9 m sea into a calm one.
+
+        None encodes as the bottom of the scale: it means the caller explicitly
+        had nothing, and a capsule cannot express per-field absence — there is no
+        spare bit for it. When the missing field is one a verdict rests on, the
+        caller must set risk_class to unknown rather than let a zero speak.
+
+        NaN and infinity RAISE. They are not measurements, they are the residue
+        of a failed computation — an ocean model filling a land cell, a division
+        that went wrong — and silently clamping NaN to zero would encode "calm
+        sea" from a value that means "no idea". This project already refuses
+        non-finite readings at the Observation boundary; this is the same rule at
+        the last gate before the bits go out.
         """
         if value is None:
             return 0
-        raw = round((float(value) - self.offset) / self.scale)
+        numeric = float(value)
+        if numeric != numeric or numeric in (float("inf"), float("-inf")):
+            raise ValueError(
+                f"{self.name}: refusing to encode a non-finite value ({value!r}). "
+                "NaN or infinity here means a computation failed; encoding it as a "
+                "number would put a fabricated reading on the wire."
+            )
+        raw = round((numeric - self.offset) / self.scale)
         return max(0, min(self.max_raw, raw))
 
     def from_raw(self, raw: int) -> float:
@@ -81,7 +100,10 @@ class Field:
         """Did this value hit a rail? The UI says "18+ kt" rather than "18 kt"."""
         if value is None:
             return False
-        raw = round((float(value) - self.offset) / self.scale)
+        numeric = float(value)
+        if numeric != numeric or numeric in (float("inf"), float("-inf")):
+            return False  # not a reading at all; to_raw will refuse it
+        raw = round((numeric - self.offset) / self.scale)
         return raw > self.max_raw or raw < 0
 
 
