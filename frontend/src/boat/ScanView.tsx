@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import jsQR from "jsqr";
 import { decodeCapsule } from "../shared/capsule/decode";
-import { renderReason, Language } from "../shared/capsule/codebook";
+import { renderReason, type Language } from "../shared/capsule/codebook";
 
 export function advisoryFor(payload: string, lang: Language) {
   const capsule = decodeCapsule(payload);

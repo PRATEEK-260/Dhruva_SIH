@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './App.css'
 import { ScanView } from './boat/ScanView'
-import { Language, LANGUAGES } from './shared/capsule/codebook'
+import { type Language, LANGUAGES } from './shared/capsule/codebook'
 
 function App() {
   const [lang, setLang] = useState<Language>("ta");
