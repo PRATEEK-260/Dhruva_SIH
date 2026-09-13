@@ -208,3 +208,38 @@ class TestTemplateWithRealValues:
         text = render_template(bundle)
         result = validate(text, bundle)
         assert result.passed, result.messages
+
+
+class TestCapsuleEvidenceHash:
+    """The 12-bit value that ends up on the wire in Capsule.evidence_hash,
+    distinct from .digest (the full hash sources/cache.py keys on — truncating
+    THAT would raise its collision rate for cache keys, which is a different
+    and much worse problem than a 1-in-4096 audit-fingerprint collision)."""
+
+    def test_fits_in_twelve_bits(self):
+        assert 0 <= _bundle().capsule_evidence_hash <= 4095
+
+    def test_is_deterministic_for_the_same_bundle_contents(self):
+        assert _bundle().capsule_evidence_hash == _bundle().capsule_evidence_hash
+
+    def test_differs_from_a_materially_different_bundle(self):
+        """Not a guaranteed property of any hash truncation, but for these two
+        very different fixtures a collision would be suspicious enough to
+        investigate rather than shrug off."""
+        other = EvidenceBundle(
+            items=[
+                EvidenceItem(
+                    key="sst",
+                    value=29.4,
+                    unit="degC",
+                    dataset_id="copernicus_phy_hourly",
+                    cell="6.55N, 93.00E",
+                )
+            ],
+            risk_class="safe",
+        )
+        assert _bundle().capsule_evidence_hash != other.capsule_evidence_hash
+
+    def test_is_the_leading_bits_of_the_full_digest(self):
+        bundle = _bundle()
+        assert bundle.capsule_evidence_hash == int(bundle.digest[:3], 16)

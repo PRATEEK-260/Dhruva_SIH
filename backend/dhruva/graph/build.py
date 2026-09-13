@@ -437,6 +437,8 @@ def codec(state: DhruvaState) -> dict[str, Any]:
     curr_dir = observation_for(state, Variable.CURRENT_DIRECTION)
     sst = observation_for(state, Variable.SST)
 
+    bundle = build_bundle(state.get("observations", []), a)
+
     capsule = Capsule(
         msg_type="advisory",
         issue_slot=_issue_slot(state.get("when") or dt.datetime.now(dt.UTC)),
@@ -453,6 +455,7 @@ def codec(state: DhruvaState) -> dict[str, Any]:
         # chl_class has no "unknown" member and no classifier exists yet, so it
         # stays at the dataclass default. Inert today: no authored codebook
         # template renders {chl_class_name}.
+        evidence_hash=bundle.capsule_evidence_hash,
     )
     capsule.reason_code = reason_index(a, capsule)
     return {

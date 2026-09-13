@@ -88,6 +88,22 @@ class TestNodeNineCapsuleBits:
         assert capsule.wind_kt == 22
         assert capsule.reason_code == out["reason_code"]
 
+    def test_evidence_hash_is_wired_from_the_same_observations(self):
+        """docs/CAPSULE_SPEC.md: evidence_hash is 'truncated SHA-256 of the
+        evidence bundle, for audit' — not a placeholder zero. It must match
+        what build_bundle() computes for the SAME observations, so the shore
+        console's evidence and the capsule's own claim about it agree."""
+        from dhruva.evidence.schema import build_bundle
+        from dhruva.risk.rules import assess
+
+        state = _state(wave=2.75, wind=22.0)
+        out = codec(state)
+        capsule = decode(from_base32(out["capsule_bits"]))
+
+        expected = build_bundle(state["observations"], assess(state)).capsule_evidence_hash
+        assert capsule.evidence_hash == expected
+        assert capsule.evidence_hash != 0
+
     def test_capsule_bits_is_qr_alphanumeric_safe(self):
         text = codec(_state(wave=1.0, wind=5.0))["capsule_bits"]
         assert set(text) <= set("ABCDEFGHIJKLMNOPQRSTUVWXYZ234567")

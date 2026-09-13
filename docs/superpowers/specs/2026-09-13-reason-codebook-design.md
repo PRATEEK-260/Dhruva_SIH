@@ -27,8 +27,9 @@ from the assessment; the decoder takes it apart with shifts. Neither side holds 
 lookup table the other lacks, which is the same discipline `fields.py` already
 applies to the capsule itself: one table, both directions generated from it.
 
-The cost is density. Not all 256 combinations are reachable — roughly 40 are —
-and the rest are structurally impossible (a tsunami that is not a no-go). They
+The cost is density. Not all 256 combinations are reachable — 69 are, per
+`generate_codebook.reachable_keys()` — and the rest are structurally impossible
+(a tsunami that is not a no-go). They
 still get entries, because Gate 4 requires exactly 256 renderable entries. See
 §5.
 

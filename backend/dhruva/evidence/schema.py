@@ -88,10 +88,13 @@ class EvidenceBundle(BaseModel):
 
     @property
     def digest(self) -> str:
-        """Truncated hash for the capsule's 12-bit evidence_hash field.
+        """Full SHA-256 hex digest over the values and their sources, so the
+        same advisory hashes the same way and a tampered one does not.
 
-        Computed over the values and their sources, so the same advisory hashes
-        the same way and a tampered one does not.
+        This is the cache-key-strength hash (sources/cache.py keys zarr paths on
+        it) — full length, so collisions across unrelated bundles stay
+        vanishingly unlikely. It is NOT what goes on the wire: for that, see
+        capsule_evidence_hash, which truncates this to the capsule's 12 bits.
         """
         payload = json.dumps(
             [
@@ -101,6 +104,20 @@ class EvidenceBundle(BaseModel):
             separators=(",", ":"),
         )
         return hashlib.sha256(payload.encode()).hexdigest()
+
+    @property
+    def capsule_evidence_hash(self) -> int:
+        """The 12-bit value that goes in the capsule's evidence_hash field.
+
+        Leading 3 hex characters of `digest` (12 bits, 0-4095) — an audit
+        fingerprint, not a security boundary: 4096 buckets means two different
+        bundles collide about 1 time in 4096, which is fine for "does the shore
+        console's evidence match what this capsule claims" and would not be
+        fine for anything cryptographic. Deliberately a separate property from
+        `digest` rather than a mode flag on it, so the cache key (sources/
+        cache.py) can never be accidentally handed a lossy 12-bit hash.
+        """
+        return int(self.digest[:3], 16)
 
     def to_prompt_block(self) -> str:
         """What the model is shown. Deliberately terse and explicit: these are the
