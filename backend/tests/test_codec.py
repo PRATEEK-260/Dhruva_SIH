@@ -390,3 +390,43 @@ class TestDecoderIsPure:
     def test_decoding_is_reproducible(self):
         payload = encode(_demo())
         assert decode(payload).as_dict() == decode(payload).as_dict()
+
+
+class TestCorpusContract:
+    """eval/capsule_corpus.jsonl is the cross-language contract: the TypeScript
+    port (phase 4, frontend) is checked against it, not against this
+    implementation directly. Pin here that the corpus agrees with THIS
+    implementation, so a drift is caught on the Python side first."""
+
+    @staticmethod
+    def _rows():
+        import json
+        import pathlib
+
+        return [
+            json.loads(line)
+            for line in pathlib.Path("eval/capsule_corpus.jsonl").read_text().splitlines()
+        ]
+
+    def test_the_corpus_has_five_hundred_rows(self):
+        assert len(self._rows()) == 500
+
+    def test_every_corpus_row_matches_hex_and_base32(self):
+        for row in self._rows():
+            payload = encode(Capsule(**row["capsule"]))
+            assert to_hex(payload) == row["hex"], row["id"]
+            assert to_base32(payload) == row["base32"], row["id"]
+
+    def test_every_corpus_row_round_trips_through_decode(self):
+        """lat/lon are quantised to the position grid on the wire (docs/CAPSULE_SPEC.md),
+        so decode legitimately returns the quantised position, not the corpus's
+        pre-quantisation input — same tolerance as test_a_random_corpus_round_trips."""
+        for row in self._rows():
+            original = Capsule(**row["capsule"])
+            restored = decode(from_hex(row["hex"]))
+            assert abs(restored.lat - original.lat) < ZONE_STEP / 256 + 1e-9, row["id"]
+            assert abs(restored.lon - original.lon) < ZONE_STEP / 256 + 1e-9, row["id"]
+            skip = ("lat", "lon")
+            other_fields = {k: v for k, v in original.as_dict().items() if k not in skip}
+            restored_fields = {k: v for k, v in restored.as_dict().items() if k not in skip}
+            assert restored_fields == other_fields, row["id"]

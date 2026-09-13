@@ -26,6 +26,7 @@ data = [
     "requests>=2.32",
     "certifi>=2024.8",
     "pyyaml>=6.0",
+    "segno>=1.6",
 ]
 geo = [
     "shapely>=2.0",

@@ -495,79 +495,172 @@ git commit -m "codec,evidence: add eleven languages and their numeral tables"
 
 ### Task 4: Wire node 9 and add QR transport
 
+**Deviation from the original plan, found while implementing:** `codec.py`
+already has `to_base32`/`from_base32`/`to_hex`/`from_hex` at the **bytes**
+level (`to_base32(payload: bytes) -> str`), already exercised by
+`TestTransports` in `test_codec.py` including a QR-alphanumeric-safety check.
+Re-declaring `Capsule`-level functions of the same name in `qr.py` would shadow
+tested code rather than extend it. Verified the corpus is consistent with them
+first: encoding all 500 corpus capsules and comparing to their stored `hex` and
+`base32` columns gives zero mismatches. What is actually still missing is (a) a
+test that pins that consistency as a contract — nothing reads the corpus file
+today — and (b) QR image generation, which does not exist in any form. Task
+narrowed to just those two plus the node 9 wiring.
+
 **Files:**
+- Modify: `backend/tests/test_codec.py` — add the corpus-contract test
 - Modify: `backend/dhruva/graph/build.py:395`
 - Create: `backend/dhruva/codec/qr.py`
 - Modify: `backend/pyproject.toml` — add `segno>=1.6` to the `data` extra
 - Test: `backend/tests/test_qr.py`
 
 **Interfaces:**
-- Consumes: `reason_index` (Task 1), `encode`/`decode` from `dhruva.codec.codec`.
+- Consumes: `reason_index` (Task 1), `encode`/`decode`/`to_base32`/`to_hex` from
+  `dhruva.codec.codec` (existing, unmodified).
 - Produces:
-  - `to_base32(capsule: Capsule) -> str` — 31 chars, unpadded RFC 4648
-  - `from_base32(text: str) -> Capsule`
-  - `qr_svg(capsule: Capsule) -> str`
+  - `qr_svg(capsule: Capsule, *, scale: int = 4) -> str`
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Write the failing corpus-contract test**
+
+```python
+# appended to backend/tests/test_codec.py
+class TestCorpusContract:
+    """eval/capsule_corpus.jsonl is the contract the TypeScript port is checked
+    against. Pin here that the corpus agrees with THIS implementation, so a
+    drift shows up on the Python side before it ever reaches TypeScript."""
+
+    def test_every_corpus_row_matches_hex_and_base32(self):
+        import json
+        import pathlib
+
+        rows = [
+            json.loads(line)
+            for line in pathlib.Path("eval/capsule_corpus.jsonl").read_text().splitlines()
+        ]
+        assert len(rows) == 500
+        for row in rows:
+            payload = encode(Capsule(**row["capsule"]))
+            assert to_hex(payload) == row["hex"], row["id"]
+            assert to_base32(payload) == row["base32"], row["id"]
+
+    def test_every_corpus_row_round_trips_through_decode(self):
+        import json
+        import pathlib
+
+        rows = [
+            json.loads(line)
+            for line in pathlib.Path("eval/capsule_corpus.jsonl").read_text().splitlines()
+        ]
+        for row in rows:
+            original = Capsule(**row["capsule"])
+            restored = decode(from_hex(row["hex"]))
+            assert restored.as_dict() == original.as_dict(), row["id"]
+```
+
+- [ ] **Step 2: Run it and confirm it passes immediately**
+
+Run: `.venv/bin/python -m pytest backend/tests/test_codec.py -k Corpus -v`
+Expected: PASS — this pins existing, already-correct behaviour as a contract
+rather than driving new code. If it fails, stop: the corpus and the encoder
+have already drifted and that is a Task-1-through-3 regression, not a QR task.
+
+- [ ] **Step 3: Write the failing QR test**
 
 ```python
 # backend/tests/test_qr.py
-import json, pathlib
+import json
+import pathlib
+
 from dhruva.codec.codec import Capsule
-from dhruva.codec.qr import to_base32, from_base32, qr_svg
+from dhruva.codec.qr import qr_svg
 
-CORPUS = [json.loads(line) for line in
-          pathlib.Path("eval/capsule_corpus.jsonl").read_text().splitlines()]
-
-
-def test_base32_matches_the_corpus_for_every_capsule():
-    for row in CORPUS:
-        assert to_base32(Capsule(**row["capsule"])) == row["base32"]
-
-
-def test_base32_round_trips_through_the_decoder():
-    for row in CORPUS:
-        assert from_base32(row["base32"]).as_dict() == Capsule(**row["capsule"]).as_dict()
-
-
-def test_base32_is_always_31_characters():
-    for row in CORPUS:
-        assert len(row["base32"]) == 31
+CORPUS = [
+    json.loads(line)
+    for line in pathlib.Path("eval/capsule_corpus.jsonl").read_text().splitlines()
+]
 
 
 def test_qr_svg_is_emitted_and_self_contained():
     svg = qr_svg(Capsule(**CORPUS[0]["capsule"]))
-    assert svg.startswith("<?xml") or svg.lstrip().startswith("<svg")
+    assert svg.lstrip().startswith("<?xml") or svg.lstrip().startswith("<svg")
     assert "http" not in svg
+
+
+def test_qr_svg_is_deterministic():
+    capsule = Capsule(**CORPUS[7]["capsule"])
+    assert qr_svg(capsule) == qr_svg(capsule)
+
+
+def test_every_corpus_capsule_produces_a_scannable_symbol():
+    """segno raises if the payload does not fit the requested error-correction
+    level, so this is really a size-budget check across the whole corpus."""
+    for row in CORPUS[:50]:  # sampled: 500 segno encodes is slow, the format never changes per-row
+        svg = qr_svg(Capsule(**row["capsule"]))
+        assert svg
 ```
 
-- [ ] **Step 2: Run it and confirm it fails**
+- [ ] **Step 4: Run it and confirm it fails**
 
 Run: `.venv/bin/python -m pytest backend/tests/test_qr.py -q`
 Expected: FAIL — `dhruva.codec.qr` not found.
 
-- [ ] **Step 3: Add `segno` and implement `qr.py`**
+- [ ] **Step 5: Add `segno` and implement `qr.py`**
 
-145 bits pads to 19 bytes; base32 of 19 bytes is 31 unpadded characters. Use
-uppercase RFC 4648 with padding stripped — QR alphanumeric mode covers A–Z and
-0–9, so the symbol stays small and scans reliably.
+```python
+# backend/dhruva/codec/qr.py
+"""QR transport for the capsule.
 
-- [ ] **Step 4: Replace the node 9 stub**
+The wire format is identical across QR, Bluetooth and SMS (CLAUDE.md); this
+module only adds the QR-specific step of turning the base32 string into a
+scannable image. Encoding and the base32 alphabet themselves are unchanged —
+see dhruva.codec.codec.to_base32 and its QR-alphanumeric-safety test.
+"""
+
+from __future__ import annotations
+
+import segno
+
+from dhruva.codec.codec import Capsule, encode, to_base32
+
+
+def qr_svg(capsule: Capsule, *, scale: int = 4) -> str:
+    """An SVG string, no filesystem write. Alphanumeric mode: to_base32 already
+    guarantees an uppercase, digit-and-A-Z-only alphabet, so segno never falls
+    back to the denser byte mode."""
+    payload = to_base32(encode(capsule))
+    qr = segno.make(payload, error="m")
+    import io
+
+    buf = io.StringIO()
+    qr.save(buf, kind="svg", scale=scale, xmldecl=True)
+    return buf.getvalue()
+```
+
+Add to `backend/pyproject.toml`'s `data` extra: `"segno>=1.6",` then
+`uv pip install -e "backend[data]"` (or `pip install segno` directly into
+`.venv` if `uv` is not driving this shell).
+
+- [ ] **Step 6: Run it and confirm it passes**
+
+Run: `.venv/bin/python -m pytest backend/tests/test_qr.py backend/tests/test_codec.py -q`
+Expected: all pass.
+
+- [ ] **Step 7: Replace the node 9 stub**
 
 At `build.py:395`, delete `{RiskClass.SAFE: 1, RiskClass.CAUTION: 41, RiskClass.NO_GO: 90}`
 and call `reason_index(assess(state), capsule)`. Node 9 also builds the capsule
 and returns `base32` on the state.
 
-- [ ] **Step 5: Run the full suite and confirm it passes**
+- [ ] **Step 8: Run the full suite and confirm it passes**
 
 Run: `.venv/bin/python -m pytest backend/tests -q`
-Expected: all green, 177 + new tests.
+Expected: all green, 273 (post Task 3) + new tests.
 
-- [ ] **Step 6: Run the capsule-auditor subagent**
+- [ ] **Step 9: Run the capsule-auditor subagent**
 
 CLAUDE.md requires it after every codec change.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 10: Commit**
 
 ```bash
 git add backend/ && git commit -m "codec,graph: add QR transport and wire the reason index into node 9"

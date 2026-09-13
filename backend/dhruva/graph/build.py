@@ -22,9 +22,11 @@ from typing import Any, cast
 
 from langgraph.graph import END, START, StateGraph
 
+from dhruva.codec.codebook import reason_index
+from dhruva.codec.codec import Capsule, encode, to_base32
 from dhruva.evidence.firewall import render_template, validate
 from dhruva.evidence.schema import build_bundle
-from dhruva.graph.state import BoatClass, DhruvaState, Intent, RiskClass, ToolPlan
+from dhruva.graph.state import BoatClass, DhruvaState, Intent, ToolPlan, observation_for
 from dhruva.risk.rules import assess
 from dhruva.sources.conditions import DEFAULT_VARIABLES, conditions_at, default_adapters
 from dhruva.sources.registry import Registry, Variable
@@ -249,6 +251,23 @@ def _point(state: DhruvaState) -> tuple[float, float]:
     return lat, lon
 
 
+def _issue_slot(when: dt.datetime) -> int:
+    """UTC instant to a 0-671 slot: 15-minute resolution, wrapping weekly with
+    Monday 00:00 UTC as slot 0. docs/CAPSULE_SPEC.md fixes the width and the
+    wrap length (7 * 24 * 4 = 672) but not this mapping, so it is pinned here,
+    once, rather than left for each caller to reinvent differently.
+
+    Runs only at encode time, onshore, with the real clock — that is allowed.
+    The decoder that reads issue_slot back out stays clockless; only the
+    ENCODE side is time-aware.
+    """
+    if when.tzinfo is None:
+        raise ValueError("issue_slot needs a timezone-aware instant")
+    utc = when.astimezone(dt.UTC)
+    minutes_into_week = utc.weekday() * 24 * 60 + utc.hour * 60 + utc.minute
+    return (minutes_into_week // 15) % 672
+
+
 def planner(state: DhruvaState) -> dict[str, Any]:
     """Node 0. Decides; does not fetch."""
     intent = classify(state.get("query", ""))
@@ -389,11 +408,57 @@ def evidence(state: DhruvaState) -> dict[str, Any]:
 
 
 def codec(state: DhruvaState) -> dict[str, Any]:
-    """Node 9. Capsule encoding arrives in phase 4; the reason code is chosen
-    from the verdict so the field is populated end to end."""
-    verdict = state.get("risk_class", RiskClass.UNKNOWN)
-    reason = {RiskClass.SAFE: 1, RiskClass.CAUTION: 41, RiskClass.NO_GO: 90}.get(verdict, 0)
-    return {"reason_code": reason}
+    """Node 9. Build the capsule, compute the structured reason index from the
+    same assessment risk() used, and emit the base32 wire string.
+
+    Only fields this graph actually computes from real observations are
+    populated with real values. Two are deliberately left at their honest
+    zero/none defaults rather than guessed:
+
+    - PFZ bearing/distance/confidence: no PFZ node runs in this graph. The PFZ
+      bulletin is scraped by a separate module (CLAUDE.md: "PFZ has no API — it
+      is scraped and attributed") that is not wired into this state machine.
+    - Boundary distance and type: `state["boundaries"]` can hold real nearest-
+      boundary data, but `bnd_eta_min` needs drift projection (current plus
+      heading over time) that this graph does not compute. Populating distance
+      without a real ETA would let the "near a boundary" narration clause fire
+      and then speak a fabricated "about 0 minutes" — a number that reads as
+      real data while meaning nothing, the same shape of lie the numeric
+      firewall exists to stop even though it would not come from the LLM. Both
+      stay at the Capsule default ("none", 0) until route/drift lands.
+    """
+    a = assess(state)
+    lat, lon = _point(state)
+
+    wave = observation_for(state, Variable.WAVE_HEIGHT)
+    wind = observation_for(state, Variable.WIND_SPEED)
+    wind_dir = observation_for(state, Variable.WIND_DIRECTION)
+    curr = observation_for(state, Variable.CURRENT_SPEED)
+    curr_dir = observation_for(state, Variable.CURRENT_DIRECTION)
+    sst = observation_for(state, Variable.SST)
+
+    capsule = Capsule(
+        msg_type="advisory",
+        issue_slot=_issue_slot(state.get("when") or dt.datetime.now(dt.UTC)),
+        lat=lat,
+        lon=lon,
+        risk_class=a.risk_class.value,
+        hazards=list(a.hazard_flags),
+        wave_hs_m=wave.value if wave else 0.0,
+        wind_kt=round(wind.value) if wind else 0,
+        wind_dir_deg=wind_dir.value if wind_dir else 0.0,
+        curr_kt=curr.value if curr else 0.0,
+        curr_dir_deg=curr_dir.value if curr_dir else 0.0,
+        sst_c=sst.value if sst else 18.0,
+        # chl_class has no "unknown" member and no classifier exists yet, so it
+        # stays at the dataclass default. Inert today: no authored codebook
+        # template renders {chl_class_name}.
+    )
+    capsule.reason_code = reason_index(a, capsule)
+    return {
+        "reason_code": capsule.reason_code,
+        "capsule_bits": to_base32(encode(capsule)),
+    }
 
 
 # ------------------------------------------------------------------ graph ----
