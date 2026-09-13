@@ -8,10 +8,9 @@ export function advisoryFor(payload: string, lang: Language) {
   return renderReason(capsule, lang);
 }
 
-export function ScanView({ lang = "ta" }: { lang?: Language }) {
+export function ScanView({ lang = "ta", onScan, onClose }: { lang?: Language, onScan: (res: { payload: string, advisory: { text: string, degraded: boolean }, capsule: any }) => void, onClose: () => void }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [advisory, setAdvisory] = useState<{ text: string; degraded: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -22,14 +21,14 @@ export function ScanView({ lang = "ta" }: { lang?: Language }) {
     async function setupCamera() {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-        if (videoRef.current) {
+        if (videoRef.current && active) {
           videoRef.current.srcObject = stream;
           videoRef.current.setAttribute("playsinline", "true");
           await videoRef.current.play();
           tick();
         }
       } catch (_err) {
-        if (active) setError("Could not access camera");
+        if (active) setError("Could not access camera. Please allow permissions.");
       }
     }
 
@@ -50,13 +49,15 @@ export function ScanView({ lang = "ta" }: { lang?: Language }) {
 
           if (code) {
             try {
-              const res = advisoryFor(code.data, lang);
-              setAdvisory(res);
-              speak(res.text, lang, res);
+              const capsule = decodeCapsule(code.data);
+              const advisory = renderReason(capsule, lang);
+              
               // Stop camera after successful scan
               if (video.srcObject) {
                 (video.srcObject as MediaStream).getTracks().forEach((track) => track.stop());
               }
+              active = false;
+              onScan({ payload: code.data, advisory, capsule });
               return;
             } catch (_e) {
               // Ignore invalid QRs and keep scanning
@@ -76,44 +77,45 @@ export function ScanView({ lang = "ta" }: { lang?: Language }) {
         (videoElem.srcObject as MediaStream).getTracks().forEach((track) => track.stop());
       }
     };
-  }, [lang]);
-
-  // Offline speech path (Step 4)
-  function speak(text: string, language: string, res?: { degraded: boolean }) {
-    if ("speechSynthesis" in window) {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = language;
-      window.speechSynthesis.speak(utterance);
-    } else {
-      // Fallback to pre-rendered audio if TTS is unavailable
-      // E.g., caching service worker returns the clip for this entry
-      // For now, we simulate this fallback path.
-      console.log("Fallback to pre-rendered audio for: ", text);
-    }
-  }
+  }, [lang, onScan]);
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Scan Capsule QR</h2>
-      {error && <div style={{ color: "red" }}>{error}</div>}
-      {!advisory && (
-        <div style={{ position: "relative" }}>
-          <video ref={videoRef} style={{ width: "100%", maxWidth: "400px" }} />
+    <div className="fixed inset-0 bg-black z-50 flex flex-col items-center justify-center">
+      <div className="absolute top-4 right-4 z-50">
+        <button onClick={onClose} className="bg-gray-800 text-white px-4 py-2 rounded-full font-bold">
+          Close
+        </button>
+      </div>
+      {error ? (
+        <div className="bg-red-500 text-white p-4 rounded m-4">{error}</div>
+      ) : (
+        <div className="relative w-full h-full flex flex-col items-center justify-center">
+          <video ref={videoRef} className="absolute inset-0 w-full h-full object-cover" />
           <canvas ref={canvasRef} style={{ display: "none" }} />
-        </div>
-      )}
-      {advisory && (
-        <div style={{ marginTop: "20px", padding: "10px", border: "1px solid #ccc" }}>
-          <h3>Advisory ({lang})</h3>
-          {advisory.degraded && (
-            <div style={{ color: "orange", marginBottom: "10px" }}>
-              <strong>Warning:</strong> Degraded advisory.
+          {/* Overlay Box */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+            <div className="w-64 h-64 border-4 border-blue-500 rounded-lg box-border relative">
+              <div className="absolute -inset-1 border-2 border-transparent bg-gradient-to-b from-blue-500/20 to-transparent mix-blend-overlay"></div>
             </div>
-          )}
-          <p>{advisory.text}</p>
-          <button onClick={() => speak(advisory.text, lang)}>Replay Audio</button>
+            <p className="mt-4 text-white font-bold bg-black/50 px-4 py-2 rounded">
+              Point at QR Code
+            </p>
+          </div>
         </div>
       )}
     </div>
   );
+}
+
+// Offline speech path (Step 4)
+export function speak(text: string, language: string, fallbackLog?: () => void) {
+  if ("speechSynthesis" in window) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = language;
+    window.speechSynthesis.speak(utterance);
+  } else {
+    // Fallback to pre-rendered audio if TTS is unavailable
+    if (fallbackLog) fallbackLog();
+    console.log("Fallback to pre-rendered audio for: ", text);
+  }
 }
