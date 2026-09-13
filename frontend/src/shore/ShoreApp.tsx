@@ -4,7 +4,7 @@ import {
   ChevronRight, Calendar, Layers, Maximize, Plus, Minus,
   Thermometer, Leaf, Waves, Target, CheckCircle2, AlertTriangle, Info, Send
 } from 'lucide-react';
-import ReactMapGL, { MapProvider, Marker } from 'react-map-gl';
+import ReactMapGL, { MapProvider, Marker } from 'react-map-gl/maplibre';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
 export function ShoreApp() {
