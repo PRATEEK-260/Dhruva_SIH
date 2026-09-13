@@ -1,27 +1,27 @@
-import { useState } from 'react'
-import './App.css'
-import { ScanView } from './boat/ScanView'
-import { type Language, LANGUAGES } from './shared/capsule/codebook'
+import { BrowserRouter, Routes, Route, Link, Navigate } from "react-router-dom";
+import { BoatApp } from "./boat/BoatApp";
+import { ShoreApp } from "./shore/ShoreApp";
 
-function App() {
-  const [lang, setLang] = useState<Language>("ta");
-
+export default function App() {
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto", padding: "20px" }}>
-      <h1>Dhruva Boat PWA</h1>
-      <div style={{ marginBottom: "20px" }}>
-        <label>
-          <strong>Select Language: </strong>
-          <select value={lang} onChange={(e) => setLang(e.target.value as Language)}>
-            {LANGUAGES.map((l) => (
-              <option key={l} value={l}>{l.toUpperCase()}</option>
-            ))}
-          </select>
-        </label>
-      </div>
-      <ScanView lang={lang} />
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/boat" element={<BoatApp />} />
+        <Route path="/shore" element={<ShoreApp />} />
+        <Route path="/" element={
+          <div className="min-h-screen bg-gray-100 flex flex-col items-center justify-center p-4">
+            <h1 className="text-3xl font-bold mb-8">Dhruva UIs</h1>
+            <div className="flex gap-4">
+              <Link to="/boat" className="px-6 py-3 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700">
+                Launch Boat PWA (Mobile)
+              </Link>
+              <Link to="/shore" className="px-6 py-3 bg-slate-800 text-white rounded-lg shadow-md hover:bg-slate-900">
+                Launch Shore Console (Desktop)
+              </Link>
+            </div>
+          </div>
+        } />
+      </Routes>
+    </BrowserRouter>
+  );
 }
-
-export default App
