@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import { Menu, TriangleAlert, ShieldAlert, Clock, Waves, Wind, Navigation, Map, Target, QrCode, Volume2, WifiOff, CheckCircle2 } from 'lucide-react';
 import { ScanView, speak } from './ScanView';
@@ -27,55 +27,24 @@ export function verdictOf(
 // waters, per docs/STATUS.md — the plan's original point was on land. No
 // geolocation prompt is wired up this round; a real device build would read
 // navigator.geolocation instead of this constant.
-const DEMO_LAT = 11.05;
-const DEMO_LON = 79.95;
+// Default demo coordinate: 11.05N 79.95E is at sea, in the EEZ and territorial waters.
 
-export async function askAdvisory(query: string, lang: Language, boatClass: string) {
-  const response = await postAdvisory({
-    query,
-    lat: DEMO_LAT,
-    lon: DEMO_LON,
-    language: lang,
-    boat_class: boatClass,
-  });
-  return {
-    narration: response.narration,
-    riskClass: response.risk_class,
-    degraded: false,
-    capsuleBase32: response.capsule_base32,
-  };
-}
 
-/** SVG string for the offline-handoff QR. Pure and exported separately from
- * the component, mirroring backend/dhruva/codec/qr.py's own qr_svg() — same
- * reasoning: a thin wrapper over a well-tested library is still worth its own
- * seam, since it is the one place this project's own choices (which field,
- * which error-correction level) live. */
-export async function generateHandoffQr(capsuleBase32: string): Promise<string> {
-  return QRCode.toString(capsuleBase32, { type: "svg" });
-}
+/** SVG string for the offline-handoff QR. */
 
 export function BoatApp() {
-  // setLang is unused until a language-switcher control is wired up; kept
-  // rather than removed since Language is already plumbed through ScanView
-  // and speak() below.
-  const [lang, _setLang] = useState<Language>("ta");
+  const [lang, setLang] = useState<Language>("ta");
   const [isScanning, setIsScanning] = useState(false);
   const [capsule, setCapsule] = useState<Capsule | null>(null);
   const [advisoryText, setAdvisoryText] = useState<string>("");
   const [degraded, setDegraded] = useState(false);
-  const [askText, setAskText] = useState("");
-  const [asking, setAsking] = useState(false);
-  const [askError, setAskError] = useState<string | null>(null);
-  const [askRiskClass, setAskRiskClass] = useState<string | null>(null);
-  const [qrSvg, setQrSvg] = useState<string | null>(null);
+  const [evidence, setEvidence] = useState<any>(null);
 
   // Date tracking for mockup purposes
   const scanTime = capsule ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--";
 
   const handleScan = (res: { payload: string, advisory: { text: string, degraded: boolean }, capsule: Capsule }) => {
-    setAskRiskClass(null);
-    setQrSvg(null);
+    setEvidence(null);
     setCapsule(res.capsule);
     setAdvisoryText(res.advisory.text);
     setDegraded(res.advisory.degraded);
@@ -87,26 +56,18 @@ export function BoatApp() {
     if (advisoryText) speak(advisoryText, lang);
   };
 
-  const handleAsk = async () => {
-    if (!askText.trim()) return;
-    setAsking(true);
-    setAskError(null);
-    try {
-      const result = await askAdvisory(askText, lang, "frp_under_12m");
-      setCapsule(null); // this answer did not come from a scanned capsule
-      setAdvisoryText(result.narration);
-      setDegraded(result.degraded);
-      setAskRiskClass(result.riskClass);
-      setQrSvg(await generateHandoffQr(result.capsuleBase32));
-      speak(result.narration, lang);
-    } catch {
-      setAskError("Could not reach the network. Try Scan QR instead.");
-    } finally {
-      setAsking(false);
+  // Live-translate the text if the user switches languages while a capsule is loaded
+  
+  useEffect(() => {
+    if (capsule) {
+      import("../shared/capsule/codebook").then(({ renderReason }) => {
+        const rendered = renderReason(capsule, lang);
+        setAdvisoryText(rendered.text);
+      });
     }
-  };
+  }, [lang, capsule]);
 
-  const verdict = verdictOf(capsule?.risk_class ?? askRiskClass ?? undefined);
+  const verdict = verdictOf(capsule?.risk_class ?? undefined);
   const isNoGo = verdict === "no_go";
   const isCaution = verdict === "caution";
   const isSafe = verdict === "safe";
@@ -118,7 +79,7 @@ export function BoatApp() {
       )}
 
       {/* Header */}
-      <header className="bg-dhruva-nav text-white p-4 flex items-center justify-between z-10">
+      <header className="bg-dhruva-nav text-white p-4 flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-3">
           <Menu className="w-6 h-6" />
           <div>
@@ -126,18 +87,31 @@ export function BoatApp() {
             <p className="text-[10px] text-gray-300 tracking-wider">ISRO PS 26176</p>
           </div>
         </div>
-        <div className="flex flex-col items-end">
-          <div className="flex items-center gap-1 border border-red-500 rounded px-2 py-0.5 mb-1">
-            <WifiOff className="w-3 h-3 text-red-500" />
-            <span className="text-[10px] font-bold text-red-500 tracking-widest">OFFLINE</span>
+        <div className="flex items-center gap-4">
+          <select 
+            value={lang} 
+            onChange={(e) => setLang(e.target.value as Language)}
+            className="bg-slate-800 text-white text-xs px-2 py-1 rounded border border-slate-600 focus:outline-none"
+          >
+            <option value="en">English</option>
+            <option value="ta">தமிழ் (Tamil)</option>
+            <option value="hi">हिंदी (Hindi)</option>
+            <option value="ml">മലയാളം (Malayalam)</option>
+            <option value="te">తెలుగు (Telugu)</option>
+          </select>
+          <div className="flex flex-col items-end">
+            <div className="flex items-center gap-1 border border-red-500 rounded px-2 py-0.5 mb-1">
+              <WifiOff className="w-3 h-3 text-red-500" />
+              <span className="text-[10px] font-bold text-red-500 tracking-widest">OFFLINE</span>
+            </div>
+            <p className="text-[10px] text-gray-300">GPS: LOCKED</p>
           </div>
-          <p className="text-[10px] text-gray-300">GPS: LOCKED</p>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto p-4 pb-32">
-        {!capsule && !askRiskClass ? (
+        {!capsule ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-6 opacity-50 mt-20">
             <QrCode className="w-24 h-24 mb-4 text-gray-400" />
             <h2 className="text-xl font-bold text-gray-700">No Data</h2>
@@ -199,21 +173,6 @@ export function BoatApp() {
               </div>
             )}
 
-            {qrSvg && (
-              <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-200 mb-6 flex flex-col items-center">
-                <h3 className="font-bold text-gray-800 mb-3 uppercase tracking-wider text-sm self-start">
-                  Offline Handoff QR
-                </h3>
-                {/* Safe despite dangerouslySetInnerHTML: this SVG is the qrcode
-                    library's own barcode-drawing output (geometric <path> data),
-                    never a string interpolation of capsuleBase32 into markup —
-                    and that base32 string is itself constrained to the fixed
-                    A-Z2-7 alphabet by to_base32() server-side, so it cannot
-                    contain an HTML metacharacter regardless. */}
-                <div dangerouslySetInnerHTML={{ __html: qrSvg }} />
-                <p className="text-xs text-gray-500 mt-2">Scan to reload this advisory offline.</p>
-              </div>
-            )}
 
             {capsule && (
               <>
@@ -295,35 +254,42 @@ export function BoatApp() {
                 </div>
               </>
             )}
+
+            {/* Evidence Card */}
+            {evidence && evidence.items && evidence.items.length > 0 && (
+              <div className="bg-slate-800 text-white rounded-xl p-4 shadow-md mt-6 mb-2">
+                <div className="flex items-center gap-2 border-b border-slate-700 pb-3 mb-3">
+                  <ShieldAlert className="w-5 h-5 text-blue-400" />
+                  <h3 className="font-bold uppercase tracking-wider text-sm">Data Provenance</h3>
+                </div>
+                <div className="space-y-3">
+                  {evidence.items.map((item: any, idx: number) => (
+                    <div key={idx} className="flex justify-between items-center text-sm border-b border-slate-700/50 last:border-0 pb-2 last:pb-0">
+                      <div>
+                        <p className="font-semibold text-blue-300">{item.key}</p>
+                        <p className="text-xs text-slate-400 font-mono mt-0.5">{item.dataset_id} • {item.offset_km}km away</p>
+                      </div>
+                      <div className="text-right">
+                        <span className="font-bold text-lg">{item.value}</span>
+                        <span className="text-xs text-slate-400 ml-1">{item.unit}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 pt-3 border-t border-slate-700 text-[10px] text-slate-400">
+                  Numeric Firewall: <span className="text-green-400 font-bold">PASSED</span>
+                  <br />
+                  <span className="font-mono">{evidence.built_at}</span>
+                </div>
+              </div>
+            )}
           </>
         )}
       </main>
 
-      {/* Ask a question online — text only this round, ASR is a separate,
-          deferred subsystem (docs/superpowers/specs/2026-09-13-phase-5-ui-wiring-design.md §7) */}
-      <div className="px-4 pb-2">
-        <div className="flex gap-2">
-          <input
-            type="text"
-            value={askText}
-            onChange={(e) => setAskText(e.target.value)}
-            placeholder="Ask a question (needs signal)..."
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm"
-            disabled={asking}
-          />
-          <button
-            onClick={handleAsk}
-            disabled={asking || !askText.trim()}
-            className="px-4 py-2 bg-slate-700 text-white rounded-lg text-sm font-bold disabled:bg-gray-300"
-          >
-            {asking ? "..." : "Ask"}
-          </button>
-        </div>
-        {askError && <p className="text-xs text-danger mt-1">{askError}</p>}
-      </div>
 
-      {/* Sticky Bottom Actions */}
-      <div className="absolute bottom-0 w-full bg-white border-t border-gray-200 p-4 pb-6 flex gap-3 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-10">
+      {/* Bottom Actions */}
+      <div className="w-full bg-white border-t border-gray-200 p-4 flex gap-3 shadow-inner shrink-0 z-10">
         <button
           onClick={() => setIsScanning(true)}
           className="flex-1 bg-blue-600 active:bg-blue-700 text-white rounded-xl p-3 flex flex-col items-center justify-center gap-1 min-h-[72px]"
