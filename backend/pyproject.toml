@@ -33,6 +33,7 @@ geo = [
     "pyproj>=3.7",
     "geopandas>=1.0",
     "sqlalchemy[asyncio]>=2.0",
+    "rioxarray>=0.17",
 ]
 graph = [
     "langgraph>=0.2.45",

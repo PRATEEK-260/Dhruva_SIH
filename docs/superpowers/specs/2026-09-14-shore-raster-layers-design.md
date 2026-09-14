@@ -197,6 +197,16 @@ already.
   fixture (not a live Copernicus fetch) asserting the written file opens with
   `rasterio`, has the correct CRS, bounds within `DEMO_BBOX`, and exactly one
   band.
+- **Orientation — found during implementation, not anticipated in this
+  draft.** This project's own data-plane convention stores lat ascending
+  (IMPLEMENTATION.md: "lat ascending, lon in -180..180"), but standard
+  north-up GeoTIFF/COG readers — TiTiler included — require row 0 of the file
+  to be the northernmost latitude. Verified empirically (write a known
+  asymmetric pattern, read the bytes back) that writing an ascending-lat array
+  through rioxarray as-is produces a file with south at the top: correctly
+  georeferenced by coordinate, rendered upside down by any standard viewer.
+  `write_cog` sorts lat descending before writing; a dedicated regression test
+  pins the fix by asserting the affine transform's Y-resolution is negative.
 - **`titiler` service**: not unit-tested — it's third-party code behind a ~15-line
   wrapper. Verified by a smoke test in the `compose` CI job (`curl` a known tile,
   assert 200 and a non-empty PNG), the same pattern already used for `/health`.

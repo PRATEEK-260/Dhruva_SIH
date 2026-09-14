@@ -1,0 +1,128 @@
+"""Generate the three Shore Console raster layers as Cloud-Optimized GeoTIFFs.
+
+Manual, not scheduled: re-run this before a demo to refresh the layers. No
+arq job — arq is in the locked stack table but is not wired anywhere in this
+codebase yet, and standing it up is out of scope for wiring three map layers.
+
+Run: python -m dhruva.geo.generate_cogs
+"""
+
+from __future__ import annotations
+
+import asyncio
+import datetime as dt
+import os
+from pathlib import Path
+from typing import TYPE_CHECKING
+
+import rioxarray  # noqa: F401 — registers the .rio accessor on DataArray; not called directly
+
+from dhruva.sources.cache import DEMO_BBOX, CacheKey, ZarrCache
+from dhruva.sources.copernicus import fetch_grid
+from dhruva.sources.registry import Registry
+
+if TYPE_CHECKING:
+    import xarray as xr
+
+# codebook.py's own DHRUVA_DATA_DIR convention, reused rather than a second
+# copy: inside the api container data/ is bind-mounted at a different depth
+# than the local checkout, and this module lives at the same depth codebook.py
+# does (backend/dhruva/<subpkg>/<file>.py, three parents below the repo root).
+_DATA_DIR = Path(
+    os.environ.get("DHRUVA_DATA_DIR", str(Path(__file__).resolve().parents[3] / "data"))
+)
+COG_DIR = _DATA_DIR / "cogs"
+
+# (output filename, registry dataset id, canonical variable name, native var name)
+_TARGETS = (
+    ("sst.tif", "copernicus_phy_hourly", "sst", "thetao"),
+    ("wave_height.tif", "copernicus_wav", "wave_height", "VHM0"),
+    ("chlorophyll.tif", "copernicus_bgc_pft", "chlorophyll", "chl"),
+)
+
+
+def write_cog(da: xr.DataArray, path: Path) -> None:
+    """A 2D (lat, lon) DataArray to a Cloud-Optimized GeoTIFF at path.
+
+    Two things a naive rioxarray call gets wrong for this project's data, both
+    found empirically (writing a known asymmetric test pattern and reading the
+    bytes back), not assumed:
+
+    1. set_spatial_dims is required before write_crs: Copernicus data's
+       spatial dims are named lat/lon, not rioxarray's default x/y, and
+       without this the CRS metadata silently does not attach to the right
+       axes.
+    2. This project's own data-plane convention (IMPLEMENTATION.md: "All of
+       them normalise to: lat ascending...") stores lat ascending — south to
+       north. Standard north-up GeoTIFF/COG readers (TiTiler included)
+       require the opposite: row 0 of the file must be the NORTHERNMOST
+       latitude, i.e. lat descending, giving a negative Y-resolution in the
+       affine transform. Writing an ascending-lat array as-is produces a file
+       that is upside down: south at the top, north at the bottom. Sorting
+       descending here, once, is cheaper than discovering an inverted SST
+       layer during a demo.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    (
+        da.sortby("lat", ascending=False)
+        .rio.set_spatial_dims(x_dim="lon", y_dim="lat")
+        .rio.write_crs("EPSG:4326")
+        .rio.to_raster(str(path), driver="COG")
+    )
+
+
+async def _fetch_one(
+    cache: ZarrCache, registry: Registry, entry_id: str, native_var: str
+) -> xr.Dataset:
+    """Cache-first: CacheKey.for_bbox takes the box in exactly DEMO_BBOX's own
+    (lat_min, lat_max, lon_min, lon_max) shape, and ZarrCache is the same
+    cache _subset()'s per-point path already writes to — reusing it here means
+    a second script run within the TTL costs no network call, and keeps this
+    script honouring the same cache the rest of the app does rather than
+    working around it.
+    """
+    entry = registry.by_id(entry_id)
+    when = dt.datetime.now(dt.UTC)
+    key = CacheKey.for_bbox(entry.dataset_id, DEMO_BBOX, when, [native_var])
+
+    cached = cache.get(key)
+    if cached is not None:
+        return cached
+
+    depth_kwargs: dict[str, float] = {}
+    if entry_id == "copernicus_phy_hourly":
+        depth_kwargs = {"minimum_depth": 0.0, "maximum_depth": 1.0}
+    ds = await asyncio.to_thread(
+        fetch_grid,
+        entry.dataset_id,
+        [native_var],
+        lat_min=key.lat_min,
+        lat_max=key.lat_max,
+        lon_min=key.lon_min,
+        lon_max=key.lon_max,
+        start=key.time_start,
+        end=key.time_end,
+        username=os.environ.get("COPERNICUSMARINE_SERVICE_USERNAME"),
+        password=os.environ.get("COPERNICUSMARINE_SERVICE_PASSWORD"),
+        **depth_kwargs,
+    )
+    cache.put(key, ds)
+    return ds
+
+
+async def main() -> None:
+    registry = Registry.load(os.environ.get("DHRUVA_REGISTRY", "data/registry.yaml"))
+    cache = ZarrCache()
+    for filename, entry_id, canonical_var, native_var in _TARGETS:
+        ds = await _fetch_one(cache, registry, entry_id, native_var)
+        da = ds[native_var]
+        if "time" in da.dims:
+            da = da.isel(time=-1)
+        if "depth" in da.dims:
+            da = da.isel(depth=0)
+        write_cog(da, COG_DIR / filename)
+        print(f"wrote {COG_DIR / filename} for {canonical_var}")
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
