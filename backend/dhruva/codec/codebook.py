@@ -42,7 +42,9 @@ from dhruva.codec.fields import RISK_CLASSES
 # graph deps were fixed. DHRUVA_DATA_DIR lets the container set the real path
 # (data/ bind-mounted separately) rather than this module guessing a depth
 # that only ever matches one deployment shape.
-_DATA_DIR = Path(os.environ.get("DHRUVA_DATA_DIR", str(Path(__file__).resolve().parents[3] / "data")))
+_DATA_DIR = Path(
+    os.environ.get("DHRUVA_DATA_DIR", str(Path(__file__).resolve().parents[3] / "data"))
+)
 _STRUCTURE_PATH = _DATA_DIR / "codebook" / "structure.yaml"
 
 

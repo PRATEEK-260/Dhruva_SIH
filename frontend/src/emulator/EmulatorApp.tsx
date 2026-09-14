@@ -7,7 +7,7 @@ import type { Language } from '../shared/capsule/codebook';
 const DEFAULT_LAT = 11.05;
 const DEFAULT_LON = 79.95;
 
-async function generateHandoffQr(capsuleBase32: string): Promise<string> {
+export async function generateHandoffQr(capsuleBase32: string): Promise<string> {
   return QRCode.toString(capsuleBase32, { type: "svg" });
 }
 

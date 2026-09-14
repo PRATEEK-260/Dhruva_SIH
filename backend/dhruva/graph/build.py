@@ -24,6 +24,7 @@ from langgraph.graph import END, START, StateGraph
 
 from dhruva.codec.codebook import reason_index
 from dhruva.codec.codec import Capsule, encode, to_base32
+from dhruva.config import database_dsn
 from dhruva.evidence.firewall import render_template, validate
 from dhruva.evidence.schema import build_bundle
 from dhruva.graph.state import BoatClass, DhruvaState, Intent, ToolPlan, observation_for
@@ -336,7 +337,7 @@ async def discovery(state: DhruvaState) -> dict[str, Any]:
 async def geo(state: DhruvaState) -> dict[str, Any]:
     """Node 5. Boundaries and zones. Degrades to empty rather than failing the
     run when no database is configured."""
-    dsn = os.environ.get("DHRUVA_DSN")
+    dsn = database_dsn()
     if not dsn:
         return {}
     import asyncpg

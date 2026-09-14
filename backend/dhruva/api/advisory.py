@@ -4,7 +4,6 @@ building and graph invocation are dhruva.graph.build.arun's job already."""
 from __future__ import annotations
 
 import datetime as dt
-import os
 from typing import Any
 
 import asyncpg
@@ -12,6 +11,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from dhruva.api.store import apply_schema, insert_advisory, recent_advisories
+from dhruva.config import database_dsn
 from dhruva.graph.build import arun
 from dhruva.graph.state import BoatClass
 
@@ -48,7 +48,7 @@ class AdvisoryResponse(BaseModel):
 async def _connect() -> asyncpg.Connection | None:
     """Best-effort only: a request-log write failing (no DB configured) must
     never block an advisory a crew is waiting on."""
-    dsn = os.environ.get("DHRUVA_DSN")
+    dsn = database_dsn()
     if not dsn:
         return None
     try:

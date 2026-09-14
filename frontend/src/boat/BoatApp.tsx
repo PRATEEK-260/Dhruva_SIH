@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import QRCode from 'qrcode';
-import { Menu, TriangleAlert, ShieldAlert, Clock, Waves, Wind, Navigation, Map, Target, QrCode, Volume2, WifiOff, CheckCircle2 } from 'lucide-react';
+import { Menu, TriangleAlert, ShieldAlert, Clock, Waves, Wind, Navigation, Map, Target, QrCode, Volume2, WifiOff, Wifi, MessageSquare, CheckCircle2 } from 'lucide-react';
 import { ScanView, speak } from './ScanView';
+import { AskSheet } from './AskSheet';
+import type { AskResult } from './AskSheet';
 import type { Capsule } from '../shared/capsule/decode';
 import type { Language } from '../shared/capsule/codebook';
-import { postAdvisory } from '../shared/api/client';
 
 /** Which verdict banner a decoded capsule should show.
  *
@@ -30,6 +30,13 @@ export function verdictOf(
 // Default demo coordinate: 11.05N 79.95E is at sea, in the EEZ and territorial waters.
 
 
+// 11.05N 79.95E is at sea, in the EEZ and territorial waters. The plan's
+// original 11.05/79.85 is ashore — and note it does NOT fail loudly: Open-Meteo
+// snaps a land request to the nearest wet cell 11.9 km away and answers
+// normally, which is exactly why nobody noticed. See docs/STATUS.md.
+const DEMO_LAT = 11.05;
+const DEMO_LON = 79.95;
+
 /** SVG string for the offline-handoff QR. */
 
 export function BoatApp() {
@@ -39,6 +46,34 @@ export function BoatApp() {
   const [advisoryText, setAdvisoryText] = useState<string>("");
   const [degraded, setDegraded] = useState(false);
   const [evidence, setEvidence] = useState<any>(null);
+  const [isAsking, setIsAsking] = useState(false);
+  // The badge used to be hardcoded to OFFLINE, which would have sat next to a
+  // working Ask button saying two different things at once.
+  const [online, setOnline] = useState<boolean>(() =>
+    typeof navigator === "undefined" ? true : navigator.onLine,
+  );
+
+  useEffect(() => {
+    const up = () => setOnline(true);
+    const down = () => setOnline(false);
+    window.addEventListener("online", up);
+    window.addEventListener("offline", down);
+    return () => {
+      window.removeEventListener("online", up);
+      window.removeEventListener("offline", down);
+    };
+  }, []);
+
+  const handleAnswer = (res: AskResult) => {
+    // An asked answer renders through the same capsule path as a scanned one,
+    // so the two can never disagree on screen.
+    setEvidence(res.evidence);
+    setCapsule(res.capsule);
+    setAdvisoryText(res.narration);
+    setDegraded(!res.firewallPassed);
+    setIsAsking(false);
+    speak(res.narration, lang);
+  };
 
   // Date tracking for mockup purposes
   const scanTime = capsule ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "--";
@@ -78,6 +113,17 @@ export function BoatApp() {
         <ScanView lang={lang} onScan={handleScan} onClose={() => setIsScanning(false)} />
       )}
 
+      {isAsking && (
+        <AskSheet
+          lat={DEMO_LAT}
+          lon={DEMO_LON}
+          lang={lang}
+          online={online}
+          onAnswer={handleAnswer}
+          onClose={() => setIsAsking(false)}
+        />
+      )}
+
       {/* Header */}
       <header className="bg-dhruva-nav text-white p-4 flex items-center justify-between z-10 shrink-0">
         <div className="flex items-center gap-3">
@@ -100,9 +146,23 @@ export function BoatApp() {
             <option value="te">తెలుగు (Telugu)</option>
           </select>
           <div className="flex flex-col items-end">
-            <div className="flex items-center gap-1 border border-red-500 rounded px-2 py-0.5 mb-1">
-              <WifiOff className="w-3 h-3 text-red-500" />
-              <span className="text-[10px] font-bold text-red-500 tracking-widest">OFFLINE</span>
+            <div
+              className={`flex items-center gap-1 border rounded px-2 py-0.5 mb-1 ${
+                online ? 'border-emerald-400' : 'border-red-500'
+              }`}
+            >
+              {online ? (
+                <Wifi className="w-3 h-3 text-emerald-400" />
+              ) : (
+                <WifiOff className="w-3 h-3 text-red-500" />
+              )}
+              <span
+                className={`text-[10px] font-bold tracking-widest ${
+                  online ? 'text-emerald-400' : 'text-red-500'
+                }`}
+              >
+                {online ? 'ONLINE' : 'OFFLINE'}
+              </span>
             </div>
             <p className="text-[10px] text-gray-300">GPS: LOCKED</p>
           </div>
@@ -115,7 +175,7 @@ export function BoatApp() {
           <div className="flex flex-col items-center justify-center h-full text-center p-6 opacity-50 mt-20">
             <QrCode className="w-24 h-24 mb-4 text-gray-400" />
             <h2 className="text-xl font-bold text-gray-700">No Data</h2>
-            <p className="text-gray-500 mt-2">Scan a QR code from the boat receiver to get the latest advisory.</p>
+            <p className="text-gray-500 mt-2">Ask a question while you have a signal, or scan a QR from the boat receiver to read the last advisory sent for your zone.</p>
           </div>
         ) : (
           <>
@@ -291,14 +351,26 @@ export function BoatApp() {
       {/* Bottom Actions */}
       <div className="w-full bg-white border-t border-gray-200 p-4 flex gap-3 shadow-inner shrink-0 z-10">
         <button
-          onClick={() => setIsScanning(true)}
+          onClick={() => setIsAsking(true)}
           className="flex-1 bg-blue-600 active:bg-blue-700 text-white rounded-xl p-3 flex flex-col items-center justify-center gap-1 min-h-[72px]"
         >
           <div className="flex items-center gap-2">
-            <QrCode className="w-6 h-6" />
-            <span className="font-bold text-lg">SCAN QR</span>
+            <MessageSquare className="w-6 h-6" />
+            <span className="font-bold text-lg">ASK</span>
           </div>
-          <span className="text-[11px] text-blue-100">Get Latest Advisory</span>
+          <span className="text-[11px] text-blue-100">
+            {online ? 'Question the sea' : 'Needs a signal'}
+          </span>
+        </button>
+        <button
+          onClick={() => setIsScanning(true)}
+          className="flex-1 bg-slate-700 active:bg-slate-800 text-white rounded-xl p-3 flex flex-col items-center justify-center gap-1 min-h-[72px]"
+        >
+          <div className="flex items-center gap-2">
+            <QrCode className="w-6 h-6" />
+            <span className="font-bold text-lg">SCAN</span>
+          </div>
+          <span className="text-[11px] text-slate-200">Works offline</span>
         </button>
         <button
           onClick={handleSpeak}

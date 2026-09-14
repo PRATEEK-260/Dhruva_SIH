@@ -8,21 +8,21 @@ regardless; they are not part of this router.
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 import asyncpg
 from fastapi import APIRouter, HTTPException
 
+from dhruva.config import database_dsn
 from dhruva.geo.layers import all_boundaries_geojson, all_zones_geojson, recent_pfz_geojson
 
 router = APIRouter(prefix="/geo", tags=["geo"])
 
 
 async def _connect() -> asyncpg.Connection:
-    dsn = os.environ.get("DHRUVA_DSN")
+    dsn = database_dsn()
     if not dsn:
-        raise HTTPException(503, "DHRUVA_DSN not configured")
+        raise HTTPException(503, "no database configured (DHRUVA_DSN or DATABASE_URL)")
     try:
         return await asyncpg.connect(dsn, timeout=5)
     except OSError as exc:

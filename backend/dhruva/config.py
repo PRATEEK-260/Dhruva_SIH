@@ -1,5 +1,8 @@
 """Settings. Everything comes from the environment; no credential has a default."""
 
+import os
+import re
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -21,3 +24,20 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+def database_dsn() -> str | None:
+    """The database connection string, whatever it is called.
+
+    DHRUVA_DSN grew up as a second name for DATABASE_URL and the two drifted:
+    the api container had DATABASE_URL but not DHRUVA_DSN, so every /geo
+    endpoint answered 503 "not configured" while /health/ready reported the same
+    database perfectly healthy. One resolver, so they cannot disagree again.
+
+    The SQLAlchemy driver suffix is stripped because asyncpg.connect() does not
+    accept postgresql+asyncpg:// — and .env.example ships exactly that form.
+    """
+    dsn = os.environ.get("DHRUVA_DSN") or os.environ.get("DATABASE_URL") or settings.database_url
+    if not dsn:
+        return None
+    return re.sub(r"^postgresql\+\w+://", "postgresql://", dsn)
