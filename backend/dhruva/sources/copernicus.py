@@ -33,6 +33,50 @@ DERIVED_FROM_UV = {Variable.CURRENT_SPEED, Variable.CURRENT_DIRECTION}
 MS_TO_KT = 1.943844
 
 
+def fetch_grid(
+    dataset_id: str,
+    native_vars: list[str],
+    *,
+    lat_min: float,
+    lat_max: float,
+    lon_min: float,
+    lon_max: float,
+    start: dt.datetime,
+    end: dt.datetime,
+    username: str | None = None,
+    password: str | None = None,
+    **extra: float,
+) -> xr.Dataset:
+    """Blocking. Callers on the event loop must run this in a thread.
+
+    The box-general core of what was CopernicusAdapter._subset()'s body —
+    extracted so dhruva.geo.generate_cogs can fetch a DEMO_BBOX-sized grid the
+    same way _subset fetches a small per-point tile, without duplicating the
+    kwarg-building or reaching into a _-prefixed method from outside this
+    module. **extra passes through minimum_depth/maximum_depth (or any future
+    open_dataset kwarg) untouched — _subset's surface-only override for
+    copernicus_phy_hourly must keep reaching open_dataset exactly as it did
+    before this extraction.
+    """
+    import copernicusmarine as cm
+
+    kwargs: dict[str, object] = dict(
+        dataset_id=dataset_id,
+        variables=native_vars,
+        minimum_latitude=lat_min,
+        maximum_latitude=lat_max,
+        minimum_longitude=lon_min,
+        maximum_longitude=lon_max,
+        start_datetime=start,
+        end_datetime=end,
+        **extra,
+    )
+    if username:
+        kwargs["username"] = username
+        kwargs["password"] = password
+    return cm.open_dataset(**kwargs).load()  # type: ignore[arg-type]
+
+
 class CopernicusAdapter:
     def __init__(
         self,
@@ -100,28 +144,23 @@ class CopernicusAdapter:
 
     def _subset(self, entry: DatasetEntry, native: list[str], key: CacheKey) -> xr.Dataset:
         """Blocking. Runs in a worker thread."""
-        import copernicusmarine as cm
-
-        kwargs: dict[str, object] = dict(
-            dataset_id=entry.dataset_id,
-            variables=native,
-            minimum_latitude=key.lat_min,
-            maximum_latitude=key.lat_max,
-            minimum_longitude=key.lon_min,
-            maximum_longitude=key.lon_max,
-            start_datetime=key.time_start,
-            end_datetime=key.time_end,
-        )
-        if self.username:
-            kwargs["username"] = self.username
-            kwargs["password"] = self.password
+        depth_kwargs: dict[str, float] = {}
         # Surface fields only; the shallowest level is the SST and surface-current proxy.
         if entry.id == "copernicus_phy_hourly":
-            kwargs["minimum_depth"] = 0.0
-            kwargs["maximum_depth"] = 1.0
-
-        ds = cm.open_dataset(**kwargs)  # type: ignore[arg-type]
-        return ds.load()  # materialise inside the thread, not on the event loop
+            depth_kwargs = {"minimum_depth": 0.0, "maximum_depth": 1.0}
+        return fetch_grid(
+            entry.dataset_id,
+            native,
+            lat_min=key.lat_min,
+            lat_max=key.lat_max,
+            lon_min=key.lon_min,
+            lon_max=key.lon_max,
+            start=key.time_start,
+            end=key.time_end,
+            username=self.username,
+            password=self.password,
+            **depth_kwargs,
+        )
 
     def _read_point(
         self,
