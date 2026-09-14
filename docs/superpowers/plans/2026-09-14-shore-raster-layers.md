@@ -877,10 +877,18 @@ git add eval/fixtures/sst-fixture.tif
           docker compose up -d --build --wait --wait-timeout 300
           curl -fsS http://localhost:8000/health | tee /dev/stderr | grep -q '"status":"ok"'
           curl -fsS http://localhost:8000/health/ready | tee /dev/stderr | grep -q '"ready":true'
-          curl -fsS "http://localhost:8001/cog/tiles/WebMercatorQuad/2/1/1.png?url=file:///data/cogs/sst.tif&rescale=18,33&colormap_name=thermal" -o /tmp/tile.png
+          curl -fsS "http://localhost:8001/cog/preview.png?url=file:///data/cogs/sst.tif&rescale=0,1&colormap_name=thermal" -o /tmp/tile.png
           file /tmp/tile.png | grep -q "PNG image data"
           docker compose down -v
 ```
+
+`/cog/preview.png` rather than a `{z}/{x}/{y}` tile coordinate — avoids needing
+to know a valid zoom for whatever the fixture's own resolution happens to be
+(Task 3 found a real 404 from guessing a zoom outside a COG's actual
+minzoom/maxzoom range). `rescale=0,1` matches the fixture's own
+`np.random.rand()` value range, not the real SST 18-33°C range — this is a
+synthetic fixture, not real data, so its own range is what the request must
+declare.
 
 - [ ] **Step 3: Verify locally before pushing**
 
@@ -894,7 +902,7 @@ echo "LANGFUSE_ENCRYPTION_KEY=$(openssl rand -hex 32)" >> .env
 mkdir -p data/cogs && cp eval/fixtures/sst-fixture.tif data/cogs/sst.tif
 docker compose up -d --build --wait --wait-timeout 300
 curl -fsS http://localhost:8000/health
-curl -fsS "http://localhost:8001/cog/tiles/WebMercatorQuad/2/1/1.png?url=file:///data/cogs/sst.tif&rescale=18,33&colormap_name=thermal" -o /tmp/tile.png
+curl -fsS "http://localhost:8001/cog/preview.png?url=file:///data/cogs/sst.tif&rescale=0,1&colormap_name=thermal" -o /tmp/tile.png
 file /tmp/tile.png
 docker compose down -v
 ```

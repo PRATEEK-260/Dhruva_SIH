@@ -50,9 +50,13 @@ jobs:
             echo "LANGFUSE_SALT=$(openssl rand -hex 16)"
             echo "LANGFUSE_ENCRYPTION_KEY=$(openssl rand -hex 32)"
           } >> .env
+          mkdir -p data/cogs
+          cp eval/fixtures/sst-fixture.tif data/cogs/sst.tif
           docker compose up -d --build --wait --wait-timeout 300
           curl -fsS http://localhost:8000/health | tee /dev/stderr | grep -q '"status":"ok"'
           curl -fsS http://localhost:8000/health/ready | tee /dev/stderr | grep -q '"ready":true'
+          curl -fsS "http://localhost:8001/cog/preview.png?url=file:///data/cogs/sst.tif&rescale=0,1&colormap_name=thermal" -o /tmp/tile.png
+          file /tmp/tile.png | grep -q "PNG image data"
           docker compose down -v
 
   frontend:
