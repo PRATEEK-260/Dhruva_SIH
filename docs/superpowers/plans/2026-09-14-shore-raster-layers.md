@@ -486,8 +486,17 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
 
-cog = TilerFactory()
-app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
+# Both router_prefix (on the factory) AND prefix (on include_router) are
+# required — found by building and curling this service directly, not
+# assumed from a docs example. prefix alone correctly mounts the routes
+# (/cog/tiles/... resolves), but the factory's own url_for(), which
+# tilejson.json's self-referencing "tiles" field is built from, does not
+# know about an externally-applied prefix without router_prefix too — the
+# first working build returned a tilejson whose own tile URL template
+# pointed at a path that 404'd. TiTiler's cogValidateExtension docs example
+# is what showed both together.
+cog = TilerFactory(router_prefix="/cog")
+app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 
@@ -506,9 +515,17 @@ uvicorn[standard]>=0.32
 # titiler/Dockerfile
 FROM ghcr.io/osgeo/gdal:ubuntu-small-3.9.2
 
-RUN apt-get update && apt-get install -y --no-install-recommends python3-pip && rm -rf /var/lib/apt/lists/*
+# The base image ships numpy via apt (no pip RECORD file), which collides
+# with pip trying to upgrade it for rasterio/titiler's own numpy requirement
+# — pip then refuses to uninstall a package it doesn't own
+# ("Cannot uninstall numpy 1.26.4, RECORD file not found"). A venv sidesteps
+# this entirely; found by actually building this image, not assumed.
+RUN apt-get update && apt-get install -y --no-install-recommends python3-pip python3-venv && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:${PATH}"
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
@@ -537,21 +554,36 @@ Add `TITILER_HOST_PORT=8001` to `.env.example`, matching the existing
 
 - [ ] **Step 3: Build and verify it serves a real tile**
 
+Do not pipe `docker compose build` through `| tail`: a piped command's exit
+code is the PIPE'S last stage, not the build's own — this hid a real pip
+failure behind a reported "exit code 0" once already while implementing this
+task. Check the build's own exit code directly.
+
 ```bash
-docker compose build titiler
+docker compose build titiler; echo "BUILD EXIT: $?"
 docker compose up -d titiler
 sleep 3
 curl -s http://localhost:8001/healthz
-curl -s -o /tmp/test-tile.png -w "%{http_code}\n" \
-  "http://localhost:8001/cog/tiles/WebMercatorQuad/2/1/1.png?url=file:///data/cogs/sst.tif&rescale=18,33&colormap_name=thermal"
-file /tmp/test-tile.png
+# z=2 is almost certainly OUTSIDE this COG's native minzoom/maxzoom (check
+# the tilejson response's own minzoom/maxzoom first — Copernicus's 0.083°
+# products land around z=4). /cog/preview.png avoids guessing a valid tile
+# coordinate entirely and is the faster first check.
+curl -s -o /tmp/preview.png -w "%{http_code}\n" \
+  "http://localhost:8001/cog/preview.png?url=file:///data/cogs/sst.tif&rescale=18,33&colormap_name=thermal"
+file /tmp/preview.png
+curl -s "http://localhost:8001/cog/WebMercatorQuad/tilejson.json?url=file:///data/cogs/sst.tif&rescale=18,33&colormap_name=thermal"
 ```
 
-Expected: `healthz` returns `{"ping":"pong"}`; the tile request returns `200`
-and `/tmp/test-tile.png` is identified as a PNG image. If `data/cogs/sst.tif`
-does not exist yet (Task 2's live run failed), use whichever COG Task 2
-produced as a substitute — the point is proving TiTiler itself serves a real
-file, independent of which variable.
+Expected: `healthz` returns `{"ping":"pong"}`; the preview request returns
+`200` and `/tmp/preview.png` is identified as a PNG image — open it and
+confirm it actually looks like the Indian coastline, not a blank or garbled
+image (a genuine visual check caught the north-up orientation bug in Task 2,
+and would catch an equivalent titiler-side mistake the same way). The
+tilejson response's own `"tiles"` field must include `/cog/` — if it doesn't,
+`router_prefix` is missing from the `TilerFactory(...)` call, not just from
+`include_router`. If `data/cogs/sst.tif` does not exist yet (Task 2's live run
+failed), use whichever COG Task 2 produced as a substitute — the point is
+proving TiTiler itself serves a real file, independent of which variable.
 
 - [ ] **Step 4: Commit**
 
@@ -620,11 +652,21 @@ export default defineConfig({
 
 ```bash
 curl -s -o /dev/null -w "%{http_code}\n" \
-  "http://localhost:8081/tiles/cog/tiles/WebMercatorQuad/2/1/1.png?url=file:///data/cogs/sst.tif&rescale=18,33&colormap_name=thermal"
+  "http://localhost:8081/tiles/cog/preview.png?url=file:///data/cogs/sst.tif&rescale=18,33&colormap_name=thermal"
 ```
 
 Expected: `200`, through Caddy (port 8081 per `docs/STATUS.md`'s documented
 host ports), proving the `/tiles/*` strip-prefix routes correctly end to end.
+`preview.png` avoids needing a tile coordinate known to be valid for this
+COG's zoom range — see Task 3 Step 3.
+
+**Known gap, not fixed in this task:** the tilejson response's own `"tiles"`
+field is an absolute `http://localhost:8001/...` URL — MapLibre fetches actual
+tile images directly from that, bypassing this `/tiles` proxy entirely after
+the first tilejson fetch. Works in local dev (the browser can reach
+`localhost:8001` directly); would not work behind Caddy on Oracle A1, where
+only `:80`/`:443` are exposed. See the spec's §2 for the two possible fixes,
+neither implemented here.
 
 - [ ] **Step 4: Commit**
 

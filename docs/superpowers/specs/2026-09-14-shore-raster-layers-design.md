@@ -57,8 +57,16 @@ app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
 
-cog = TilerFactory()
-app.include_router(cog.router, tags=["Cloud Optimized GeoTIFF"])
+# Both router_prefix (on the factory) AND prefix (on include_router) are
+# required — found by building and curling this service directly, not from
+# the docs' minimal example, which showed neither. prefix alone mounts the
+# routes correctly (/cog/tiles/... resolves) but the factory's own url_for(),
+# which tilejson.json's self-referencing "tiles" field is built from, does
+# not know about an externally-applied prefix — the first working build
+# returned a tilejson whose own tile URL 404'd. TiTiler's own
+# cogValidateExtension docs example is what showed both together.
+cog = TilerFactory(router_prefix="/cog")
+app.include_router(cog.router, prefix="/cog", tags=["Cloud Optimized GeoTIFF"])
 add_exception_handlers(app, DEFAULT_STATUS_CODES)
 
 
@@ -72,6 +80,29 @@ This is TiTiler's own documented minimal pattern (`titiler.core.factory.TilerFac
 gets a new `titiler` service: builds from `./titiler`, mounts `./data/cogs:/data/cogs:ro`,
 exposed on its own port, no dependency on `postgres`/`redis` since it only reads
 files.
+
+**Second finding, from the same build-and-curl pass:** the base image
+(`ghcr.io/osgeo/gdal:ubuntu-small-3.9.2`) ships `numpy` via `apt`, which has no
+pip `RECORD` file — `pip install -r requirements.txt` then refuses to upgrade
+it for `rasterio`'s own numpy requirement ("Cannot uninstall numpy 1.26.4,
+RECORD file not found"). Fixed with an isolated venv inside the image
+(`python3 -m venv /opt/venv`, `ENV PATH="/opt/venv/bin:${PATH}"`) rather than
+stacking `--ignore-installed` on top of `--break-system-packages` — the venv
+sidesteps the apt/pip conflict entirely instead of forcing past it.
+
+**Known, deliberately out-of-scope gap:** the tilejson response's own `tiles`
+field is an absolute URL to whatever host TiTiler sees itself running on
+(`http://localhost:8001/cog/tiles/...` in local dev) — MapLibre fetches actual
+tile images directly from that URL, bypassing the `/tiles` Caddy/Vite proxy
+entirely for every tile request after the first tilejson fetch. This works in
+local dev (the browser can reach `localhost:8001` directly) but would not work
+behind Caddy on Oracle A1, where only `:80`/`:443` are exposed and
+`titiler:8000` is internal-network-only. Fixing this needs either a
+reverse-proxy-aware TiTiler configuration (`X-Forwarded-Host` handling — some
+titiler deployments support this, not investigated here) or client-side
+rewriting of the tilejson response before handing it to MapLibre. Named here
+rather than silently shipped as if solved, matching this project's own
+convention for PFZ/thresholds/boundaries.
 
 ## 3. COG generation
 
