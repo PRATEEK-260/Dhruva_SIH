@@ -24,11 +24,39 @@ export function displayStatus(riskClass: string): string {
   return "UNKNOWN";
 }
 
+const RASTER_LAYERS: Record<string, { file: string; rescale: string; colormap: string }> = {
+  sst: { file: "sst.tif", rescale: "18,33", colormap: "thermal" },
+  chlorophyll: { file: "chlorophyll.tif", rescale: "0,5", colormap: "algae" },
+  wave_height: { file: "wave_height.tif", rescale: "0,8", colormap: "blues" },
+};
+
+/** The MapLibre raster source URL for one layer. Pure and exported separately
+ * from the component so the URL construction is testable without mounting
+ * the map — same pattern as displayStatus and verdictOf elsewhere in this
+ * codebase. Points at TiTiler's own tilejson.json endpoint rather than a
+ * hand-built {z}/{x}/{y} template: MapLibre reads bounds/minzoom/maxzoom
+ * straight from that response, which is less to get wrong by hand. */
+export function tilejsonUrl(variable: keyof typeof RASTER_LAYERS): string {
+  const { file, rescale, colormap } = RASTER_LAYERS[variable];
+  const params = new URLSearchParams({
+    url: `file:///data/cogs/${file}`,
+    rescale,
+    colormap_name: colormap,
+  });
+  return `/tiles/cog/WebMercatorQuad/tilejson.json?${params.toString()}`;
+}
+
 export function ShoreApp() {
   const [boundaries, setBoundaries] = useState<GeoFeatureCollection | null>(null);
   const [pfz, setPfz] = useState<GeoFeatureCollection | null>(null);
   const [fleet, setFleet] = useState<AdvisoryLogEntry[]>([]);
-  const [layersOn, setLayersOn] = useState({ pfz: true, boundaries: true });
+  const [layersOn, setLayersOn] = useState({
+    pfz: true,
+    boundaries: true,
+    sst: false,
+    chlorophyll: false,
+    wave_height: false,
+  });
 
   useEffect(() => {
     fetchGeoLayer("boundaries").then(setBoundaries).catch(() => setBoundaries(null));
@@ -136,9 +164,21 @@ export function ShoreApp() {
               >
                 {/* Map Controls (Overlay) */}
                 <div className="absolute top-4 left-4 flex gap-2 z-10">
-                  <LayerBtn label="SST" active />
-                  <LayerBtn label="Chlorophyll" />
-                  <LayerBtn label="Wave Height" />
+                  <LayerBtn
+                    label="SST"
+                    active={layersOn.sst}
+                    onClick={() => setLayersOn((s) => ({ ...s, sst: !s.sst }))}
+                  />
+                  <LayerBtn
+                    label="Chlorophyll"
+                    active={layersOn.chlorophyll}
+                    onClick={() => setLayersOn((s) => ({ ...s, chlorophyll: !s.chlorophyll }))}
+                  />
+                  <LayerBtn
+                    label="Wave Height"
+                    active={layersOn.wave_height}
+                    onClick={() => setLayersOn((s) => ({ ...s, wave_height: !s.wave_height }))}
+                  />
                   <LayerBtn
                     label="PFZ"
                     active={layersOn.pfz}
@@ -176,6 +216,21 @@ export function ShoreApp() {
                       type="circle"
                       paint={{ "circle-radius": 5, "circle-color": "#22c55e" }}
                     />
+                  </Source>
+                )}
+                {layersOn.sst && (
+                  <Source id="sst" type="raster" url={tilejsonUrl("sst")} tileSize={256}>
+                    <Layer id="sst-layer" type="raster" paint={{ "raster-opacity": 0.7 }} />
+                  </Source>
+                )}
+                {layersOn.chlorophyll && (
+                  <Source id="chlorophyll" type="raster" url={tilejsonUrl("chlorophyll")} tileSize={256}>
+                    <Layer id="chlorophyll-layer" type="raster" paint={{ "raster-opacity": 0.7 }} />
+                  </Source>
+                )}
+                {layersOn.wave_height && (
+                  <Source id="wave-height" type="raster" url={tilejsonUrl("wave_height")} tileSize={256}>
+                    <Layer id="wave-height-layer" type="raster" paint={{ "raster-opacity": 0.7 }} />
                   </Source>
                 )}
                 {layersOn.boundaries && boundaries && boundaries.features.length > 0 && (
