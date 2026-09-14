@@ -42,30 +42,36 @@ _TARGETS = (
 
 
 def write_cog(da: xr.DataArray, path: Path) -> None:
-    """A 2D (lat, lon) DataArray to a Cloud-Optimized GeoTIFF at path.
+    """A 2D (latitude, longitude) DataArray to a Cloud-Optimized GeoTIFF at path.
 
     Two things a naive rioxarray call gets wrong for this project's data, both
-    found empirically (writing a known asymmetric test pattern and reading the
-    bytes back), not assumed:
+    found empirically rather than assumed:
 
-    1. set_spatial_dims is required before write_crs: Copernicus data's
-       spatial dims are named lat/lon, not rioxarray's default x/y, and
-       without this the CRS metadata silently does not attach to the right
-       axes.
+    1. set_spatial_dims is required before write_crs: without it the CRS
+       metadata silently does not attach to the right axes. The dimension
+       names are `latitude`/`longitude`, not rioxarray's default x/y — and
+       not the shortened `lat`/`lon` this file originally assumed either,
+       which was a guess from registry.yaml's `lat_min`/`lon_min` KEY naming,
+       not from the real data. copernicus.py's own point-selection code
+       (`_nearest_wet`, `_read_point`) already reads Copernicus fields as
+       `latitude`/`longitude` throughout; running this script live against
+       real Copernicus data (not the synthetic test fixtures, which shared
+       the same wrong assumption and so did not catch it) surfaced a
+       `KeyError: 'lat'` that pinned the actual names down.
     2. This project's own data-plane convention (IMPLEMENTATION.md: "All of
-       them normalise to: lat ascending...") stores lat ascending — south to
-       north. Standard north-up GeoTIFF/COG readers (TiTiler included)
-       require the opposite: row 0 of the file must be the NORTHERNMOST
-       latitude, i.e. lat descending, giving a negative Y-resolution in the
-       affine transform. Writing an ascending-lat array as-is produces a file
-       that is upside down: south at the top, north at the bottom. Sorting
-       descending here, once, is cheaper than discovering an inverted SST
-       layer during a demo.
+       them normalise to: lat ascending...") stores latitude ascending —
+       south to north. Standard north-up GeoTIFF/COG readers (TiTiler
+       included) require the opposite: row 0 of the file must be the
+       NORTHERNMOST latitude, i.e. latitude descending, giving a negative
+       Y-resolution in the affine transform. Writing an ascending-latitude
+       array as-is produces a file that is upside down: south at the top,
+       north at the bottom. Sorting descending here, once, is cheaper than
+       discovering an inverted SST layer during a demo.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     (
-        da.sortby("lat", ascending=False)
-        .rio.set_spatial_dims(x_dim="lon", y_dim="lat")
+        da.sortby("latitude", ascending=False)
+        .rio.set_spatial_dims(x_dim="longitude", y_dim="latitude")
         .rio.write_crs("EPSG:4326")
         .rio.to_raster(str(path), driver="COG")
     )
