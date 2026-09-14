@@ -110,11 +110,17 @@ def test_subset_delegates_to_fetch_grid_with_its_narrowed_tile():
     from dhruva.sources.cache import CacheKey
 
     adapter = CopernicusAdapter()
-    key = CacheKey(
-        dataset_id="cmems_mod_glo_phy_anfc_0.083deg_PT1H-m",
-        lat_min=10.9, lat_max=11.2, lon_min=79.8, lon_max=80.1,
-        time_start=dt.datetime(2026, 9, 14, tzinfo=dt.UTC),
-        time_end=dt.datetime(2026, 9, 14, 6, tzinfo=dt.UTC),
+    # CacheKey.for_point is what fetch() actually calls (copernicus.py:65) to
+    # narrow a point to its enclosing tile — using it here rather than
+    # constructing CacheKey directly keeps this test's key realistic, and
+    # sidesteps a real gap the plan's first draft had: CacheKey also requires
+    # a `variables` field that a bare constructor call left out entirely.
+    key = CacheKey.for_point(
+        "cmems_mod_glo_phy_anfc_0.083deg_PT1H-m",
+        11.05, 79.95,
+        dt.datetime(2026, 9, 14, tzinfo=dt.UTC),
+        ["thetao"],
+        tile_deg=1.0,
     )
     fake_ds = MagicMock()
     fake_ds.load.return_value = "loaded"
@@ -125,14 +131,12 @@ def test_subset_delegates_to_fetch_grid_with_its_narrowed_tile():
             key,
         )
     called = mock_open.call_args.kwargs
-    assert called["minimum_latitude"] == 10.9
-    assert called["maximum_latitude"] == 11.2
+    assert called["minimum_latitude"] == key.lat_min
+    assert called["maximum_latitude"] == key.lat_max
     # Surface-only for copernicus_phy_hourly, unchanged from before the refactor.
     assert called["minimum_depth"] == 0.0
     assert called["maximum_depth"] == 1.0
 ```
-
-Check `CacheKey`'s exact field names against `backend/dhruva/sources/cache.py` before running this — the plan's guess (`dataset_id, lat_min, lat_max, lon_min, lon_max, time_start, time_end`) matches what `_subset` reads (`key.lat_min` etc., confirmed by reading the file), but confirm the dataclass constructor accepts them as keyword args in this order.
 
 - [ ] **Step 2: Run it and confirm it fails**
 
@@ -328,7 +332,7 @@ from pathlib import Path
 
 import xarray as xr
 
-from dhruva.sources.cache import DEMO_BBOX
+from dhruva.sources.cache import DEMO_BBOX, CacheKey, ZarrCache
 from dhruva.sources.copernicus import fetch_grid
 from dhruva.sources.registry import Registry
 
@@ -358,34 +362,50 @@ def write_cog(da: xr.DataArray, path: Path) -> None:
     )
 
 
-async def _fetch_one(registry: Registry, entry_id: str, native_var: str) -> xr.Dataset:
+async def _fetch_one(
+    cache: ZarrCache, registry: Registry, entry_id: str, native_var: str
+) -> xr.Dataset:
+    """Cache-first: CacheKey.for_bbox takes the box in exactly DEMO_BBOX's own
+    (lat_min, lat_max, lon_min, lon_max) shape, and ZarrCache is the same
+    cache _subset()'s per-point path already writes to — reusing it here
+    means a second script run within the TTL costs no network call, and
+    keeps this script honoring the same cache the rest of the app does
+    rather than working around it. Found while implementing Task 2, not
+    part of the original spec draft, which called fetch_grid() unconditionally."""
     entry = registry.by_id(entry_id)
-    lat_min, lat_max, lon_min, lon_max = DEMO_BBOX
-    end = dt.datetime.now(dt.UTC)
-    start = end - dt.timedelta(hours=6)
+    when = dt.datetime.now(dt.UTC)
+    key = CacheKey.for_bbox(entry.dataset_id, DEMO_BBOX, when, [native_var])
+
+    cached = cache.get(key)
+    if cached is not None:
+        return cached
+
     depth_kwargs: dict[str, float] = {}
     if entry_id == "copernicus_phy_hourly":
         depth_kwargs = {"minimum_depth": 0.0, "maximum_depth": 1.0}
-    return await asyncio.to_thread(
+    ds = await asyncio.to_thread(
         fetch_grid,
         entry.dataset_id,
         [native_var],
-        lat_min=lat_min,
-        lat_max=lat_max,
-        lon_min=lon_min,
-        lon_max=lon_max,
-        start=start,
-        end=end,
+        lat_min=key.lat_min,
+        lat_max=key.lat_max,
+        lon_min=key.lon_min,
+        lon_max=key.lon_max,
+        start=key.time_start,
+        end=key.time_end,
         username=os.environ.get("COPERNICUSMARINE_SERVICE_USERNAME"),
         password=os.environ.get("COPERNICUSMARINE_SERVICE_PASSWORD"),
         **depth_kwargs,
     )
+    cache.put(key, ds)
+    return ds
 
 
 async def main() -> None:
     registry = Registry.load(os.environ.get("DHRUVA_REGISTRY", "data/registry.yaml"))
+    cache = ZarrCache()
     for filename, entry_id, canonical_var, native_var in _TARGETS:
-        ds = await _fetch_one(registry, entry_id, native_var)
+        ds = await _fetch_one(cache, registry, entry_id, native_var)
         da = ds[native_var]
         if "time" in da.dims:
             da = da.isel(time=-1)
