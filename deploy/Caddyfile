@@ -7,6 +7,11 @@
 		reverse_proxy api:8000
 	}
 
+	handle /tiles/* {
+		uri strip_prefix /tiles
+		reverse_proxy titiler:8000
+	}
+
 	handle {
 		reverse_proxy api:8000
 	}
