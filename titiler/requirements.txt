@@ -1,0 +1,2 @@
+titiler.core>=0.19
+uvicorn[standard]>=0.32
