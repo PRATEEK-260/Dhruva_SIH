@@ -10,6 +10,7 @@ are."
 
 from __future__ import annotations
 
+import datetime as dt
 from pathlib import Path
 from typing import Any
 
@@ -23,20 +24,28 @@ async def apply_schema(conn: asyncpg.Connection) -> None:
 
 
 async def insert_advisory(
-    conn: asyncpg.Connection, *, boat_class: str, lat: float, lon: float, risk_class: str
+    conn: asyncpg.Connection,
+    *,
+    boat_class: str,
+    lat: float,
+    lon: float,
+    risk_class: str,
+    valid_for: dt.datetime | None = None,
 ) -> None:
     await conn.execute(
-        "INSERT INTO advisory_log (boat_class, lat, lon, risk_class) VALUES ($1, $2, $3, $4)",
+        "INSERT INTO advisory_log (boat_class, lat, lon, risk_class, valid_for) "
+        "VALUES ($1, $2, $3, $4, $5)",
         boat_class,
         lat,
         lon,
         risk_class,
+        valid_for,
     )
 
 
 async def recent_advisories(conn: asyncpg.Connection, *, limit: int = 20) -> list[dict[str, Any]]:
     rows = await conn.fetch(
-        "SELECT id, boat_class, lat, lon, risk_class, issued_at "
+        "SELECT id, boat_class, lat, lon, risk_class, issued_at, valid_for "
         "FROM advisory_log ORDER BY issued_at DESC LIMIT $1",
         limit,
     )

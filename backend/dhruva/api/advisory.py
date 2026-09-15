@@ -33,6 +33,9 @@ class AdvisoryRequest(BaseModel):
     language: str = "en"
     boat_class: BoatClass = BoatClass.FRP_UNDER_12M
     when: dt.datetime | None = None
+    # Shore inspecting a point is not a boat asking; logging it would put a
+    # vessel on the request list that never existed.
+    log: bool = True
 
 
 class AdvisoryResponse(BaseModel):
@@ -70,7 +73,7 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
     risk_class = state.get("risk_class")
     risk_class_value = risk_class.value if risk_class is not None else "unknown"
 
-    conn = await _connect()
+    conn = await _connect() if req.log else None
     if conn is not None:
         try:
             await apply_schema(conn)
@@ -80,6 +83,7 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
                 lat=req.lat,
                 lon=req.lon,
                 risk_class=risk_class_value,
+                valid_for=req.when,
             )
         finally:
             await conn.close()
@@ -107,4 +111,11 @@ async def get_recent_advisories(limit: int = 20) -> list[dict[str, Any]]:
         rows = await recent_advisories(conn, limit=limit)
     finally:
         await conn.close()
-    return [{**row, "issued_at": row["issued_at"].isoformat()} for row in rows]
+    return [
+        {
+            **row,
+            "issued_at": row["issued_at"].isoformat(),
+            "valid_for": row["valid_for"].isoformat() if row["valid_for"] else None,
+        }
+        for row in rows
+    ]

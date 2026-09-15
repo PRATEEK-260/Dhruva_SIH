@@ -66,3 +66,25 @@ async def test_limit_caps_the_result_set():
         assert len(rows) == 2
     finally:
         await conn.close()
+
+
+async def test_replayed_request_keeps_the_instant_it_was_computed_for():
+    import datetime as dt
+
+    conn = await _conn()
+    try:
+        await apply_schema(conn)
+        await conn.execute("DELETE FROM advisory_log")
+        when = dt.datetime(2026, 8, 1, 6, tzinfo=dt.UTC)
+        await insert_advisory(
+            conn, boat_class="frp_under_12m", lat=13.0, lon=73.5, risk_class="no_go", valid_for=when
+        )
+        await insert_advisory(
+            conn, boat_class="frp_under_12m", lat=12.6, lon=80.7, risk_class="safe"
+        )
+        rows = await recent_advisories(conn, limit=10)
+        by_risk = {r["risk_class"]: r for r in rows}
+        assert by_risk["no_go"]["valid_for"] == when
+        assert by_risk["safe"]["valid_for"] is None
+    finally:
+        await conn.close()

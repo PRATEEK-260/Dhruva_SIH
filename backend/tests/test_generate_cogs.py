@@ -94,3 +94,39 @@ def test_write_cog_creates_missing_parent_directories(tmp_path: Path):
     out = tmp_path / "nested" / "dir" / "wave_height.tif"
     write_cog(da, out)
     assert out.exists()
+
+
+def test_write_cog_stores_physical_values_not_the_packed_integers(tmp_path):
+    lat = np.linspace(6.0, 24.0, 4)
+    lon = np.linspace(66.0, 94.0, 4)
+    da = xr.DataArray(
+        np.full((4, 4), 2.49, dtype="float32"),
+        coords={"latitude": lat, "longitude": lon},
+        dims=["latitude", "longitude"],
+        name="VHM0",
+    )
+    da.encoding = {"dtype": "int16", "scale_factor": 0.01, "_FillValue": -32767}
+
+    out = tmp_path / "wave_height.tif"
+    write_cog(da, out)
+
+    with rasterio.open(out) as src:
+        assert src.dtypes[0] == "float32"
+        assert src.scales == (1.0,)
+        assert np.allclose(src.read(1), 2.49)
+
+
+def test_write_cog_marks_land_nan_as_nodata(tmp_path):
+    lat = np.linspace(6.0, 24.0, 4)
+    lon = np.linspace(66.0, 94.0, 4)
+    data = np.full((4, 4), 28.0, dtype="float32")
+    data[0, 0] = np.nan
+    da = xr.DataArray(
+        data, coords={"latitude": lat, "longitude": lon}, dims=["latitude", "longitude"]
+    )
+
+    out = tmp_path / "sst.tif"
+    write_cog(da, out)
+
+    with rasterio.open(out) as src:
+        assert src.nodata is not None and np.isnan(src.nodata)

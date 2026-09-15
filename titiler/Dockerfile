@@ -17,4 +17,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY main.py .
 
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Clients reach this service only through the /tiles strip-prefix proxy (Caddy,
+# Vite). Without root-path, tilejson's own tile URLs omit /tiles, and the proxy
+# answers them with the frontend's index.html instead of a PNG.
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--root-path", "/tiles"]

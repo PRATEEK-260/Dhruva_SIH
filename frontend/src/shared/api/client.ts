@@ -17,6 +17,41 @@ export interface AdvisoryRequest {
   lon: number;
   language?: string;
   boat_class?: string;
+  when?: string;
+  log?: boolean;
+}
+
+export interface EvidenceItem {
+  key: string;
+  value: number;
+  unit: string;
+  dataset_id: string;
+  upstream_dataset_id?: string | null;
+  cell: string;
+  offset_km?: number | null;
+  valid_time?: string | null;
+  is_forecast: boolean;
+  threshold?: number | null;
+  rule_id?: string | null;
+}
+
+export interface EvidenceBundle {
+  items: EvidenceItem[];
+  risk_class: string | null;
+  fired_rules: string[];
+  provisional_thresholds: boolean;
+  notice: string;
+  built_at: string;
+}
+
+export interface RasterLayer {
+  layer: string;
+  file: string;
+  dataset_id: string;
+  variable: string;
+  unit: string;
+  valid_time: string | null;
+  generated_at: string;
 }
 
 export interface AdvisoryResponse {
@@ -36,6 +71,8 @@ export interface AdvisoryLogEntry {
   lon: number;
   risk_class: string;
   issued_at: string;
+  /** Set when the verdict was computed for a past instant, not issued_at. */
+  valid_for: string | null;
 }
 
 export type GeoFeatureCollection = FeatureCollection;
@@ -66,4 +103,14 @@ export async function fetchGeoLayer(
 ): Promise<GeoFeatureCollection> {
   const response = await fetch(`/api/geo/${name}`);
   return parseOrThrow<GeoFeatureCollection>(response, `fetchGeoLayer(${name})`);
+}
+
+export async function fetchRasterLayers(): Promise<RasterLayer[]> {
+  const response = await fetch("/api/geo/rasters");
+  return parseOrThrow<RasterLayer[]>(response, "fetchRasterLayers");
+}
+
+export async function fetchHealth(): Promise<{ status: string }> {
+  const response = await fetch("/api/health");
+  return parseOrThrow<{ status: string }>(response, "fetchHealth");
 }

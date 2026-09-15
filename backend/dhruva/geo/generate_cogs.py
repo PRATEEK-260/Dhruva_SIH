@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 
 import rioxarray  # noqa: F401 — registers the .rio accessor on DataArray; not called directly
 
+from dhruva.geo.rasters import write_manifest_entry
 from dhruva.sources.cache import DEMO_BBOX, CacheKey, ZarrCache
 from dhruva.sources.copernicus import fetch_grid
 from dhruva.sources.registry import Registry
@@ -69,10 +70,16 @@ def write_cog(da: xr.DataArray, path: Path) -> None:
        discovering an inverted SST layer during a demo.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
+    # Copernicus packs some variables (wave VHM0) as int16 with a 0.01 scale.
+    # Keeping that encoding writes raw integers that TiTiler rescales as if they
+    # were metres, so a 2.49 m sea renders as 249 and saturates the colour ramp.
+    physical = da.astype("float32")
+    physical.encoding = {}
     (
-        da.sortby("latitude", ascending=False)
+        physical.sortby("latitude", ascending=False)
         .rio.set_spatial_dims(x_dim="longitude", y_dim="latitude")
         .rio.write_crs("EPSG:4326")
+        .rio.write_nodata(float("nan"))
         .rio.to_raster(str(path), driver="COG")
     )
 
@@ -127,7 +134,27 @@ async def main() -> None:
         if "depth" in da.dims:
             da = da.isel(depth=0)
         write_cog(da, COG_DIR / filename)
+        write_manifest_entry(
+            canonical_var,
+            {
+                "file": filename,
+                "dataset_id": registry.by_id(entry_id).dataset_id,
+                "variable": native_var,
+                "unit": da.attrs.get("units", ""),
+                "valid_time": _valid_time(da),
+                "generated_at": dt.datetime.now(dt.UTC).isoformat(),
+            },
+            COG_DIR,
+        )
         print(f"wrote {COG_DIR / filename} for {canonical_var}")
+
+
+def _valid_time(da: xr.DataArray) -> str | None:
+    if "time" not in da.coords:
+        return None
+    import numpy as np
+
+    return f"{np.datetime_as_string(da['time'].values, unit='s')}+00:00"
 
 
 if __name__ == "__main__":

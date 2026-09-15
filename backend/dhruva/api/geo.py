@@ -15,6 +15,7 @@ from fastapi import APIRouter, HTTPException
 
 from dhruva.config import database_dsn
 from dhruva.geo.layers import all_boundaries_geojson, all_zones_geojson, recent_pfz_geojson
+from dhruva.geo.rasters import available_layers
 
 router = APIRouter(prefix="/geo", tags=["geo"])
 
@@ -45,6 +46,11 @@ async def get_zones() -> dict[str, Any]:
         return await all_zones_geojson(conn)
     finally:
         await conn.close()
+
+
+@router.get("/rasters")
+def get_rasters() -> list[dict[str, Any]]:
+    return available_layers()
 
 
 @router.get("/pfz")

@@ -13,3 +13,8 @@ CREATE TABLE IF NOT EXISTS advisory_log (
 );
 
 CREATE INDEX IF NOT EXISTS advisory_log_issued_idx ON advisory_log (issued_at DESC);
+
+-- The instant the verdict was computed for, when a request replays a past
+-- moment (POST /advisory "when"). NULL means conditions at issued_at. Without
+-- it a replayed storm reads as a verdict about the sea right now.
+ALTER TABLE advisory_log ADD COLUMN IF NOT EXISTS valid_for timestamptz;
