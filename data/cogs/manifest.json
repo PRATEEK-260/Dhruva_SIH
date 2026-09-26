@@ -1,0 +1,26 @@
+{
+  "sst": {
+    "file": "sst.tif",
+    "dataset_id": "cmems_mod_glo_phy_anfc_0.083deg_PT1H-m",
+    "variable": "thetao",
+    "unit": "degrees_C",
+    "valid_time": "2026-09-16T00:00:00+00:00",
+    "generated_at": "2026-09-15T06:17:43.341421+00:00"
+  },
+  "wave_height": {
+    "file": "wave_height.tif",
+    "dataset_id": "cmems_mod_glo_wav_anfc_0.083deg_PT3H-i",
+    "variable": "VHM0",
+    "unit": "m",
+    "valid_time": "2026-09-16T00:00:00+00:00",
+    "generated_at": "2026-09-15T06:17:50.619970+00:00"
+  },
+  "chlorophyll": {
+    "file": "chlorophyll.tif",
+    "dataset_id": "cmems_mod_glo_bgc-pft_anfc_0.25deg_P1D-m",
+    "variable": "chl",
+    "unit": "mg m-3",
+    "valid_time": "2026-09-16T00:00:00+00:00",
+    "generated_at": "2026-09-15T06:19:04.567344+00:00"
+  }
+}

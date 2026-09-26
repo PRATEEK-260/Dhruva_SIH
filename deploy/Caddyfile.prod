@@ -1,0 +1,25 @@
+# Public deployment. SITE_ADDRESS is a hostname (e.g. 140-238-1-2.sslip.io) and
+# Caddy fetches its certificate itself. HTTPS is not optional here: the boat PWA's
+# QR scanner (getUserMedia) and service worker are blocked on plain http:// for
+# any origin other than localhost, so the offline hand-off fails on a judge's phone.
+{$SITE_ADDRESS} {
+	encode gzip
+
+	handle /api/* {
+		uri strip_prefix /api
+		reverse_proxy api:8000
+	}
+
+	handle /tiles/* {
+		uri strip_prefix /tiles
+		reverse_proxy titiler:8000
+	}
+
+	# The built frontend. BrowserRouter owns /boat, /shore, /emulator, so any path
+	# that is not a real file falls back to index.html.
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}
