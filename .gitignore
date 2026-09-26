@@ -22,3 +22,5 @@ data/cache/
 *.nc
 *.zarr/
 .DS_Store
+# Vercel CLI project link and pulled env (deploy/vercel/deploy.sh).
+.vercel
