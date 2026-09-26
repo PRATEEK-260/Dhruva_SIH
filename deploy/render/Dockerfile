@@ -20,6 +20,10 @@ RUN apt-get update \
 ENV PATH=/usr/lib/postgresql/16/bin:$PATH
 
 COPY --from=caddy:2-alpine /usr/bin/caddy /usr/local/bin/caddy
+# The official binary carries cap_net_bind_service=ep. BuildKit keeps that
+# xattr, and Render's runtime cannot grant it, so exec fails with "Operation
+# not permitted". Caddy listens on $PORT (10000) and needs no capability.
+RUN python3 -c "import os; p='/usr/local/bin/caddy'; 'security.capability' in os.listxattr(p) and os.removexattr(p, 'security.capability'); assert not os.listxattr(p), os.listxattr(p)"
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 ENV UV_LINK_MODE=copy UV_NO_CACHE=1
 RUN uv venv -p /usr/local/bin/python3.12 /opt/api && uv venv -p /usr/local/bin/python3.12 /opt/titiler
