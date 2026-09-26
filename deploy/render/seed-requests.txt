@@ -1,0 +1,19 @@
+# Sample advisory requests replayed at every boot so the Shore console's
+# request log is not empty on a free instance whose database resets on each
+# restart. Each line is sent to POST /advisory with log=true, so the verdict
+# is a real one computed from live data at boot; only the asking boat is
+# simulated. Positions are on the 0.05 degree grid and were checked to fall
+# inside Indian maritime zones (at sea, not on land).
+# lat   lon    boat_class         language  (near)
+13.10 80.45 frp_under_12m ta
+11.05 79.95 frp_under_12m ta
+9.35 79.45 frp_under_12m ta
+8.05 77.55 mechanised_12_20m ml
+9.95 76.00 frp_under_12m ml
+12.85 74.65 mechanised_12_20m kn
+15.45 73.55 frp_under_12m kok
+18.90 72.60 mechanised_12_20m mr
+20.75 70.30 deep_sea_over_20m gu
+17.60 83.45 frp_under_12m te
+20.20 86.90 mechanised_12_20m or
+11.60 92.85 deep_sea_over_20m hi

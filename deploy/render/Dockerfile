@@ -40,7 +40,7 @@ COPY titiler/main.py /app/titiler/
 # TiTiler is handed file:///data/cogs/... by the frontend, and the api reads
 # DHRUVA_DATA_DIR/cogs; one /data serves both.
 COPY data /data
-COPY deploy/render/Caddyfile deploy/render/start.sh deploy/render/boundaries.sql /app/
+COPY deploy/render/Caddyfile deploy/render/start.sh deploy/render/boundaries.sql deploy/render/seed-requests.txt /app/
 
 RUN useradd -u 1000 -m app && chmod +x /app/start.sh && chown -R app:app /app /data
 USER app
