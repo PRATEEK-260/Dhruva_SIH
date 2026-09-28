@@ -1,12 +1,13 @@
 # Build status
 
-Written 2026-09-13. Read this plus `CLAUDE.md` before starting work; `IMPLEMENTATION.md`
-holds the phase definitions and gates, and neither it nor `dhruva-plan.html` is
-re-opened mid-build.
+Written 2026-09-13, updated 2026-09-28. Read this plus `CLAUDE.md` before starting work;
+`IMPLEMENTATION.md` holds the phase definitions and gates, and neither it nor
+`dhruva-plan.html` is re-opened mid-build.
 
 **One line:** phases 0–4 complete with their gates passing, phase 5 in progress —
-the backend endpoints, API client, online Ask flow, and fleet list skeleton are built,
-but the Boat PWA offline storage, map overlays, and voice integration are outstanding.
+the planner now routes with Gemini, the shore console has its raster layers and a
+Render + Vercel deploy exists, but Boat PWA offline storage, study routes and voice are
+outstanding, and narration is still the firewall's template.
 
 ---
 
@@ -17,22 +18,44 @@ but the Boat PWA offline storage, map overlays, and voice integration are outsta
 | 0 — Toolchain | done | subagents load, CLAUDE.md exists, 7 plugins, real SST fetched in code |
 | 1 — Skeleton | done | `docker compose up` healthy, `/health` 200, pytest green |
 | 2 — Data plane | done | `conditions_at()` 5 variables from 5 datasets, **1092 ms warm** vs 3000 ms budget |
-| 3 — Graph and risk | done | firewall fails CI on a fabricated number; routing 59/59 vs 92% target |
+| 3 — Graph and risk | done | firewall fails CI on a fabricated number; routing 59/59 keyword (tuned on the set), **57/57 answered by Gemini** (never tuned on it) vs 92% target |
 | 4 — Capsule codec | **done** | codec + audit done; codebook, TS port, QR scanning verified in tests |
-| 5 — Interfaces | **in progress** | API proxy, boat Ask flow, and shore fleet list wired |
+| 5 — Interfaces | **in progress** | see below |
 | 6 — Evaluation | not started | |
 
-298 tests passing, ruff and pyright clean.
-Repo: https://github.com/PRATEEK-260/Dhruva_SIH (public, branch `finish-phase-4`).
+325 tests passing (12 skipped: no database, or live-model test not enabled), ruff and
+pyright clean.
+Repo: https://github.com/PRATEEK-260/Dhruva_SIH (public). Nothing since phase 3 is merged
+to `main`: phase 4 and 5 work lives on `finish-phase-4` → `phase-5-demo-ui` →
+`deploy-render` → `planner-model`, each built on the last.
+
+---
+
+## Done in phase 5 so far
+
+- `POST /advisory`, the advisory request log (explicitly not vessel tracking), whole-table
+  GeoJSON for boundaries, zones and PFZ, and the frontend API client.
+- **Boat:** online Ask flow with QR handoff; boat PWA and an emulator split for the
+  offline-handoff demo.
+- **Shore:** boundary, PFZ and fleet-list layers on real data; SST, chlorophyll and
+  wave-height raster layers served by TiTiler (`/tiles` behind Caddy, COGs from
+  `scripts/`); point-inspect panel; replay-aware advisory log.
+- **Planner:** Gemini routes intents, keyword `classify()` is the fallback (below).
+- **Deploy:** backend on Render, frontend on Vercel (`deploy/`). On 2026-09-28
+  `https://dhruva-api.onrender.com/health` did not answer within 60 s — possibly a
+  free-tier cold start; check before any demo.
 
 ---
 
 ## What phase 5 still needs
 
-1. **Boat (PWA) Offline Storage** — Service worker and Dexie integration for offline cached fields and the codebook.
-2. **Shore Console Layers** — MapLibre + deck.gl overlays for SST, chlorophyll, wave height, and PFZ zones.
-3. **Study Routes** — Anomaly explorer, time series, and Langfuse trace inspector.
-4. **Voice Channel** — Bhashini ASR/TTS handshake and Asterisk IVR for the feature-phone path.
+1. **Boat (PWA) Offline Storage** — Service worker and Dexie integration for offline cached
+   fields and the codebook. No service worker or Dexie code exists yet.
+2. **Study Routes** — Anomaly explorer, time series, and Langfuse trace inspector.
+3. **Voice Channel** — Bhashini ASR/TTS handshake and Asterisk IVR for the feature-phone
+   path. No code yet; the Bhashini key request is in progress (below).
+4. **Narration by a model** — `evidence()` in `graph/build.py` still returns the firewall's
+   template. The model's narration goes there, validated by the firewall.
 
 **Gate 5:** spoken Tamil question returns a spoken Tamil answer with a map and a tappable
 evidence card, end to end.
@@ -76,6 +99,29 @@ Live Access Server. The scraper is built and tested but its endpoint is
 configuration — it needs confirming with INCOIS. The test fixture bulletin is
 **synthetic** and should be replaced with a recorded one.
 
+**Gemini 2.5 Flash is closed to new API keys.** The Gemini API answers 404 "no longer
+available to new users". `gemini-3.8-flash` answered 503 under load on 2026-09-28;
+`gemini-3.5-flash-lite` answered in about 1.3 s and is the default. The free tier allows
+**15 requests a minute per model** — past that every call is 429 and the planner falls
+back to keywords. The live eval is paced for this (`DHRUVA_LIVE_PACE_S`, default 4.5).
+
+**The planner now calls Gemini directly, not through OpenRouter.** The
+`OPENROUTER_API_KEY` in `.env` was rejected by OpenRouter (401) and is the same length
+as the Gemini key, so it was most likely that key under the wrong name. Nothing reads it
+any more.
+
+**The problem statement never asks for offline delivery.** The full SIH26176 text
+("ORCA — Marine EcOsystem Reasoning with Collaborative Agents") asks for an agentic,
+multi-agent conversational platform: intent, decomposition, collaborating agents,
+language detection with a same-language reply, multi-turn, evidence-backed answers,
+proactive alerts, geofence notifications, route optimisation. NavIC and offline do not
+appear. Getting alerts to boats is already done by ISRO and INCOIS systems (DAT-SG,
+NavIC Messaging Receiver, GEMINI, VCSS + Nabhmitra, SAMUDRA); none found takes a
+question. ISRO's public DAT-SG ICD v1.2 defines a message addressed to one terminal
+with a **23-byte** text payload — the capsule is 19 bytes, so one answer fits one
+DAT-SG message. The pitch's "every other app goes blank offshore" is false and should
+not be said to ISRO judges. A repositioning draft exists but has not been adopted.
+
 ---
 
 ## Known gaps, stated rather than buried
@@ -83,20 +129,31 @@ configuration — it needs confirming with INCOIS. The test fixture bulletin is
 - **Risk thresholds are placeholders**, not INCOIS Ocean State Forecast criteria.
   `PROVISIONAL = True` in code, warned about in `docs/THRESHOLDS.md`. They must
   be replaced and cited before any public claim.
-- **Routing accuracy is an upper bound.** `classify()`'s weights were tuned
-  against the same eval set they are measured on, so 59/59 shows the layer is
-  wired and measurable, not that it generalises. The fix is the Gemini 2.5 Flash
-  planner the stack table specifies; swapping it in changes `classify()` alone.
-- **No LLM is wired yet.** Narration is the firewall's own template, which is the
-  correct failure mode but not the product. `evidence()` in `graph/build.py` is
-  where the model goes.
-- **`route` (node 7) and `codec` (node 9) are declared stubs** in the graph. Route
-  needs the A* cost grid; codec needs joining to the encoder that now exists.
+- **Keyword routing accuracy is an upper bound.** `classify()`'s weights were tuned
+  against the same eval set they are measured on. The Gemini planner was not, and
+  routed 57/57 of the queries it answered; 2 of 59 timed out at the 8 s limit
+  (p50 1301 ms, p95 4192 ms). Rerun with
+  `cd backend && DHRUVA_LIVE_LLM=1 ../.venv/bin/python -m pytest tests/test_planner_model.py -k Live -s`.
+- **The planner only picks the intent.** It does not decompose a mixed request
+  ("safest route to the PFZ avoiding the cyclone") or hold multi-turn context, and the
+  eight downstream nodes are plain Python, not model-driven agents. The PS asks for both.
+- **The 8 s planner timeout is long.** A timed-out call adds 8 s before the keyword
+  fallback answers; about 4 s would fit the latency budget better.
+- **Narration is still the template.** No model writes the answer yet. `evidence()` in
+  `graph/build.py` is where it goes.
+- **`route` (node 7) is a declared stub.** It needs the A* cost grid. `codec` (node 9)
+  now builds the capsule, but leaves PFZ and boundary-ETA fields at their defaults on
+  purpose (see its docstring).
+- **PS requirements with nothing behind them yet:** tides (no source; INCOIS SAMUDRA
+  shows them), language detection, multi-turn, a lightning feed (the rule exists in
+  `risk/rules.py`, nothing feeds it), proactive alerts, charts.
 - **Eval answers have no ground truth.** `eval/queries.jsonl` has
   `expected_answer: null` throughout, because IMPLEMENTATION.md wants answers
   sourced from INCOIS or IMD bulletins and those are not in hand.
 - **Bhashini credentials are empty** — `BHASHINI_USER_ID`, `BHASHINI_ULCA_API_KEY`.
-  Phase 5 blocker only. Its auth is a config call that returns the real endpoint
+  Phase 5 blocker only. A key request is in progress on the Bhashini Udyat dashboard,
+  which also shows an earlier request for app "orca" as approved — check for its
+  credentials first. Its auth is a config call that returns the real endpoint
   and key, then a compute call; build that handshake first.
 
 ---
@@ -120,9 +177,12 @@ export DHRUVA_DSN="postgresql://dhruva:${POSTGRES_PASSWORD}@localhost:55432/dhru
 
 `DHRUVA_DSN` is not in `.env`; the `geo` node returns empty without it.
 
-Credentials verified working: OpenRouter, Sarvam, Copernicus Marine, NASA
-Earthdata, Langfuse. Values in `.env` containing `" $ # ^` are single-quoted —
-Docker Compose interpolates a bare `$`, and comments must stay on their own line.
+Credentials verified working: Gemini (2026-09-28), Sarvam, Copernicus Marine, NASA
+Earthdata, Langfuse (as of 2026-09-13). OpenRouter was rejected (401) on 2026-09-28
+and is no longer used. `GEMINI_API_KEY` must also be set in Render's environment for
+the deployed backend to use the model. Values in `.env` containing `" $ # ^` are
+single-quoted — Docker Compose interpolates a bare `$`, and comments must stay on their
+own line.
 
 ---
 

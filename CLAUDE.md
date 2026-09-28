@@ -31,7 +31,7 @@ re-opened mid-build; if a decision here looks wrong, say so and stop, do not qui
 | Layer | Choice |
 |---|---|
 | Orchestration | LangGraph 0.2 + Pydantic v2 — explicit state, checkpointing, cyclic re-planning |
-| Model (planning) | Gemini 2.5 Flash via OpenRouter — tool selection and decomposition |
+| Model (planning) | Gemini 3.5 Flash-Lite, Gemini API direct (`GEMINI_API_KEY`, not OpenRouter) — intent routing today; keyword `classify()` is the fallback. Free tier: 15 req/min |
 | Model (Indic) | Sarvam-30B API / Sarvam-105B open weights; Qwen3-8B on Ollama is the offline path |
 | Backend | Python 3.12 · FastAPI · arq |
 | Array compute | xarray · dask · Zarr cache |
