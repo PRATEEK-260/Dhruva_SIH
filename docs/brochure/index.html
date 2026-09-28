@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>DHRUVA</title>
+<!-- Source of DHRUVA.pdf. Rebuild: python docs/brochure/build.py -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Anek+Latin:wght@400;500;600;800&family=Anek+Tamil:wght@400;600;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --ink: #0f2a36; --ink-soft: #4a5f69; --mist: #eef3f2; --rule: #c8d4d3; --sea: #0e6178;
+    --safe: #0b7a4b; --caution: #e3a008; --danger: #c62a1f; --blocked: #6e0d12;
+    --sans: "Anek Latin", "Anek Tamil", sans-serif;
+  }
+  @page { size: A4; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #fff; color: var(--ink); font-family: var(--sans); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 210mm; height: 297mm; position: relative; overflow: hidden; page-break-after: always; padding: 20mm 18mm 16mm; }
+  .page:last-child { page-break-after: auto; }
+  .folio { position: absolute; bottom: 9mm; left: 18mm; right: 18mm; display: flex; justify-content: space-between; font-size: 8.5pt; color: var(--ink-soft); }
+  h1, h2, h3 { margin: 0; font-weight: 800; letter-spacing: -0.01em; }
+  h2 { font-size: 26pt; line-height: 1.05; max-width: 160mm; }
+  h3 { font-size: 13pt; line-height: 1.2; }
+  p { margin: 0; font-size: 10.5pt; line-height: 1.5; }
+  .lede { font-size: 13pt; line-height: 1.45; max-width: 160mm; margin-top: 5mm; }
+  .soft { color: var(--ink-soft); }
+  .small { font-size: 8.8pt; line-height: 1.45; }
+  .kicker { font-size: 10pt; font-weight: 600; color: var(--sea); margin-bottom: 3mm; }
+  img.shot { display: block; border-radius: 3mm; box-shadow: 0 1.5mm 6mm rgb(15 42 54 / 0.18); }
+  .phone { border-radius: 6mm; border: 1.6mm solid var(--ink); overflow: hidden; background: var(--ink); box-shadow: 0 2mm 8mm rgb(15 42 54 / 0.25); }
+  .phone img { display: block; width: 100%; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8mm; }
+  .note { border-left: 1.2mm solid var(--caution); background: #fdf3d3; padding: 3mm 4mm; border-radius: 0 2mm 2mm 0; font-size: 9pt; line-height: 1.45; }
+  .feature { display: grid; grid-template-columns: 9mm 1fr; gap: 3mm; margin-top: 5mm; }
+  .feature svg { width: 8mm; height: 8mm; margin-top: 0.5mm; }
+  .feature h3 { font-size: 11.5pt; }
+  .feature p { font-size: 9.8pt; margin-top: 1mm; }
+  table { border-collapse: collapse; width: 100%; font-size: 9.2pt; }
+  th { text-align: left; font-weight: 600; color: var(--ink-soft); padding: 2mm 3mm 2mm 0; border-bottom: 0.4mm solid var(--ink); }
+  td { padding: 2.2mm 3mm 2.2mm 0; border-bottom: 0.2mm solid var(--rule); vertical-align: top; line-height: 1.4; }
+  td:first-child { font-weight: 600; }
+  .tag { display: inline-block; font-size: 8pt; font-weight: 600; padding: 0.4mm 2mm; border-radius: 1.5mm; white-space: nowrap; }
+  .live { background: #dcf2e6; color: var(--safe); }
+  .sim { background: #fdf3d3; color: #7a5600; }
+
+  .cover { background: var(--ink); color: #fff; padding: 22mm 18mm; }
+  .cover .word { font-size: 64pt; font-weight: 800; letter-spacing: 0.04em; line-height: 1; }
+  .cover .expand { font-size: 11pt; color: rgb(255 255 255 / 0.7); margin-top: 3mm; }
+  .cover h1 { font-size: 30pt; line-height: 1.12; margin-top: 14mm; max-width: 170mm; }
+  .cover .ta { font-size: 17pt; font-weight: 600; margin-top: 6mm; color: #bfe4ea; }
+  .cover .phones { position: absolute; bottom: 28mm; right: 18mm; display: flex; gap: 7mm; align-items: flex-end; }
+  .cover .phone { border-color: #fff; width: 55mm; }
+  .cover figcaption { color: rgb(255 255 255 / 0.75); font-size: 8.5pt; margin-top: 2.5mm; max-width: 55mm; line-height: 1.4; }
+  .cover .signals { position: absolute; left: 18mm; bottom: 30mm; display: grid; gap: 3.4mm; }
+  .cover .signals div { display: flex; align-items: center; gap: 3mm; font-size: 10.5pt; font-weight: 600; }
+  .cover .foot { position: absolute; bottom: 12mm; left: 18mm; right: 18mm; font-size: 8.5pt; color: rgb(255 255 255 / 0.6); display: flex; justify-content: space-between; }
+
+  .bits { display: grid; grid-template-columns: repeat(29, 1fr); gap: 0.55mm; margin-top: 6mm; }
+  .bits span { aspect-ratio: 1; border-radius: 0.4mm; }
+  .legend { display: flex; flex-wrap: wrap; gap: 2mm 5mm; margin-top: 3mm; font-size: 8.5pt; }
+  .legend i { display: inline-block; width: 3mm; height: 3mm; border-radius: 0.6mm; margin-right: 1.2mm; vertical-align: -0.4mm; }
+  .big { font-size: 42pt; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+  .stat { border-top: 0.5mm solid var(--ink); padding-top: 3mm; }
+  .stat p { margin-top: 1.5mm; }
+  .flow { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2.5mm; margin-top: 8mm; }
+  .flow div { border: 0.35mm solid var(--rule); border-radius: 2.5mm; padding: 3mm; font-size: 8.8pt; line-height: 1.35; }
+  .flow div b { display: block; font-size: 10pt; margin-bottom: 1mm; }
+  .flow .ours { border-color: var(--sea); background: #e3f0f3; }
+</style>
+</head>
+<body>
+
+<section class="page cover">
+  <div class="word">DHRUVA</div>
+  <div class="expand">Deep-sea Hazard, Routing &amp; Understanding via Vernacular Agents</div>
+  <h1>Ask the sea in your own language. The answer still reaches you when the signal is gone.</h1>
+  <p class="ta">கடலிடம் உங்கள் மொழியில் கேளுங்கள்.</p>
+
+  <div class="signals">
+    <div><svg width="26" height="26" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#0b7a4b"/><path d="M29 51 L44 66 L72 36" fill="none" stroke="#fff" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/></svg>Safe</div>
+    <div><svg width="26" height="26" viewBox="0 0 100 100"><path d="M50 6 L96 90 L4 90 Z" fill="#e3a008"/><rect x="45" y="38" width="10" height="28" rx="4" fill="#0f2a36"/><circle cx="50" cy="77" r="6" fill="#0f2a36"/></svg>Caution</div>
+    <div><svg width="26" height="26" viewBox="0 0 100 100"><path d="M50 3 L97 50 L50 97 L3 50 Z" fill="#c62a1f"/><path d="M35 35 L65 65 M65 35 L35 65" stroke="#fff" stroke-width="10" stroke-linecap="round"/></svg>Unsafe</div>
+    <div><svg width="26" height="26" viewBox="0 0 100 100"><path d="M31 3 H69 L97 31 V69 L69 97 H31 L3 69 V31 Z" fill="#fff"/><rect x="22" y="43" width="56" height="14" rx="3" fill="#6e0d12"/></svg>Blocked by an official warning</div>
+    <div><svg width="26" height="26" viewBox="0 0 100 100"><rect x="8" y="8" width="84" height="84" rx="6" fill="none" stroke="#fff" stroke-width="7" stroke-dasharray="12 9"/><text x="50" y="67" text-anchor="middle" font-size="50" font-weight="800" fill="#fff" font-family="Anek Latin">?</text></svg>No data, never guessed</div>
+  </div>
+
+  <div class="phones">
+    <figure style="margin:0"><div class="phone"><img src="img/phone_answer.png" alt="" /></div><figcaption>Asked online in Tamil: a verdict for this boat, spoken by Bhashini.</figcaption></figure>
+    <figure style="margin:0"><div class="phone"><img src="img/phone_blocked.png" alt="" /></div><figcaption>No signal: a 145-bit message arrives and the phone speaks it.</figcaption></figure>
+  </div>
+  <div class="foot"><span>Smart India Hackathon 2026, problem statement 26176 (ORCA)</span><span>Advisory only. Follow official INCOIS and IMD warnings.</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">The gap</div>
+  <h2>India already sends warnings to boats at sea. No one answers a fisherman's question.</h2>
+  <p class="lede">After Cyclone Ockhi in 2017, the lesson was that warnings existed but could not reach boats already at sea. ISRO and INCOIS have since built the channel, and it can even address a single boat. What it carries today is bulletins and broadcasts, written for a stretch of coast.</p>
+
+  <div class="flow">
+    <div><b>DAT-SG</b>ISRO's distress terminal. Receives control-room messages over NavIC and relays them to a phone over Bluetooth.</div>
+    <div><b>NavIC messaging</b>Satellite broadcast of fishing-zone and high-wave alerts from INCOIS.</div>
+    <div><b>GEMINI</b>INCOIS alerts over GAGAN, with an app in nine languages.</div>
+    <div><b>Nabhmitra / VCSS</b>Transponders with two-way messaging, warnings and fishing zones.</div>
+    <div class="ours"><b>DHRUVA</b>Takes a question, reasons over live data for one boat, and answers in that fisherman's language.</div>
+  </div>
+
+  <div class="grid2" style="margin-top:14mm">
+    <div>
+      <h3>Today: a warning for a coast</h3>
+      <p style="margin-top:2mm">Warnings and fishing-zone advisories are issued by region and sector. No system we found takes a fisherman's question and answers it.</p>
+      <p class="soft small" style="margin-top:2mm">A boat in the storm's path and a boat far outside it read the same regional bulletin.</p>
+    </div>
+    <div>
+      <h3>DHRUVA's answer, for one boat</h3>
+      <p style="margin-top:2mm">Blocked. Do not go to sea: an official warning is active near you. Spoken in Tamil, with the way back to Karaikal Port, 26 km south-south-west, on screen.</p>
+      <p class="soft small" style="margin-top:2mm">Built from that boat's position, its class and the live data, and delivered in one satellite message.</p>
+    </div>
+  </div>
+
+  <div style="margin-top:14mm">
+    <h3>Integration, not invention</h3>
+    <p style="margin-top:2mm; max-width:160mm">DHRUVA does not replace Nabhmitra, DAT-SG or GEMINI and needs no new hardware. It gives the channel ISRO already runs something worth saying to each boat: a specific, explained, spoken answer.</p>
+  </div>
+  <p class="small soft" style="position:absolute; bottom:18mm; left:18mm; right:18mm">Sources: ISRO, ICD for DAT-SG emergency messaging via NavIC, v1.2; ISRO at UN ICG-16 (2022); PIB, GEMINI launch (2019); reporting on Cyclone Ockhi by The Wire and The News Minute.</p>
+  <div class="folio"><span>DHRUVA</span><span>2</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">What DHRUVA does</div>
+  <h2>Three things, done properly.</h2>
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 7mm; margin-top: 12mm">
+    <div class="stat"><div class="big">Ask</div><p><b>In your own language, by voice.</b> Speak a question in Tamil. Bhashini hears it, DHRUVA's agents check the sea for your boat, and Bhashini speaks the answer back.</p></div>
+    <div class="stat"><div class="big">Trust</div><p><b>Every number traced.</b> A rule engine decides safety, not a language model. Every figure shows where it came from and when, or it is not shown at all.</p></div>
+    <div class="stat"><div class="big">Reach</div><p><b>Still there at sea.</b> The whole answer fits in 145 bits: one DAT-SG message to one boat. The phone rebuilds and speaks it with no network.</p></div>
+  </div>
+  <div class="grid2" style="margin-top:14mm; align-items:start">
+    <div>
+      <h3>Built for the deck of a boat</h3>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg><div><h3>Read in glare, without reading</h3><p>Each verdict has its own colour, shape and word, like the signals hoisted at a port. Glare, a cracked screen or colour blindness does not hide it.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v4"/></svg><div><h3>One tap, one hand</h3><p>A large microphone, one-tap questions and buttons sized for a wet thumb.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg><div><h3>Always the way home</h3><p>Distance and direction to the nearest harbour, worked out on the phone from the message's position.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><div><h3>What if you leave at seven?</h3><p>Choose now, tomorrow at 5 AM or 7 AM. DHRUVA checks that hour's forecast and shows whether the verdict changes.</p></div></div>
+    </div>
+    <div class="phone" style="width:66mm; justify-self:center"><img src="img/phone_ask.png" alt="" /></div>
+  </div>
+  <div class="folio"><span>DHRUVA</span><span>3</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">The fisherman's phone</div>
+  <h2>An answer for this boat, this morning, with its reasons.</h2>
+  <div style="display:grid; grid-template-columns: 64mm 1fr; gap: 10mm; margin-top: 10mm; align-items:start">
+    <div class="phone" style="width:64mm"><img src="img/phone_evidence.png" alt="" /></div>
+    <div>
+      <div class="feature" style="margin-top:0"><svg viewBox="0 0 24 24" fill="none" stroke="#0b7a4b" stroke-width="2"><path d="M6.5 12c3-5 8-5 11 0-3 5-8 5-11 0z"/><path d="M2 12l4-3v6z"/></svg><div><h3>Where the fish are, when it is safe</h3><p>The nearest line of INCOIS's latest potential-fishing-zone advisory: distance, direction, date and what it was based on. Hidden automatically whenever a hazard is active.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M4 19h16M4 15l4-4 4 3 7-7"/></svg><div><h3>The numbers behind it</h3><p>Wave height, wind and sea temperature, each with its source, the hour it is valid for, how far away the grid point is, and the rule it was checked against. When a figure is rounded for the satellite message, the card says so: "0.3 m, sent as 0.25 m".</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><div><h3>How it was worked out</h3><p>The problem statement's nine agents, each with one line on what it found. Agents a question did not need are shown greyed out.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19 5a9 9 0 0 1 0 14M15.5 8.5a5 5 0 0 1 0 7"/></svg><div><h3>Spoken, and honest about the voice</h3><p>Bhashini speaks the answer online. At sea the phone plays Bhashini clips shipped with the app. The screen always says which voice you heard.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M4 5h16v11H8l-4 4z"/></svg><div><h3>Five languages on screen, twelve in the phrasebook</h3><p>Tamil, Malayalam, Odia, Hindi and English in the app, with Bhashini voice in the four Indian languages. The offline phrasebook covers twelve.</p></div></div>
+    </div>
+  </div>
+  <div class="folio"><span>DHRUVA</span><span>4</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">Trust</div>
+  <h2>A language model never decides whether you go to sea.</h2>
+  <p class="lede">Many teams now say that. DHRUVA goes further: the model may not introduce a number at all.</p>
+  <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-top: 10mm">
+    <div class="stat"><h3>1. Tools measure</h3><p class="small">Each reading becomes an evidence row: value, unit, dataset, the grid cell that answered, and when it is valid.</p></div>
+    <div class="stat"><h3>2. Rules decide</h3><p class="small">A deterministic rule table sets the verdict per boat class. A cyclone, lightning or tsunami warning forces NO-GO for everyone.</p></div>
+    <div class="stat"><h3>3. Words are checked</h3><p class="small">Every number in the answer, including Tamil and Devanagari digits and spelled-out numbers, must match an evidence row.</p></div>
+    <div class="stat"><h3>4. Or it is not said</h3><p class="small">If the check fails, a plain template built only from the evidence is used instead. An unchecked sentence is never shown.</p></div>
+  </div>
+  <div class="grid2" style="margin-top: 12mm">
+    <div><h3>Missing data is never "safe"</h3><p style="margin-top:2mm">If waves or wind cannot be fetched, the verdict is No data, with its own shape. A fishing-zone advisory more than three days old is treated as superseded and not offered.</p></div>
+    <div><h3>Honest labels, everywhere</h3><p style="margin-top:2mm">Forecasts are called forecasts. Maritime boundaries are marked indicative, never legal. Safety limits are marked provisional until they are replaced with published INCOIS criteria.</p></div>
+  </div>
+  <img class="shot" src="img/shore_check.jpg" style="width:100%; margin-top:10mm" alt="" />
+  <p class="small soft" style="margin-top:2.5mm">The shore console's point check: the verdict, the sentence the boat will hear, and every number with its source.</p>
+  <div class="folio"><span>DHRUVA</span><span>5</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">At sea, with no signal</div>
+  <h2>The whole answer, in 145 bits.</h2>
+  <p class="lede">A question goes up as one byte. The answer comes down as nineteen. The phone rebuilds the full spoken sentence, in the crew's language, from those bits and a phrasebook it already carries.</p>
+  <div class="bits" id="bits"></div>
+  <div class="legend">
+    <span><i style="background:#8aa1ab"></i>Header and time</span><span><i style="background:#0e6178"></i>Position</span>
+    <span><i style="background:#c62a1f"></i>Verdict and hazards</span><span><i style="background:#2b8a9e"></i>Sea</span>
+    <span><i style="background:#0b7a4b"></i>Fishing zone</span><span><i style="background:#e3a008"></i>Boundary</span>
+    <span><i style="background:#6e0d12"></i>Sentence code</span><span><i style="background:#4a5f69"></i>Evidence fingerprint</span>
+  </div>
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 7mm; margin-top: 10mm">
+    <div class="stat"><div class="big">19<span style="font-size:18pt"> of 23</span></div><p>bytes of the text payload in one DAT-SG control-room message, addressed to one terminal (ISRO ICD v1.2).</p></div>
+    <div class="stat"><div class="big">145<span style="font-size:18pt"> of 220</span></div><p>bits of one NavIC message. Every figure sits on a fixed grid, and every scale saturates rather than wrapping.</p></div>
+    <div class="stat"><div class="big">1<span style="font-size:18pt"> byte</span></div><p>for the question going up: the terminal's short boat-to-shore message carries a question code, not text.</p></div>
+  </div>
+  <img class="shot" src="img/terminal.jpg" style="width:100%; height:78mm; object-fit:cover; object-position:top; margin-top:8mm" alt="" />
+  <p class="note" style="margin-top:4mm">No team may transmit on ISRO's uplink. In this prototype a boat-terminal screen stands in for DAT-SG, and a QR code stands in for its Bluetooth link to the phone. The bits are identical, and the message format is checkable arithmetic against the published field table.</p>
+  <div class="folio"><span>DHRUVA</span><span>6</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">What the fisherman hears</div>
+  <h2>Airplane mode on. The warning still speaks.</h2>
+  <div style="display:grid; grid-template-columns: 64mm 1fr; gap: 10mm; margin-top: 10mm; align-items:start">
+    <div class="phone" style="width:64mm"><img src="img/phone_blocked.png" alt="" /></div>
+    <div>
+      <p style="font-size:12pt">Shore works out what a cyclone warning means for this boat and sends it, unasked. With no network at all, the phone:</p>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#6e0d12" stroke-width="2"><path d="M8 3h8l5 5v8l-5 5H8l-5-5V8z"/><path d="M8 12h8"/></svg><div><h3>Decodes the 145 bits</h3><p>The decoder is pure: no network, no file access, no clock. The Python and TypeScript decoders are tested against the same 500-message corpus.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19 5a9 9 0 0 1 0 14"/></svg><div><h3>Speaks in the crew's language</h3><p>Bhashini voice clips for every verdict, in Tamil, Malayalam, Odia and Hindi, ship inside the app.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg><div><h3>Points the way home</h3><p>Distance and direction to the nearest harbour, from the message's own position.</p></div></div>
+      <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg><div><h3>Reopens offline</h3><p>A service worker keeps the app, its fonts and its voice clips on the phone, so it opens with the radio off.</p></div></div>
+      <p class="small soft" style="margin-top:6mm">Shown: a simulated cyclone warning 180 km away, a labelled test input. DHRUVA has no live IMD cyclone feed yet.</p>
+    </div>
+  </div>
+  <div class="folio"><span>DHRUVA</span><span>7</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">The shore console</div>
+  <h2>One warning in. A different message for every boat out.</h2>
+  <p class="lede">Place a cyclone on the map. DHRUVA runs the full check for every boat it knows and gives each one its own nineteen-byte message: blocked inside 300 km, and the sea's own verdict outside it.</p>
+  <img class="shot" src="img/shore_warn.jpg" style="width:100%; margin-top:8mm" alt="" />
+  <div class="grid2" style="margin-top:9mm">
+    <div><h3>Check any point, live</h3><p style="margin-top:2mm">Click the sea to see exactly what a boat there would be told, for any of three boat classes, with the evidence, the agent trace and the message itself.</p></div>
+    <div><h3>Replay a real storm</h3><p style="margin-top:2mm">Cyclone Michaung, 4 Dec 2023, off Chennai: 4.68 m waves and 29.9 kt wind from the archives, and a NO-GO decided from data alone.</p></div>
+  </div>
+  <p class="small soft" style="margin-top:6mm">The cyclone is a test input, and the demo boats are labelled positions on real fishing grounds, not vessels.</p>
+  <div class="folio"><span>DHRUVA</span><span>8</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">The map</div>
+  <h2>The sea floor, the fishing zones and the satellites, in one view.</h2>
+  <img class="shot" src="img/shore_pfz.jpg" style="width:100%; margin-top:9mm" alt="" />
+  <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 7mm; margin-top:9mm">
+    <div class="stat"><h3>INCOIS fishing zones</h3><p class="small">The lines of INCOIS's latest fishing-zone advisory, read from the map service behind its public geoportal, with the date and basis on every line.</p></div>
+    <div class="stat"><h3>Satellite layers</h3><p class="small">Sea temperature, chlorophyll and wave height from Copernicus Marine, served as map tiles.</p></div>
+    <div class="stat"><h3>Boundaries</h3><p class="small">EEZ and maritime lines from Marine Regions, drawn dashed and labelled indicative, never legal.</p></div>
+  </div>
+  <p class="small soft" style="margin-top:6mm">Base maps: sea-floor relief (Esri, from GEBCO and NOAA bathymetry), satellite imagery, or dark. No API keys and no quotas.</p>
+  <div class="folio"><span>DHRUVA</span><span>9</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">Data, stated plainly</div>
+  <h2>What is live, and what is labelled.</h2>
+  <table style="margin-top:9mm">
+    <tr><th style="width:38mm">Source</th><th>What DHRUVA uses it for</th><th style="width:24mm">Status</th></tr>
+    <tr><td>Open-Meteo Marine</td><td>Wave height, wave period and sea temperature, by the hour</td><td><span class="tag live">Live</span></td></tr>
+    <tr><td>Open-Meteo Forecast and ERA5 archive</td><td>Wind speed and direction; the archive replays past dates such as Cyclone Michaung</td><td><span class="tag live">Live</span></td></tr>
+    <tr><td>Copernicus Marine</td><td>Chlorophyll, currents and the map's satellite layers</td><td><span class="tag live">Live</span></td></tr>
+    <tr><td>INCOIS fishing zones</td><td>Fishing-zone lines and 1223 landing centres, from the map service behind INCOIS's geoportal. No documented API: read and attributed, with the date on every line</td><td><span class="tag live">Live</span></td></tr>
+    <tr><td>Marine Regions (VLIZ)</td><td>EEZ, territorial sea and boundary lines, in PostGIS</td><td><span class="tag live">Loaded</span></td></tr>
+    <tr><td>Bhashini</td><td>Speech recognition, translation and speech in Tamil, Malayalam, Odia and Hindi</td><td><span class="tag live">Live</span></td></tr>
+    <tr><td>Gemini</td><td>Understands the question and plans which agents run. A keyword planner takes over when it does not answer</td><td><span class="tag live">Live</span></td></tr>
+    <tr><td>IMD cyclone warnings</td><td>The warning override is built and tested; the feed is not connected yet</td><td><span class="tag sim">Test input</span></td></tr>
+    <tr><td>DAT-SG link</td><td>ISRO's uplink, simulated by a terminal screen and a QR code</td><td><span class="tag sim">Simulated</span></td></tr>
+    <tr><td>Safety limits</td><td>Engineering placeholders until replaced with INCOIS Ocean State Forecast criteria</td><td><span class="tag sim">Provisional</span></td></tr>
+    <tr><td>Regional wording</td><td>Verdict labels machine-translated with Bhashini, pending a native speaker's review</td><td><span class="tag sim">In review</span></td></tr>
+  </table>
+  <p class="note" style="margin-top:8mm">For demonstrations, DHRUVA can replay recorded live runs if a source is down. A replayed answer always says so on screen, with the time it was recorded.</p>
+  <div class="folio"><span>DHRUVA</span><span>10</span></div>
+</section>
+
+<section class="page">
+  <div class="kicker">Brief compliance</div>
+  <h2>The nine agents the problem statement asks for.</h2>
+  <table style="margin-top:8mm">
+    <tr><th style="width:46mm">Agent</th><th>What it does in DHRUVA</th></tr>
+    <tr><td>Planning</td><td>Reads the question and decides which agents run, with Gemini</td></tr>
+    <tr><td>Marine data discovery</td><td>Finds which datasets can answer, for this place and time</td></tr>
+    <tr><td>Weather intelligence</td><td>Wind and waves at the boat's position, for the chosen departure hour</td></tr>
+    <tr><td>Ocean analytics</td><td>Sea temperature, chlorophyll and currents</td></tr>
+    <tr><td>Geospatial reasoning</td><td>Boundaries, maritime zones and the nearest INCOIS fishing zone, in PostGIS</td></tr>
+    <tr><td>Risk assessment</td><td>The deterministic verdict, per boat class, with warning overrides</td></tr>
+    <tr><td>Visualization</td><td>Chooses the cards and map layers that answer this question</td></tr>
+    <tr><td>Reporting</td><td>The evidence bundle, the number check and the 145-bit message</td></tr>
+    <tr><td>User interaction</td><td>The answer in the crew's language, by voice, online and offline</td></tr>
+  </table>
+  <div class="grid2" style="margin-top:11mm; align-items:start">
+    <div><h3>Built with</h3><p class="small" style="margin-top:2mm">LangGraph agents on FastAPI and Python 3.12. PostgreSQL with PostGIS. React, TypeScript and MapLibre, with no map tokens. Bhashini for voice and Gemini for planning. The same message decoder in Python and TypeScript, checked against a shared corpus.</p></div>
+    <div><h3>Tested</h3><p class="small" style="margin-top:2mm"><b id="tests">TESTS</b> automated tests, including: a fabricated number must fail the check; missing data is never read as safe; a stale fishing zone is never offered; and fishing advice never shows above an active hazard.</p></div>
+  </div>
+  <div style="position:absolute; left:18mm; right:18mm; bottom:22mm; background: var(--ink); color:#fff; border-radius:4mm; padding:7mm 8mm">
+    <p style="font-size:15pt; font-weight:800; line-height:1.25">ISRO built the channel. DHRUVA gives it something to say to each boat.</p>
+    <p style="margin-top:2mm; color:rgb(255 255 255 / 0.75)">Advisory only. Follow official INCOIS and IMD warnings.</p>
+  </div>
+  <div class="folio"><span>DHRUVA</span><span>11</span></div>
+</section>
+
+<script>
+  // The 145-bit strip: a real capsule from the demo, coloured by field group.
+  const FIELDS = [[4,0],[3,0],[10,0],[4,0],[20,1],[8,1],[8,1],[2,2],[8,2],[5,3],[6,3],[4,3],[5,3],[4,3],[5,3],[2,4],[4,4],[6,4],[2,4],[5,5],[2,5],[8,5],[8,6],[12,7]];
+  const COLOURS = ["#8aa1ab","#0e6178","#c62a1f","#2b8a9e","#0b7a4b","#e3a008","#6e0d12","#4a5f69"];
+  const B32 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  const capsule = new URLSearchParams(location.search).get("capsule") || "AIMTA3YDQAAAAAIQAAMRB7AAABNUIAA";
+  let bits = ""; for (const ch of capsule) bits += B32.indexOf(ch).toString(2).padStart(5, "0");
+  bits = bits.slice(0, 145);
+  const cols = FIELDS.flatMap(([w, g]) => Array(w).fill(COLOURS[g]));
+  document.getElementById("bits").innerHTML = [...bits].map((b, i) => `<span style="background:${cols[i]};opacity:${b === "1" ? 1 : 0.25}"></span>`).join("");
+  const t = new URLSearchParams(location.search).get("tests"); if (t) document.getElementById("tests").textContent = t;
+</script>
+</body>
+</html>

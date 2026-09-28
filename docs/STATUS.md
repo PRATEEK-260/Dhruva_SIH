@@ -37,7 +37,7 @@ to `main`: phase 4 and 5 work lives on `finish-phase-4` → `phase-5-demo-ui` �
   GeoJSON for boundaries, zones and PFZ, and the frontend API client.
 - **Boat:** online Ask flow with QR handoff; boat PWA and an emulator split for the
   offline-handoff demo.
-- **Shore:** boundary, PFZ and fleet-list layers on real data; SST, chlorophyll and
+- **Shore:** boundary, INCOIS PFZ-line and fleet-list layers on real data; SST, chlorophyll and
   wave-height raster layers served by TiTiler (`/tiles` behind Caddy, COGs from
   `scripts/`); point-inspect panel; replay-aware advisory log.
 - **Planner:** Gemini routes intents, keyword `classify()` is the fallback (below).
@@ -93,11 +93,21 @@ that record's `iso_ter1` is null, so the filter drops 664,448 km². Filter on
 leaves the commonest case unanswered: a boat 2 km offshore is inside the straight
 baseline and falls in no zone at all.
 
-**The PFZ bulletin URL is not publicly discoverable.** The INCOIS PFZ page is an
-explainer that loads no advisory data; its only relevant outbound link is to the
-Live Access Server. The scraper is built and tested but its endpoint is
-configuration — it needs confirming with INCOIS. The test fixture bulletin is
-**synthetic** and should be replaced with a recorded one.
+**PFZ comes from the WFS behind INCOIS's own geoportal (found 2026-09-28).**
+The text-bulletin URL is still not discoverable, but the public PFZ geoportal
+(`incois.gov.in/geoportal/MFASPFZ/index.html`) draws its lines from two WFS
+layers on INCOIS's GeoServer: `PFZ_Automation:pfzlines` (the day's lines, dated
+by Year + Julian_day) and `PFZ_LandingCentres:LandingCenters_29Apr2024` (1223
+centres; use names and positions only, its advisory columns are from 2024).
+`python -m dhruva.sources.pfz_wfs` loads both into `pfz_line` and
+`landing_centre`; the geo node finds the nearest line of the latest advisory no
+more than 3 days old and within 60 nm, and fills the capsule's PFZ fields. On
+28 Sep the latest advisory was 27 Sep: 66 lines, 9 off North Tamil Nadu, the
+nearest 15.3 nm east of the demo point. This is an undocumented map service,
+not an API — read and attributed, and its terms of use should be confirmed with
+INCOIS before any public claim. Refresh it before a demo. The old
+`pfz_advisory` rows (text-bulletin scraper) are a **synthetic** fixture and are
+no longer served when lines exist.
 
 **Gemini 2.5 Flash is closed to new API keys.** The Gemini API answers 404 "no longer
 available to new users". `gemini-3.8-flash` answered 503 under load on 2026-09-28;
@@ -121,6 +131,33 @@ question. ISRO's public DAT-SG ICD v1.2 defines a message addressed to one termi
 with a **23-byte** text payload — the capsule is 19 bytes, so one answer fits one
 DAT-SG message. The pitch's "every other app goes blank offshore" is false and should
 not be said to ISRO judges. A repositioning draft exists but has not been adopted.
+
+---
+
+## Demo data — what is real and what is labelled
+
+Added 2026-09-28 for the round-2 video. Nothing invents a reading.
+
+- **Recorded runs** (`data/demo/recordings.json`, made by `scripts/record_demo.py`):
+  real `/advisory` responses for every request the demo screens make, recorded live.
+  `DHRUVA_DEMO` picks the mode: `fallback` (default: a recording answers only when
+  every live source fails), `replay` (recordings first; use while filming), `off`.
+  A replayed answer carries `recorded_at`, and every screen says "Replayed from a
+  recorded live run of …". The script also pre-speaks each answer with Bhashini
+  into `backend/.voice-cache/`, which `/voice/tts` serves first. Re-record on the
+  day of filming: "tomorrow 5 AM" is matched by IST hour, so an old recording
+  would replay yesterday's forecast.
+- **A real past storm:** Cyclone Michaung, 4 Dec 2023, off Chennai (13.0 N,
+  80.45 E). Waves from Open-Meteo marine, wind from Open-Meteo's ERA5 archive
+  (registered as `open_meteo_archive`; the forecast API only reaches ~92 days
+  back). Verdict NO-GO on WAVE-N3 and WIND-N3, from data alone.
+- **Demo boats** (`dhruva/demo/boats.py`, `/demo/boats`): ten named positions on
+  real fishing grounds, each checked to lie in India's territorial sea. Labelled
+  "demo boat" everywhere; not vessels, not tracks.
+- **Test inputs, unchanged:** the cyclone distance (no IMD feed yet) is always
+  labelled a test input.
+- Shared by the screens and the recorder, so they cannot drift:
+  `frontend/src/shared/questions.json` and `demo.json`.
 
 ---
 
