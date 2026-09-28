@@ -90,6 +90,10 @@ class DhruvaState(TypedDict, total=False):
     boundaries: Annotated[list[dict[str, Any]], operator.add]
     zones: Annotated[list[dict[str, Any]], operator.add]
 
+    # --- nearest INCOIS PFZ line (node 5, geo): single writer. None when there is
+    # no fresh advisory within reach, which is not the same as "no fish". ---
+    pfz: dict[str, Any] | None
+
     # --- risk (node 6): single writer, no reducer ---
     risk_class: RiskClass
     fired_rules: list[str]

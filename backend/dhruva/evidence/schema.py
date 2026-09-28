@@ -136,6 +136,25 @@ class EvidenceBundle(BaseModel):
         return "\n".join(lines)
 
 
+def pfz_item(pfz: dict[str, Any]) -> EvidenceItem:
+    """The nearest INCOIS PFZ line as an evidence row, so its distance can be
+    spoken and still pass the numeric firewall. The cell is the closest point of
+    the line; valid_time is the advisory's own date."""
+    issued = dt.date.fromisoformat(pfz["issued_for"])
+    return EvidenceItem(
+        key="pfz_distance",
+        value=float(pfz["distance_nm"]),
+        unit="nm",
+        dataset_id="incois_pfz",
+        upstream_dataset_id=f"PFZ_Automation:pfzlines {pfz['uid']}",
+        cell=f"{pfz['lat']:.4f}N, {pfz['lon']:.4f}E",
+        cell_lat=pfz["lat"],
+        cell_lon=pfz["lon"],
+        valid_time=dt.datetime.combine(issued, dt.time(), tzinfo=dt.UTC),
+        is_forecast=True,
+    )
+
+
 def build_bundle(
     observations: list[Observation],
     assessment: RiskAssessment | None = None,

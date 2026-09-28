@@ -88,3 +88,36 @@ CREATE TABLE IF NOT EXISTS pfz_advisory (
 
 CREATE INDEX IF NOT EXISTS pfz_geom_gist ON pfz_advisory USING GIST (geom);
 CREATE INDEX IF NOT EXISTS pfz_issued_idx ON pfz_advisory (issued_for DESC);
+
+-- PFZ lines as INCOIS draws them on its own geoportal, read from the public WFS
+-- layer PFZ_Automation:pfzlines. One row per line per advisory; `uid` is INCOIS's
+-- own (year + julian day + serial). Attribution is NOT NULL, as above.
+CREATE TABLE IF NOT EXISTS pfz_line (
+    uid           text PRIMARY KEY,
+    issued_for    date NOT NULL,
+    category      text,              -- chl, sst, ghrsst: the satellite basis
+    state_name    text,
+    serial        text,
+    source_url    text NOT NULL,
+    source_name   text NOT NULL DEFAULT 'INCOIS PFZ advisory (geoportal WFS)',
+    fetched_at    timestamptz NOT NULL,
+    geom          geometry(MultiLineString, 4326) NOT NULL,
+    CONSTRAINT pfz_line_attribution_present CHECK (length(source_url) > 0)
+);
+
+CREATE INDEX IF NOT EXISTS pfz_line_geom_gist ON pfz_line USING GIST (geom);
+CREATE INDEX IF NOT EXISTS pfz_line_issued_idx ON pfz_line (issued_for DESC);
+
+-- INCOIS's 1223 landing centres, the reference points its text advisories use.
+-- Names and positions only: that layer's own advisory columns are from 2024.
+CREATE TABLE IF NOT EXISTS landing_centre (
+    code          text PRIMARY KEY,
+    name          text NOT NULL,
+    district      text,
+    sector        text,
+    source_url    text NOT NULL,
+    fetched_at    timestamptz NOT NULL,
+    geom          geometry(Point, 4326) NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS landing_centre_geom_gist ON landing_centre USING GIST (geom);

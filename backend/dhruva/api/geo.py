@@ -14,7 +14,12 @@ import asyncpg
 from fastapi import APIRouter, HTTPException
 
 from dhruva.config import database_dsn
-from dhruva.geo.layers import all_boundaries_geojson, all_zones_geojson, recent_pfz_geojson
+from dhruva.geo.layers import (
+    all_boundaries_geojson,
+    all_zones_geojson,
+    pfz_lines_geojson,
+    recent_pfz_geojson,
+)
 from dhruva.geo.rasters import available_layers
 
 router = APIRouter(prefix="/geo", tags=["geo"])
@@ -55,8 +60,14 @@ def get_rasters() -> list[dict[str, Any]]:
 
 @router.get("/pfz")
 async def get_pfz() -> dict[str, Any]:
+    """The latest fresh INCOIS PFZ lines. Falls back to text-bulletin points only
+    if no line has ever been loaded."""
     conn = await _connect()
     try:
-        return await recent_pfz_geojson(conn)
+        try:
+            lines = await pfz_lines_geojson(conn)
+        except asyncpg.UndefinedTableError:
+            lines = None
+        return lines if lines is not None else await recent_pfz_geojson(conn)
     finally:
         await conn.close()

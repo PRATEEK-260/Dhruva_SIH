@@ -63,6 +63,32 @@ async def recent_pfz_geojson(conn: asyncpg.Connection) -> dict[str, Any]:
     )
 
 
+async def pfz_lines_geojson(conn: asyncpg.Connection) -> dict[str, Any]:
+    """The latest INCOIS PFZ advisory's lines, if it is still fresh. One date
+    only: lines from two advisories drawn together would show fish where the
+    newer advisory no longer puts them."""
+    from dhruva.sources.pfz_wfs import CATEGORY_NAMES, MAX_AGE_DAYS
+
+    rows = await conn.fetch(
+        """
+        SELECT uid, issued_for, category, state_name, source_url, source_name, fetched_at,
+               ST_AsGeoJSON(geom) AS geometry
+        FROM pfz_line
+        WHERE issued_for = (SELECT max(issued_for) FROM pfz_line)
+          AND issued_for >= current_date - $1::int
+        """,
+        MAX_AGE_DAYS,
+    )
+    fc = _feature_collection(
+        rows,
+        ("uid", "issued_for", "category", "state_name", "source_url", "source_name", "fetched_at"),
+    )
+    for f in fc["features"]:
+        cat = f["properties"]["category"] or ""
+        f["properties"]["basis"] = CATEGORY_NAMES.get(cat, cat) if cat else None
+    return fc
+
+
 def _feature_collection(rows: list[asyncpg.Record], prop_keys: tuple[str, ...]) -> dict[str, Any]:
     features = []
     for row in rows:
