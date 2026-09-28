@@ -18,6 +18,13 @@ export const HARBOURS: Harbour[] = [
 ];
 
 const EARTH_KM = 6371.0088;
+export const KM_PER_NM = 1.852;
+
+/** Fisherman screens use one distance unit, nautical miles, as the spoken
+ * phrasebook and the fishing-zone advisories do. */
+export function kmToNm(km: number): number {
+  return km / KM_PER_NM;
+}
 const rad = (d: number) => (d * Math.PI) / 180;
 
 export function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number): number {

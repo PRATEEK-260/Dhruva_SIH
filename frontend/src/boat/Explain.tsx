@@ -1,6 +1,7 @@
 import { CircleDot, CircleSlash } from "lucide-react";
 import type { EvidenceItem, TraceStep } from "../shared/api/client";
 import type { Capsule } from "../shared/capsule/decode";
+import { kmToNm } from "../shared/harbour";
 
 const NAMES: Record<string, string> = {
   wave_height: "Wave height",
@@ -11,8 +12,8 @@ const NAMES: Record<string, string> = {
   chlorophyll: "Chlorophyll",
   current_speed: "Current",
   current_direction: "Current towards",
-  cyclone_distance_km: "Cyclone distance",
-  lightning_distance_km: "Lightning distance",
+  cyclone_distance: "Cyclone distance",
+  lightning_distance: "Lightning distance",
   pfz_distance: "Potential fishing zone",
 };
 
@@ -66,7 +67,11 @@ export function EvidenceList({ items, capsule }: { items: EvidenceItem[]; capsul
   return (
     <ul className="divide-y divide-rule">
       {items.map((item) => {
-        const unit = UNITS[item.unit] ?? item.unit;
+        // One distance unit on the phone: a distance given in km is shown in nm,
+        // with the source's own figure beneath it.
+        const inKm = item.unit === "km";
+        const shownValue = inKm ? kmToNm(item.value) : item.value;
+        const unit = inKm ? "nm" : (UNITS[item.unit] ?? item.unit);
         const sentField = SENT_AS[item.key];
         const sent = sentField !== undefined ? (capsule[sentField] as number) : undefined;
         const showSent = sent !== undefined && Math.abs(sent - item.value) > 1e-6;
@@ -81,20 +86,23 @@ export function EvidenceList({ items, capsule }: { items: EvidenceItem[]; capsul
                 {item.dataset_id === "incois_pfz"
                   ? `issued ${advisoryDate(item.valid_time)}, nearest point of the line`
                   : `valid ${istTime(item.valid_time)}`}
-                {item.offset_km ? `, grid cell ${fmt(item.offset_km)} km away` : ""}
+                {item.offset_km ? `, grid cell ${fmt(kmToNm(item.offset_km))} nm away` : ""}
               </p>
               {item.rule_id && (
                 <p className="text-sm text-ink-soft">
                   Rule {item.rule_id}
-                  {item.threshold != null ? `, limit ${fmt(item.threshold)} ${unit}` : ""}
+                  {item.threshold != null
+                    ? `, limit ${fmt(inKm ? kmToNm(item.threshold) : item.threshold)} ${unit}`
+                    : ""}
                 </p>
               )}
             </div>
             <div className="text-right shrink-0">
               <p className="text-2xl font-extrabold text-ink tabular-nums leading-none">
-                {fmt(item.value)}
+                {fmt(shownValue)}
                 <span className="text-base font-semibold text-ink-soft ml-1">{unit}</span>
               </p>
+              {inKm && <p className="text-xs text-ink-soft mt-1">given as {fmt(item.value)} km</p>}
               {showSent && (
                 <p className="text-xs text-ink-soft mt-1">
                   sent as {fmt(sent)} {unit}

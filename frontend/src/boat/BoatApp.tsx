@@ -9,7 +9,7 @@ import type { Capsule } from "../shared/capsule/decode";
 import { compassWord, renderReason, spokenSlots, type Language } from "../shared/capsule/codebook";
 import type { EvidenceItem } from "../shared/api/client";
 import { suppressesFishing, verdictLabel, verdictState, type VerdictState } from "../shared/verdict";
-import { wayHome } from "../shared/harbour";
+import { kmToNm, wayHome } from "../shared/harbour";
 import { DEPARTURE_LABEL, departureTime, type Departure } from "../shared/questions";
 import { speakAdvisory, type VoiceSource } from "../shared/voice";
 
@@ -256,7 +256,7 @@ export function BoatApp() {
                     </p>
                     <p className="text-xl font-extrabold leading-tight">{home.harbour.name}</p>
                     <p className="text-lg font-semibold">
-                      {Math.round(home.km)} km, {home.direction}
+                      {Math.round(kmToNm(home.km))} nm, {home.direction}
                     </p>
                   </div>
                 </div>
