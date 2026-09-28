@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 """Spoken Tamil question in, spoken Tamil answer out, through the real graph.
 
-Sarvam stands in for Bhashini until the Bhashini key arrives (CLAUDE.md lists
-Sarvam Saarika/Bulbul as the fallback and demo voice):
+Bhashini is the voice; ``--voice sarvam`` switches to the fallback (Saaras ASR with
+language detection, Bulbul TTS):
 
-    1. question audio   Sarvam Bulbul TTS speaks the question text (a stand-in for a
-                        fisherman's recording; pass --audio to use a real one)
-    2. ASR              Sarvam Saaras, language auto-detected
+    1. question audio   TTS speaks the question text (a stand-in for a fisherman's
+                        recording; pass --audio to use a real one)
+    2. ASR              Bhashini, Tamil given; Sarvam detects the language
     3. graph            planner, live fetch, PostGIS, rules, evidence, capsule
     4. Tamil answer     rendered offline from the capsule by the shipped codebook,
                         no machine translation, then checked by the numeric firewall
-    5. answer audio     Sarvam Bulbul TTS
+    5. answer audio     TTS
 
     set -a; . ./.env; set +a; export DHRUVA_DSN=postgresql://...
     PYTHONPATH=backend .venv/bin/python scripts/voice_roundtrip.py --out demo-assets
@@ -22,10 +22,12 @@ import argparse
 import asyncio
 import base64
 import datetime as dt
+import io
 import logging
 import os
 import time
 import warnings
+import wave
 from pathlib import Path
 
 import httpx
@@ -35,6 +37,7 @@ from dhruva.codec.codec import decode, from_base32
 from dhruva.evidence.firewall import validate
 from dhruva.evidence.schema import EvidenceBundle, EvidenceItem
 from dhruva.graph.build import arun
+from dhruva.lang import bhashini
 
 logging.getLogger("copernicusmarine").setLevel(logging.ERROR)
 warnings.filterwarnings("ignore", message="Consolidated metadata")
@@ -109,6 +112,12 @@ async def asr(client: httpx.AsyncClient, key: str, audio: bytes) -> dict:
     return r.json()
 
 
+async def speak(client: httpx.AsyncClient, voice: str, key: str, text: str, gender: str) -> bytes:
+    if voice == "bhashini":
+        return await bhashini.tts(client, key, text, "ta", gender=gender)
+    return await tts(client, key, text, "anand")
+
+
 async def main() -> None:
     ap = argparse.ArgumentParser(description="Tamil voice round-trip through DHRUVA.")
     ap.add_argument("--question", default="இப்போது கடலுக்குப் போகலாமா?")
@@ -117,12 +126,16 @@ async def main() -> None:
     ap.add_argument("--lon", type=float, default=79.95)
     ap.add_argument("--test-cyclone-km", type=float, help="TEST INPUT, see trace_query.py")
     ap.add_argument("--out", type=Path, default=Path("."))
+    ap.add_argument("--voice", choices=("bhashini", "sarvam"), default="bhashini")
     args = ap.parse_args()
-    key = os.environ["SARVAM_API_KEY"]
+    key = os.environ["BHASHINI_INFERENCE_API_KEY" if args.voice == "bhashini" else "SARVAM_API_KEY"]
     args.out.mkdir(parents=True, exist_ok=True)
 
     print(f"DHRUVA voice round-trip   {dt.datetime.now(IST):%d %b %Y %H:%M IST}")
-    print("voice: Sarvam (Saaras ASR, Bulbul TTS), standing in until Bhashini is wired")
+    if args.voice == "bhashini":
+        print("voice: Bhashini (AI4Bharat Conformer ASR, Indic-TTS)")
+    else:
+        print("voice: Sarvam (Saaras ASR, Bulbul TTS), the fallback")
     if args.test_cyclone_km is not None:
         print(f"TEST INPUT  simulated cyclone warning {args.test_cyclone_km:g} km away")
     print("-" * 96)
@@ -133,15 +146,22 @@ async def main() -> None:
             q_audio = args.audio.read_bytes()
             _line(t0, "question", f"recording {args.audio} ({len(q_audio) // 1024} KB)")
         else:
-            q_audio = await tts(client, key, args.question, "anand")
+            q_audio = await speak(client, args.voice, key, args.question, "male")
             (args.out / "voice_question_ta.wav").write_bytes(q_audio)
             _line(t0, "question", f"audio synthesised from: {args.question}")
             _more("(TTS stand-in for a fisherman's recording, saved voice_question_ta.wav)")
 
-        heard = await asr(client, key, q_audio)
-        transcript = heard["transcript"]
-        _line(t0, "ASR", f'heard: "{transcript}"')
-        _more(f"language detected: {heard.get('language_code')}")
+        if args.voice == "bhashini":
+            with wave.open(io.BytesIO(q_audio)) as w:
+                rate = w.getframerate()
+            transcript = await bhashini.asr(client, key, q_audio, "ta", rate)
+            _line(t0, "ASR", f'heard: "{transcript}"')
+            _more("language: ta (given, not detected)")
+        else:
+            heard = await asr(client, key, q_audio)
+            transcript = heard["transcript"]
+            _line(t0, "ASR", f'heard: "{transcript}"')
+            _more(f"language detected: {heard.get('language_code')}")
 
         state = await arun(
             transcript,
@@ -183,7 +203,7 @@ async def main() -> None:
         if not own.passed:
             _line(t0, "TTS", f"NOT SPOKEN: firewall failed {own.messages}")
         else:
-            a_audio = await tts(client, key, answer, "anand")
+            a_audio = await speak(client, args.voice, key, answer, "female")
             (args.out / "voice_answer_ta.wav").write_bytes(a_audio)
             _line(
                 t0, "TTS", f"answer spoken, saved voice_answer_ta.wav ({len(a_audio) // 1024} KB)"
