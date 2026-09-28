@@ -1,0 +1,37 @@
+DHRUVA agent trace   28 Sep 2026 14:11 IST
+query   "இப்போது கடலுக்குப் போகலாமா?"
+at      11.05N 79.95E   boat frp_under_12m
+------------------------------------------------------------------------------------------------
+[   6.7 s] planner    intent go_no_go
+                     decided by: model gemini-3.5-flash-lite chose go_no_go
+                     nodes: discovery, weather, geo
+                     variables: wave_height, wind_speed, wind_direction
+[   7.4 s] discovery  eligible datasets per variable
+                     wave_height      open_meteo_marine, copernicus_wav
+                     wind_speed       open_meteo_forecast
+                     wind_direction   open_meteo_forecast
+[   7.4 s] ocean      not in plan, skipped
+[   7.4 s] geo        PostGIS, Marine Regions boundaries (indicative, not legal)
+                     inside  eez: Indian Exclusive Economic Zone
+                     inside  territorial_sea_12nm: Indian 12 NM
+                     nearest Straight baseline: India Straight Baseline, 5.18 nm
+                     nearest Treaty: Sri Lanka - India, 51.83 nm
+                     nearest Treaty: Sri Lanka - India, 58.04 nm
+[   8.5 s] weather    live fetch
+                     wave_height         0.26 m      open_meteo_marine    cell 11.04N 79.96E (1.3 km off), valid 28 Sep 09:00Z, forecast
+                     wind_speed           7.9 kt     open_meteo_forecast  cell 11.14N 79.85E (15.1 km off), valid 28 Sep 09:00Z, forecast
+                     wind_direction     135.0 degree open_meteo_forecast  cell 11.14N 79.85E (15.1 km off), valid 28 Sep 09:00Z, forecast
+[   8.5 s] risk       verdict SAFE
+                     rules fired: WAVE-S1, WIND-S1
+[   8.5 s] route      no route asked
+[   8.5 s] evidence   3 items, each tied to a dataset, cell and time
+                     wave_height         0.26 m      open_meteo_marine    rule WAVE-S1 (threshold 2.0)
+                     wind_speed           7.9 kt     open_meteo_forecast  rule WIND-S1 (threshold 20.0)
+                     wind_direction     135.0 degree open_meteo_forecast  
+                     thresholds: PROVISIONAL engineering placeholders, not INCOIS criteria
+                     numeric firewall: passed
+                     narration: "SAFE. wave height 0.26 m. wind speed 7.9 kt. wind direction 135 degree. Advisory only. Follow official INCOIS and IMD warnings."
+[   8.5 s] codec      capsule AIITA3YDQAAAAAJBQAAAAAAAAB2GAAA  (145 bits, base32)
+                     reason code 14
+------------------------------------------------------------------------------------------------
+Advisory only. Follow official INCOIS and IMD warnings.

@@ -1,0 +1,22 @@
+DHRUVA voice round-trip   28 Sep 2026 14:24 IST
+voice: Sarvam (Saaras ASR, Bulbul TTS), standing in until Bhashini is wired
+------------------------------------------------------------------------------------------------
+[   0.7 s] question     audio synthesised from: இப்போது கடலுக்குப் போகலாமா?
+                       (TTS stand-in for a fisherman's recording, saved voice_question_ta.wav)
+[   1.1 s] ASR          heard: "இப்போ கடலுக்கு போகலாமா?"
+                       language detected: ta-IN
+[   5.5 s] planner      intent go_no_go  (model gemini-3.5-flash-lite chose go_no_go)
+                       wave_height         0.26 m      open_meteo_marine
+                       wind_speed           7.9 kt     open_meteo_forecast
+                       wind_direction     135.0 degree open_meteo_forecast
+[   5.5 s] risk         verdict SAFE
+                       rules fired: WAVE-S1, WIND-S1
+[   5.5 s] capsule      AII3A3YDQAAAAAJBQAAAAAAAAB2GAAA  (145 bits)
+[   5.5 s] codebook     Tamil answer rendered offline from the capsule:
+                       உங்கள் படகுக்கான வரம்புக்குள் நிலைமை உள்ளது. அலை உயரம் 0.25 மீட்டர். இந்த வரம்புகள் தற்காலிகமானவை, அதிகாரப்பூர்வ அளவுகோல்கள் அல்ல. இது ஆலோசனை மட்டுமே. அதிகாரப்பூர்வ INCOIS மற்றும் IMD எச்சரிக்கைகளைப் பின்பற்றவும்.
+                       firewall vs capsule it was rendered from: passed
+                       firewall vs live evidence: differs, capsule values are quantised
+                         wave 0.25 m on the 0.25 m grid; live reading was 0.26 m
+[  11.2 s] TTS          answer spoken, saved voice_answer_ta.wav (588 KB)
+------------------------------------------------------------------------------------------------
+Advisory only. Follow official INCOIS and IMD warnings.

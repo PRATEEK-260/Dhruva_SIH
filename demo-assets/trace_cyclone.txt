@@ -1,0 +1,40 @@
+DHRUVA agent trace   28 Sep 2026 14:22 IST
+query   "Is it safe to take my boat out now?"
+at      11.05N 79.95E   boat frp_under_12m
+TEST INPUT  simulated cyclone warning, centre 180 km away. Not a live IMD bulletin.
+------------------------------------------------------------------------------------------------
+[   3.0 s] planner    intent go_no_go
+                     decided by: model gemini-3.5-flash-lite chose go_no_go
+                     nodes: discovery, weather, geo
+                     variables: wave_height, wind_speed, wind_direction
+[   3.6 s] discovery  eligible datasets per variable
+                     wave_height      open_meteo_marine, copernicus_wav
+                     wind_speed       open_meteo_forecast
+                     wind_direction   open_meteo_forecast
+[   3.6 s] ocean      not in plan, skipped
+[   3.6 s] geo        PostGIS, Marine Regions boundaries (indicative, not legal)
+                     inside  eez: Indian Exclusive Economic Zone
+                     inside  territorial_sea_12nm: Indian 12 NM
+                     nearest Straight baseline: India Straight Baseline, 5.18 nm
+                     nearest Treaty: Sri Lanka - India, 51.83 nm
+                     nearest Treaty: Sri Lanka - India, 58.04 nm
+[   5.9 s] weather    live fetch
+                     wave_height         0.26 m      open_meteo_marine    cell 11.04N 79.96E (1.3 km off), valid 28 Sep 09:00Z, forecast
+                     wind_speed           7.9 kt     open_meteo_forecast  cell 11.14N 79.85E (15.1 km off), valid 28 Sep 09:00Z, forecast
+                     wind_direction     135.0 degree open_meteo_forecast  cell 11.14N 79.85E (15.1 km off), valid 28 Sep 09:00Z, forecast
+[   5.9 s] risk       verdict NO_GO
+                     rules fired: CYCLONE-A1
+                     hazards: cyclone
+[   5.9 s] route      no route asked
+[   5.9 s] evidence   4 items, each tied to a dataset, cell and time
+                     wave_height         0.26 m      open_meteo_marine    
+                     wind_speed           7.9 kt     open_meteo_forecast  
+                     wind_direction     135.0 degree open_meteo_forecast  
+                     cyclone_distance   180.0 km     risk_engine          rule CYCLONE-A1 (threshold 300.0)  <- TEST INPUT
+                     thresholds: PROVISIONAL engineering placeholders, not INCOIS criteria
+                     numeric firewall: passed
+                     narration: "NO-GO. wave height 0.26 m. wind speed 7.9 kt. wind direction 135 degree. cyclone distance 180 km. Advisory only. Follow official INCOIS and IMD warnings."
+[   5.9 s] codec      capsule AII3A3YDQAAECAJBQAAAAAAAATU6VAA  (145 bits, base32)
+                     reason code 157
+------------------------------------------------------------------------------------------------
+Advisory only. Follow official INCOIS and IMD warnings.
