@@ -25,7 +25,7 @@ outstanding, and narration is still the firewall's template.
 
 325 tests passing (12 skipped: no database, or live-model test not enabled), ruff and
 pyright clean.
-Repo: https://github.com/PRATEEK-260/Dhruva_SIH (public). Nothing since phase 3 is merged
+Repo: https://github.com/PRATEEK-260/Dhruva_SIH (private). Nothing since phase 3 is merged
 to `main`: phase 4 and 5 work lives on `finish-phase-4` → `phase-5-demo-ui` →
 `deploy-render` → `planner-model`, each built on the last.
 
