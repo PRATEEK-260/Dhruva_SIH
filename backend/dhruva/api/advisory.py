@@ -41,6 +41,9 @@ class AdvisoryRequest(BaseModel):
     # TEST INPUT. No live IMD cyclone feed is wired, so the demo's cyclone alert
     # is simulated through this, and the evidence row says so.
     test_cyclone_km: float | None = None
+    # TEST INPUT. Alert types as a warning feed would name them; an unrecognised
+    # one forces at least CAUTION (default-deny).
+    test_alerts: list[str] = []
 
 
 class AdvisoryResponse(BaseModel):
@@ -88,6 +91,7 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
         req.boat_class.value,
         req.when,
         req.test_cyclone_km,
+        req.test_alerts,
     )
     mode = replay.mode()
     recorded = replay.find(rec_key) if mode != "off" else None
@@ -104,6 +108,7 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
                 boat_class=req.boat_class,
                 when=req.when,
                 cyclone_distance_km=req.test_cyclone_km,
+                alerts=req.test_alerts,
             )
         except Exception as exc:
             if recorded is None:

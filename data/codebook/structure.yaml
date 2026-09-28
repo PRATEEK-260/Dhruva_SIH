@@ -52,6 +52,8 @@ rule_family:
   LIGHTNING-A2: 4
   TSUNAMI-A3: 5
   DATA-U0: 6
+  # Default-deny for an alert the table cannot evaluate: a generic caution.
+  ALERT-C0: 0
 
 # Absolute overrides return early from assess(), so they can only ever be no-go.
 # DATA-U0 yields UNKNOWN and nothing else.

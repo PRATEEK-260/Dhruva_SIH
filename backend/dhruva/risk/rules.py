@@ -13,6 +13,11 @@ Missing data yields UNKNOWN, never SAFE. If wave height could not be fetched the
 system does not know, and a system that answers "safe" when it does not know is
 worse than one that answers nothing, because a crew acts on it.
 
+Unknown alerts are denied, not ignored. An alert type this engine does not
+recognise, or a recognised one it cannot evaluate (a cyclone alert with no
+position), forces at least CAUTION. Silence about an alert must never read as
+safety.
+
 The worst verdict wins. Any rule reaching NO-GO makes the whole answer NO-GO,
 however many other rules are content — which is the same rule as "a favourable
 fishing zone never renders above an active hazard".
@@ -92,6 +97,9 @@ def assess(
     state — which is how the graph's risk, evidence and codec nodes all see the
     same cyclone, lightning and tsunami inputs.
     """
+    alerts = [a.strip().lower() for a in (state.get("alerts") or []) if a and a.strip()]
+    if "tsunami" in alerts:
+        tsunami_alert = True
     if cyclone_distance_km is None:
         cyclone_distance_km = state.get("cyclone_distance_km")
     if lightning_distance_km is None:
@@ -141,8 +149,24 @@ def assess(
         # message must name the hazard rather than the sea state.
         return RiskAssessment(RiskClass.NO_GO, fired, flags)
 
-    # --- per-class thresholds -----------------------------------------------
+    # --- default-deny: alerts this table cannot evaluate --------------------
     verdicts: list[RiskClass] = []
+    for alert in sorted(set(alerts)):
+        if alert == "tsunami":
+            continue  # handled above as an absolute override
+        if alert == "cyclone" and cyclone_distance_km is not None:
+            continue  # evaluated by its distance above
+        if alert == "lightning" and lightning_distance_km is not None:
+            continue
+        reason = (
+            f"{alert.capitalize()} alert with no position: caution until its distance is known"
+            if alert in ("cyclone", "lightning")
+            else f"Unrecognised alert '{alert}': caution until it is understood"
+        )
+        fired.append(FiredRule("ALERT-C0", RiskClass.CAUTION, None, None, None, "", reason))
+        verdicts.append(RiskClass.CAUTION)
+
+    # --- per-class thresholds -----------------------------------------------
     for rule in (_wave_rule, _wind_rule):
         outcome = rule(state, limits)
         if outcome is not None:

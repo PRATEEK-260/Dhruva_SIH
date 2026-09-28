@@ -55,10 +55,15 @@ def key(
     boat_class: str,
     when: dt.datetime | None,
     test_cyclone_km: float | None,
+    alerts: list[str] | None = None,
 ) -> str:
     q = " ".join(unicodedata.normalize("NFC", query).casefold().split())
     cyc = "" if test_cyclone_km is None else f"{round(test_cyclone_km)}"
-    return f"{q}|{language}|{lat:.2f}|{lon:.2f}|{boat_class}|{when_key(when)}|{cyc}"
+    k = f"{q}|{language}|{lat:.2f}|{lon:.2f}|{boat_class}|{when_key(when)}|{cyc}"
+    # Appended only when present, so recordings made without alerts keep their keys.
+    if alerts:
+        k += "|alerts=" + ",".join(sorted({a.strip().lower() for a in alerts}))
+    return k
 
 
 @lru_cache(maxsize=1)

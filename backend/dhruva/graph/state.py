@@ -79,6 +79,9 @@ class DhruvaState(TypedDict, total=False):
     cyclone_distance_km: float | None
     lightning_distance_km: float | None
     tsunami_alert: bool
+    # Alert types from a warning feed, by name. Default-deny: a type the risk
+    # engine does not recognise forces at least CAUTION (risk/rules.py).
+    alerts: list[str]
 
     # --- planner (node 0) ---
     intent: Intent
@@ -129,6 +132,7 @@ def initial_state(
     cyclone_distance_km: float | None = None,
     lightning_distance_km: float | None = None,
     tsunami_alert: bool = False,
+    alerts: list[str] | None = None,
 ) -> DhruvaState:
     """Seed a run.
 
@@ -147,6 +151,7 @@ def initial_state(
         cyclone_distance_km=cyclone_distance_km,
         lightning_distance_km=lightning_distance_km,
         tsunami_alert=tsunami_alert,
+        alerts=list(alerts or []),
         observations=[],
         errors=[],
         boundaries=[],

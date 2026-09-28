@@ -23,6 +23,7 @@ import time
 from pydantic import BaseModel, Field
 
 from dhruva.sources.base import FetchError, FetchOutcome, Observation, SourceAdapter
+from dhruva.sources.plausibility import implausible
 from dhruva.sources.registry import DatasetEntry, Registry, SourceKind, Variable
 
 ADVISORY_NOTICE = "Advisory only. Follow official INCOIS and IMD warnings."
@@ -187,6 +188,11 @@ async def conditions_at(
     for outcome in outcomes:
         errors.extend(outcome.errors)
         for obs in outcome.observations:
+            # An impossible reading is a failed source, not data: the next source
+            # for the variable answers, or the variable is missing (UNKNOWN).
+            if (reason := implausible(obs)) is not None:
+                errors.append(FetchError(dataset_id=obs.dataset_id, error=reason))
+                continue
             by_dataset.setdefault(obs.dataset_id, []).append(obs)
 
     result = Conditions(requested_lat=lat, requested_lon=lon, when=when, errors=errors)
