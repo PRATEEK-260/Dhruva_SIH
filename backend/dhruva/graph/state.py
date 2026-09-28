@@ -74,6 +74,12 @@ class DhruvaState(TypedDict, total=False):
     heading_deg: float | None
     speed_kt: float | None
 
+    # --- hazard inputs: absolute overrides, set by a hazard feed or a labelled test.
+    # None / False means no information, never "no hazard confirmed".
+    cyclone_distance_km: float | None
+    lightning_distance_km: float | None
+    tsunami_alert: bool
+
     # --- planner (node 0) ---
     intent: Intent
     plan: ToolPlan
@@ -116,6 +122,9 @@ def initial_state(
     boat_class: BoatClass = BoatClass.FRP_UNDER_12M,
     heading_deg: float | None = None,
     speed_kt: float | None = None,
+    cyclone_distance_km: float | None = None,
+    lightning_distance_km: float | None = None,
+    tsunami_alert: bool = False,
 ) -> DhruvaState:
     """Seed a run.
 
@@ -131,6 +140,9 @@ def initial_state(
         boat_class=boat_class,
         heading_deg=heading_deg,
         speed_kt=speed_kt,
+        cyclone_distance_km=cyclone_distance_km,
+        lightning_distance_km=lightning_distance_km,
+        tsunami_alert=tsunami_alert,
         observations=[],
         errors=[],
         boundaries=[],

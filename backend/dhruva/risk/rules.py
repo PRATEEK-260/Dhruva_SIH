@@ -86,7 +86,17 @@ def assess(
     lightning_distance_km: float | None = None,
     tsunami_alert: bool = False,
 ) -> RiskAssessment:
-    """Evaluate the table against whatever the fetch layer actually returned."""
+    """Evaluate the table against whatever the fetch layer actually returned.
+
+    Hazard inputs come from the keyword arguments when given, otherwise from the
+    state — which is how the graph's risk, evidence and codec nodes all see the
+    same cyclone, lightning and tsunami inputs.
+    """
+    if cyclone_distance_km is None:
+        cyclone_distance_km = state.get("cyclone_distance_km")
+    if lightning_distance_km is None:
+        lightning_distance_km = state.get("lightning_distance_km")
+    tsunami_alert = tsunami_alert or bool(state.get("tsunami_alert"))
     boat_class = state.get("boat_class") or BoatClass.FRP_UNDER_12M
     limits = thresholds_for(boat_class)
 
