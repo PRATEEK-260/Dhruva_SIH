@@ -19,6 +19,8 @@ export interface AdvisoryRequest {
   boat_class?: string;
   when?: string;
   log?: boolean;
+  /** TEST INPUT: simulates a cyclone warning this far away. */
+  test_cyclone_km?: number;
 }
 
 export interface EvidenceItem {
@@ -54,6 +56,34 @@ export interface RasterLayer {
   generated_at: string;
 }
 
+/** One of the problem statement's nine agents, as it ran for one question. */
+export interface TraceStep {
+  agent: string;
+  node: string;
+  ran: boolean;
+  line: string;
+}
+
+/** Nearest line of the latest fresh INCOIS PFZ advisory (backend dhruva/geo/pfz.py). */
+export interface NearestPfz {
+  uid: string;
+  issued_for: string;
+  category: string | null;
+  basis: string | null;
+  state_name: string | null;
+  distance_nm: number;
+  bearing_deg: number;
+  lat: number;
+  lon: number;
+  age_days: number;
+  confidence: number;
+  source_url: string;
+  fetched_at: string;
+  centre_name: string | null;
+  centre_distance_nm: number | null;
+  centre_bearing_deg: number | null;
+}
+
 export interface AdvisoryResponse {
   narration: string;
   risk_class: string;
@@ -62,6 +92,29 @@ export interface AdvisoryResponse {
   capsule_base32: string;
   reason_code: number;
   notice: string;
+  intent?: string;
+  fired_rules?: string[];
+  hazard_flags?: string[];
+  trace?: TraceStep[];
+  view?: { cards?: string[]; layers?: string[] };
+  pfz?: NearestPfz | null;
+  /** Set only when this answer is a recorded real run, replayed. */
+  recorded_at?: string | null;
+  replay_reason?: string | null;
+}
+
+/** A named position used by the shore console's Warn boats view. Not a vessel. */
+export interface DemoBoat {
+  name: string;
+  lat: number;
+  lon: number;
+  demo: true;
+  boat_class: string;
+}
+
+export async function fetchDemoBoats(): Promise<DemoBoat[]> {
+  const response = await fetch("/api/demo/boats");
+  return parseOrThrow<DemoBoat[]>(response, "fetchDemoBoats");
 }
 
 export interface AdvisoryLogEntry {

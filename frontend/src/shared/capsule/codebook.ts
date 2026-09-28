@@ -221,6 +221,19 @@ export function fill(template: string, capsule: Capsule, lexicon: CodebookLexico
   });
 }
 
+/** A bearing as the codebook's own 16-point compass word, in the language asked. */
+export function compassWord(degrees: number, language: Language): string {
+  return compassName(degrees, CODEBOOKS[language].lexicon);
+}
+
+/** The {slots} the chosen sentence speaks, so a card can show exactly those
+ * figures and no others: a field the sentence does not use may be a default
+ * rather than a reading. */
+export function spokenSlots(capsule: Capsule, language: Language): string[] {
+  const chosen = decodeReason(capsule.reason_code, BAND_OF[capsule.risk_class], language);
+  return [...chosen.text.matchAll(SLOT_RE)].map((m) => m[1]);
+}
+
 /** The whole offline path: capsule in, spoken sentence out. */
 export function renderReason(
   capsule: Capsule,

@@ -1,0 +1,18 @@
+{
+  "cyclone": {
+    "lat": 12.8,
+    "lon": 82.3,
+    "note": "Demo cyclone position for Warn boats. A test input, placed where it splits the demo boats either side of 300 km."
+  },
+  "storm": {
+    "name": "Cyclone Michaung",
+    "lat": 13.0,
+    "lon": 80.45,
+    "when": "2023-12-04T00:00:00Z",
+    "note": "A real past rough day off Chennai, replayed from Open-Meteo marine and ERA5 archives."
+  },
+  "boat": {
+    "lat": 11.05,
+    "lon": 79.95
+  }
+}
