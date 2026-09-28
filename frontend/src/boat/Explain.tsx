@@ -13,7 +13,7 @@ const NAMES: Record<string, string> = {
   current_direction: "Current towards",
   cyclone_distance_km: "Cyclone distance",
   lightning_distance_km: "Lightning distance",
-  pfz_distance: "Fishing zone",
+  pfz_distance: "Potential fishing zone",
 };
 
 const UNITS: Record<string, string> = { degC: "°C", degree: "°", "mg m-3": "mg/m³" };

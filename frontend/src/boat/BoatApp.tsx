@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Anchor, Fish, Loader2, MessageCircleQuestion, Navigation2, Satellite, ShieldAlert, Volume2, Wifi, WifiOff } from "lucide-react";
+import { Anchor, ChevronDown, ChevronUp, Fish, Loader2, MessageCircleQuestion, Navigation2, Satellite, ShieldAlert, Volume2, Wifi, WifiOff } from "lucide-react";
 import { ScanView } from "./ScanView";
 import { PfzMap } from "./PfzMap";
 import { AskSheet, askAdvisory, type AskResult } from "./AskSheet";
@@ -76,6 +76,7 @@ export function BoatApp() {
   const [sheet, setSheet] = useState<"none" | "ask" | "scan">("none");
   const [shown, setShown] = useState<Shown | null>(null);
   const [voice, setVoice] = useState<VoiceSource | "speaking" | null>(null);
+  const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [compare, setCompare] = useState<{ d: Departure; state: VerdictState } | "loading" | null>(null);
 
   const state = shown ? verdictState(shown.capsule) : null;
@@ -96,6 +97,7 @@ export function BoatApp() {
     setShown(s);
     setSheet("none");
     setCompare(null);
+    setEvidenceOpen(false);
     void say(s, lang);
   };
 
@@ -268,33 +270,6 @@ export function BoatApp() {
                 <FishingZone shown={shown} lang={lang} />
               )}
 
-              {shown.asked && evidence?.items && evidence.items.length > 0 ? (
-                <section className="rounded-2xl bg-white p-4">
-                  <h2 className="text-lg font-extrabold">The numbers behind this</h2>
-                  <p className="text-sm text-ink-soft">Every figure, with where and when it came from.</p>
-                  <EvidenceList items={evidence.items} capsule={shown.capsule} />
-                  <p className="text-sm text-ink-soft mt-1">
-                    Number check {shown.asked.firewallPassed ? "passed" : "failed, so the plain template was used"}: the
-                    answer contains no figure that is not listed here.
-                    {evidence.provisional_thresholds ? " Safety limits are provisional, not yet INCOIS criteria." : ""}
-                  </p>
-                </section>
-              ) : !hasFigures(spokenSlots(shown.capsule, lang)) ? (
-                <p className="text-sm text-ink-soft px-1">
-                  This message carries the warning itself and no sea figures. Full sources stay on shore
-                  under evidence fingerprint {shown.capsule.evidence_hash.toString(16).padStart(3, "0")}.
-                </p>
-              ) : (
-                <section className="rounded-2xl bg-white p-4">
-                  <h2 className="text-lg font-extrabold">Figures in this message</h2>
-                  <p className="text-sm text-ink-soft mb-3">
-                    Straight from the 145-bit message. Full sources stay on shore under fingerprint{" "}
-                    {shown.capsule.evidence_hash.toString(16).padStart(3, "0")}.
-                  </p>
-                  <CapsuleFigures capsule={shown.capsule} slots={spokenSlots(shown.capsule, lang)} />
-                </section>
-              )}
-
               {shown.asked && online && currentDeparture && (shown.asked.intent === "go_no_go" || shown.asked.intent === "hazard") && (
                 <section className="rounded-2xl bg-white p-4">
                   <h2 className="text-lg font-extrabold">What if you leave at another time?</h2>
@@ -327,17 +302,55 @@ export function BoatApp() {
                 </section>
               )}
 
-              {shown.asked && shown.asked.trace.length > 0 && (
-                <details className="rounded-2xl bg-white p-4 group" open>
-                  <summary className="text-lg font-extrabold cursor-pointer list-none flex justify-between">
-                    How DHRUVA worked this out
-                    <span className="text-sm font-semibold text-ink-soft group-open:hidden">Show</span>
-                  </summary>
-                  <p className="text-sm text-ink-soft mb-2">
-                    The problem statement's nine agents. Grey ones were not needed for this question.
-                  </p>
-                  <TracePanel steps={shown.asked.trace} />
-                </details>
+              {/* Evidence stays one tap away: the answer first, the proof on request. */}
+              <button
+                onClick={() => setEvidenceOpen((o) => !o)}
+                aria-expanded={evidenceOpen}
+                aria-controls="evidence"
+                className="min-h-[56px] rounded-2xl border-2 border-ink bg-white text-ink font-extrabold text-lg flex items-center justify-center gap-2"
+              >
+                {evidenceOpen ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
+                {evidenceOpen ? "Hide evidence" : "Show evidence"}
+              </button>
+              {evidenceOpen && (
+                <div id="evidence" className="flex flex-col gap-4">
+                  {shown.asked && evidence?.items && evidence.items.length > 0 ? (
+                    <section className="rounded-2xl bg-white p-4">
+                      <h2 className="text-lg font-extrabold">The numbers behind this</h2>
+                      <p className="text-sm text-ink-soft">Every figure, with where and when it came from.</p>
+                      <EvidenceList items={evidence.items} capsule={shown.capsule} />
+                      <p className="text-sm text-ink-soft mt-1">
+                        Number check {shown.asked.firewallPassed ? "passed" : "failed, so the plain template was used"}: the
+                        answer contains no figure that is not listed here.
+                        {evidence.provisional_thresholds ? " Safety limits are provisional, not yet INCOIS criteria." : ""}
+                      </p>
+                    </section>
+                  ) : !hasFigures(spokenSlots(shown.capsule, lang)) ? (
+                    <p className="text-sm text-ink-soft px-1">
+                      This message carries the warning itself and no sea figures. Full sources stay on shore
+                      under evidence fingerprint {shown.capsule.evidence_hash.toString(16).padStart(3, "0")}.
+                    </p>
+                  ) : (
+                    <section className="rounded-2xl bg-white p-4">
+                      <h2 className="text-lg font-extrabold">Figures in this message</h2>
+                      <p className="text-sm text-ink-soft mb-3">
+                        Straight from the 145-bit message. Full sources stay on shore under fingerprint{" "}
+                        {shown.capsule.evidence_hash.toString(16).padStart(3, "0")}.
+                      </p>
+                      <CapsuleFigures capsule={shown.capsule} slots={spokenSlots(shown.capsule, lang)} />
+                    </section>
+                  )}
+
+                  {shown.asked && shown.asked.trace.length > 0 && (
+                    <section className="rounded-2xl bg-white p-4">
+                      <h2 className="text-lg font-extrabold">How DHRUVA worked this out</h2>
+                      <p className="text-sm text-ink-soft mb-2">
+                        The problem statement's nine agents. Grey ones were not needed for this question.
+                      </p>
+                      <TracePanel steps={shown.asked.trace} />
+                    </section>
+                  )}
+                </div>
               )}
 
               <p className="text-sm text-ink-soft px-1 pb-2">
