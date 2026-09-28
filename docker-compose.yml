@@ -38,6 +38,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-dhruva}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-dhruva}
       REDIS_URL: redis://redis:6379/0
       ENV: dev
+      # Planner model. Empty is fine: the planner falls back to keywords.
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       # The build context and the ./backend:/app mount below are both scoped to
       # backend/, so data/ (repo root) is never reachable inside this container
       # under its local-checkout path. This also fixes discovery()'s

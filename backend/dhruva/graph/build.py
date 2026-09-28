@@ -27,6 +27,7 @@ from dhruva.codec.codec import Capsule, encode, to_base32
 from dhruva.config import database_dsn
 from dhruva.evidence.firewall import render_template, validate
 from dhruva.evidence.schema import build_bundle
+from dhruva.graph.planner_model import classify_with_model
 from dhruva.graph.state import BoatClass, DhruvaState, Intent, ToolPlan, observation_for
 from dhruva.risk.rules import assess
 from dhruva.sources.conditions import DEFAULT_VARIABLES, conditions_at, default_adapters
@@ -222,12 +223,12 @@ def score_intents(query: str) -> dict[Intent, float]:
 def classify(query: str) -> Intent:
     """Route a query to one of the eight PS question types.
 
-    Keyword scoring, deliberately, and this is a placeholder for Gemini 2.5 Flash
-    rather than a destination. Two honest limits: the weights were tuned against
-    eval/queries.jsonl, so the reported accuracy is optimistic on unseen phrasing;
-    and the Indic coverage is a handful of terms, not morphology, so an inflected
-    form it has not seen falls through to CONDITIONS. Swapping in the model
-    changes this function and nothing else.
+    Keyword scoring, and the fallback behind the model in planner_model.py: it
+    answers whenever the model cannot (no key, timeout, bad output). Two honest
+    limits: the weights were tuned against eval/queries.jsonl, so the reported
+    accuracy is optimistic on unseen phrasing; and the Indic coverage is a
+    handful of terms, not morphology, so an inflected form it has not seen falls
+    through to CONDITIONS.
     """
     scores = score_intents(query)
     if not scores:
@@ -269,9 +270,19 @@ def _issue_slot(when: dt.datetime) -> int:
     return (minutes_into_week // 15) % 672
 
 
-def planner(state: DhruvaState) -> dict[str, Any]:
-    """Node 0. Decides; does not fetch."""
-    intent = classify(state.get("query", ""))
+async def planner(state: DhruvaState) -> dict[str, Any]:
+    """Node 0. Decides; does not fetch.
+
+    The model picks the intent; if it cannot answer for any reason, the keyword
+    classifier does, and the plan's reason records which one decided and why.
+    """
+    query = state.get("query", "")
+    choice = await classify_with_model(query, api_key=os.environ.get("GEMINI_API_KEY"))
+    if choice.intent is not None:
+        intent, reason = choice.intent, choice.reason
+    else:
+        intent = classify(query)
+        reason = f"keyword match on intent {intent.value} ({choice.reason})"
     variables = list(INTENT_VARIABLES.get(intent, DEFAULT_VARIABLES))
     plan = ToolPlan(
         intent=intent,
@@ -279,7 +290,7 @@ def planner(state: DhruvaState) -> dict[str, Any]:
         variables=variables,
         needs_boundaries=intent in (Intent.BOUNDARY, Intent.ROUTE, Intent.GO_NO_GO),
         needs_route=intent is Intent.ROUTE,
-        reason=f"keyword match on intent {intent.value}",
+        reason=reason,
     )
     return {"intent": intent, "plan": plan}
 
