@@ -88,7 +88,43 @@ datasets:
       The marine endpoint carries no wind; it comes from the forecast API, on a
       different grid again — the same request returned 11.0721N/79.7782E here
       versus 11.0417N/79.9584E from marine. Request with wind_speed_unit=kn so
-      no conversion is needed.
+      no conversion is needed. Despite coverage_start, the forecast API only
+      answers about the last 92 days ("start_date is out of allowed range");
+      older dates fall through to open_meteo_archive below.
+
+  - id: open_meteo_archive
+    title: Open-Meteo Historical Weather (ERA5 reanalysis) — 10 m wind
+    source: open_meteo
+    dataset_id: archive
+    endpoint: https://archive-api.open-meteo.com/v1/archive
+    auth: none
+    # ERA5 lags real time by about five days; this is for replaying past dates.
+    latency_hours: 120
+    variables:
+      wind_speed:
+        native_name: wind_speed_10m
+        native_unit: kn
+        unit: kt
+      wind_direction:
+        native_name: wind_direction_10m
+        native_unit: degree
+        unit: degree
+    spatial:
+      lat_min: -90.0
+      lat_max: 90.0
+      lon_min: -180.0
+      lon_max: 180.0
+      grid_resolution_deg: 0.25
+      lon_convention: "-180..180"
+    temporal:
+      coverage_start: 1940-01-01T00:00:00Z
+      coverage_end: null
+      cadence: PT1H
+      forecast_horizon_hours: 0
+    notes: >-
+      Reanalysis, not forecast: wind as it was. Used when a past date is asked
+      (the shore console's replay, the demo's rough-sea day). Answers 4 Dec 2023,
+      Cyclone Michaung, off Chennai with 30-42 kt.
 
   - id: copernicus_phy_hourly
     title: Copernicus Global Ocean Physics Analysis and Forecast, hourly

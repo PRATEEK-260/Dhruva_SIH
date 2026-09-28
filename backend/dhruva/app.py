@@ -5,6 +5,8 @@ from fastapi import FastAPI
 from dhruva.api.advisory import router as advisory_router
 from dhruva.api.geo import router as geo_router
 from dhruva.api.health import router as health_router
+from dhruva.api.voice import router as voice_router
+from dhruva.demo.boats import router as demo_router
 
 ADVISORY_NOTICE = "Advisory only. Follow official INCOIS and IMD warnings."
 
@@ -21,6 +23,8 @@ def create_app() -> FastAPI:
     app.include_router(health_router)
     app.include_router(advisory_router)
     app.include_router(geo_router)
+    app.include_router(voice_router)
+    app.include_router(demo_router)
     return app
 
 

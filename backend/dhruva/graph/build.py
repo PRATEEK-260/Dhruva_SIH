@@ -26,7 +26,7 @@ from dhruva.codec.codebook import reason_index
 from dhruva.codec.codec import Capsule, encode, to_base32
 from dhruva.config import database_dsn
 from dhruva.evidence.firewall import render_template, validate
-from dhruva.evidence.schema import build_bundle
+from dhruva.evidence.schema import build_bundle, pfz_item
 from dhruva.graph.planner_model import classify_with_model
 from dhruva.graph.state import BoatClass, DhruvaState, Intent, ToolPlan, observation_for
 from dhruva.risk.rules import assess
@@ -37,7 +37,14 @@ from dhruva.sources.registry import Registry, Variable
 # question wastes the latency budget the gate is measured against.
 INTENT_VARIABLES: dict[Intent, tuple[Variable, ...]] = {
     Intent.GO_NO_GO: (Variable.WAVE_HEIGHT, Variable.WIND_SPEED, Variable.WIND_DIRECTION),
-    Intent.FISHING_ZONE: (Variable.SST, Variable.CHLOROPHYLL, Variable.WAVE_HEIGHT),
+    # Wind as well as waves: a fishing answer carries a safety verdict (NO-GO
+    # outranks any zone), and without wind the rule table can only say UNKNOWN.
+    Intent.FISHING_ZONE: (
+        Variable.SST,
+        Variable.CHLOROPHYLL,
+        Variable.WAVE_HEIGHT,
+        Variable.WIND_SPEED,
+    ),
     Intent.ROUTE: (
         Variable.WAVE_HEIGHT,
         Variable.WIND_SPEED,
@@ -58,7 +65,9 @@ INTENT_VARIABLES: dict[Intent, tuple[Variable, ...]] = {
 # what makes the trace show which datasets were even eligible.
 INTENT_NODES: dict[Intent, tuple[str, ...]] = {
     Intent.GO_NO_GO: ("weather", "geo"),
-    Intent.FISHING_ZONE: ("ocean", "weather"),
+    # geo finds the nearest INCOIS PFZ line; without it a fishing question has
+    # no zone to answer with.
+    Intent.FISHING_ZONE: ("ocean", "weather", "geo"),
     Intent.ROUTE: ("ocean", "weather", "geo"),
     Intent.BOUNDARY: ("geo", "ocean"),
     Intent.HAZARD: ("weather", "geo"),
@@ -368,6 +377,7 @@ async def geo(state: DhruvaState) -> dict[str, Any]:
     import asyncpg
 
     from dhruva.geo.boundaries import nearest_boundaries, zones_containing
+    from dhruva.geo.pfz import nearest_pfz
 
     try:
         conn = await asyncpg.connect(dsn, timeout=5)
@@ -377,9 +387,15 @@ async def geo(state: DhruvaState) -> dict[str, Any]:
         lat, lon = _point(state)
         near = await nearest_boundaries(conn, lat, lon, limit=3)
         zones = await zones_containing(conn, lat, lon)
+        on = (state.get("when") or dt.datetime.now(dt.UTC)).astimezone(dt.UTC).date()
+        try:
+            pfz = await nearest_pfz(conn, lat, lon, on)
+        except asyncpg.UndefinedTableError:
+            pfz = None  # PFZ lines never loaded: python -m dhruva.sources.pfz_wfs
     finally:
         await conn.close()
     return {
+        "pfz": pfz.as_dict() if pfz else None,
         "boundaries": [
             {
                 "name": b.name,
@@ -412,10 +428,19 @@ def route(state: DhruvaState) -> dict[str, Any]:
     return {"waypoints": [], "fuel_proxy": None}
 
 
+def _bundle(state: DhruvaState, a: Any) -> Any:
+    """One bundle for evidence() and codec() alike, so the capsule's evidence hash
+    fingerprints exactly what the evidence card shows."""
+    bundle = build_bundle(state.get("observations", []), a)
+    if pfz := state.get("pfz"):
+        bundle.items.append(pfz_item(pfz))
+    return bundle
+
+
 def evidence(state: DhruvaState) -> dict[str, Any]:
     """Node 8. Build the bundle, narrate, and refuse anything unvalidated."""
     a = assess(state)
-    bundle = build_bundle(state.get("observations", []), a)
+    bundle = _bundle(state, a)
 
     # Until the model is wired, narration IS the template. That is the correct
     # failure mode anyway: the template is built from bundle rows, so it cannot
@@ -438,19 +463,20 @@ def codec(state: DhruvaState) -> dict[str, Any]:
     same assessment risk() used, and emit the base32 wire string.
 
     Only fields this graph actually computes from real observations are
-    populated with real values. Two are deliberately left at their honest
-    zero/none defaults rather than guessed:
+    populated with real values. PFZ bearing and distance come from the nearest
+    line of the latest fresh INCOIS advisory (geo node, dhruva.geo.pfz); with no
+    such line they stay 0, which the phrasebook reads as "no zone". pfz_conf
+    carries the advisory's freshness, since INCOIS publishes no confidence.
 
-    - PFZ bearing/distance/confidence: no PFZ node runs in this graph. The PFZ
-      bulletin is scraped by a separate module (CLAUDE.md: "PFZ has no API — it
-      is scraped and attributed") that is not wired into this state machine.
+    One group is deliberately left at its honest zero/none default:
+
     - Boundary distance and type: `state["boundaries"]` can hold real nearest-
       boundary data, but `bnd_eta_min` needs drift projection (current plus
       heading over time) that this graph does not compute. Populating distance
       without a real ETA would let the "near a boundary" narration clause fire
       and then speak a fabricated "about 0 minutes" — a number that reads as
       real data while meaning nothing, the same shape of lie the numeric
-      firewall exists to stop even though it would not come from the LLM. Both
+      firewall exists to stop even though it would not come from the LLM. They
       stay at the Capsule default ("none", 0) until route/drift lands.
     """
     a = assess(state)
@@ -463,7 +489,8 @@ def codec(state: DhruvaState) -> dict[str, Any]:
     curr_dir = observation_for(state, Variable.CURRENT_DIRECTION)
     sst = observation_for(state, Variable.SST)
 
-    bundle = build_bundle(state.get("observations", []), a)
+    bundle = _bundle(state, a)
+    pfz = state.get("pfz")
 
     capsule = Capsule(
         msg_type="advisory",
@@ -481,6 +508,10 @@ def codec(state: DhruvaState) -> dict[str, Any]:
         # chl_class has no "unknown" member and no classifier exists yet, so it
         # stays at the dataclass default. Inert today: no authored codebook
         # template renders {chl_class_name}.
+        # A zone under half a mile away still exists: 0 on the wire means none.
+        pfz_bearing_deg=pfz["bearing_deg"] if pfz else 0.0,
+        pfz_dist_nm=max(1, round(pfz["distance_nm"])) if pfz else 0,
+        pfz_conf=pfz["confidence"] if pfz else 0,
         evidence_hash=bundle.capsule_evidence_hash,
     )
     capsule.reason_code = reason_index(a, capsule)

@@ -40,6 +40,15 @@ services:
       ENV: dev
       # Planner model. Empty is fine: the planner falls back to keywords.
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      # Recorded real runs (data/demo/recordings.json): off, fallback (a recording
+      # answers only when live fails) or replay (recordings first). Set
+      # DHRUVA_DEMO=replay in .env while recording the demo video.
+      DHRUVA_DEMO: ${DHRUVA_DEMO:-fallback}
+      # Voice for the boat phone; /voice answers 503 without it.
+      BHASHINI_INFERENCE_API_KEY: ${BHASHINI_INFERENCE_API_KEY:-}
+      # Chlorophyll and currents; without them only Open-Meteo answers.
+      COPERNICUSMARINE_SERVICE_USERNAME: ${COPERNICUSMARINE_SERVICE_USERNAME:-}
+      COPERNICUSMARINE_SERVICE_PASSWORD: ${COPERNICUSMARINE_SERVICE_PASSWORD:-}
       # The build context and the ./backend:/app mount below are both scoped to
       # backend/, so data/ (repo root) is never reachable inside this container
       # under its local-checkout path. This also fixes discovery()'s
