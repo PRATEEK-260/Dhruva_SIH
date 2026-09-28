@@ -1,25 +1,14 @@
 [
   {
     "code": 1,
-    "departure": "tomorrow5",
     "text": {
-      "en": "Is it safe to go to sea tomorrow morning?",
-      "ta": "நாளை காலை கடலுக்குப் போகலாமா?",
-      "hi": "क्या मैं कल सुबह समुद्र में जा सकता हूँ?"
-    }
-  },
-  {
-    "code": 2,
-    "departure": "now",
-    "text": {
-      "en": "Can I go out to sea now?",
-      "ta": "இப்போது கடலுக்குப் போகலாமா?",
-      "hi": "क्या मैं अभी समुद्र में जा सकता हूँ?"
+      "en": "Is it safe to go to sea?",
+      "ta": "கடலுக்குப் போகலாமா?",
+      "hi": "क्या मैं समुद्र में जा सकता हूँ?"
     }
   },
   {
     "code": 3,
-    "departure": "now",
     "text": {
       "en": "Is there a cyclone warning?",
       "ta": "புயல் எச்சரிக்கை உள்ளதா?",
@@ -28,7 +17,6 @@
   },
   {
     "code": 5,
-    "departure": "now",
     "text": {
       "en": "Where should I go fishing today?",
       "ta": "மீன் பிடிக்க எங்கே போவது?",
@@ -37,7 +25,6 @@
   },
   {
     "code": 4,
-    "departure": "now",
     "text": {
       "en": "What are the sea conditions?",
       "ta": "கடல் நிலவரம் எப்படி?",

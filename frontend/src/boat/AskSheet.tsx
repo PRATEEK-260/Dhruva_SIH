@@ -126,9 +126,8 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
 
   const pick = (q: Question) => {
     if (!online) return void sendBySatellite(q);
-    setDeparture(q.departure);
     setQuery(questionText(q, lang));
-    void submit(questionText(q, lang), departureTime(q.departure));
+    void submit(questionText(q, lang));
   };
 
   return (

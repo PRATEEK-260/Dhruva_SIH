@@ -107,7 +107,8 @@ export function EmulatorApp() {
 
   const ask = (q: Question, l: Language) =>
     transmit("answer", `Question ${q.code}: ${questionText(q, "en")}`, questionText(q, l), l, {
-      when: departureTime(q.departure),
+      // At sea the question is about now; the terminal has no Leaving selector.
+      when: departureTime("now"),
     });
 
   const alert = () =>
@@ -122,7 +123,7 @@ export function EmulatorApp() {
   // A real past rough day, replayed from the archives: the same check, for a
   // boat at the storm's position on that date.
   const storm = () => {
-    const q = QUESTIONS.find((x) => x.code === 2)!;
+    const q = QUESTIONS.find((x) => x.code === 1)!;
     return transmit(
       "answer",
       `Replay: ${demo.storm.name}, ${advisoryDate(demo.storm.when)}, boat off Chennai`,

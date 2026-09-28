@@ -98,15 +98,14 @@ def requests(now: dt.datetime) -> list[dict[str, Any]]:
     # questions at every departure, for the "what if you leave at 7" buttons.
     for lang in ("ta", "en", "hi", "ml", "or"):
         for q in QUESTIONS:
-            departures = (
-                ["now", "tomorrow5", "tomorrow7"] if q["code"] in (1, 2) else [q["departure"]]
-            )
+            # The go/no-go question at every Leaving option; the rest at "now".
+            departures = ["now", "tomorrow5", "tomorrow7"] if q["code"] == 1 else ["now"]
             for d in departures:
                 add(query=text(q, lang), language=lang, when=departure(d, now))
         # Terminal: simulated cyclone alert.
         add(query=ALERT_QUERY, language=lang, test_cyclone_km=TERMINAL_ALERT_KM)
         # Terminal: replay of a real storm, for the boat at the storm point.
-        q2 = next(q for q in QUESTIONS if q["code"] == 2)
+        q2 = next(q for q in QUESTIONS if q["code"] == 1)
         add(
             query=text(q2, lang),
             language=lang,

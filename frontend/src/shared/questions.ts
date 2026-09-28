@@ -10,7 +10,8 @@ export type Departure = "now" | "tomorrow5" | "tomorrow7";
 
 export interface Question {
   code: number;
-  departure: Departure;
+  // No departure here: the question never names a time. The Leaving selector
+  // decides when, so a question and the selector cannot disagree.
   text: Partial<Record<Language, string>> & { en: string };
 }
 
