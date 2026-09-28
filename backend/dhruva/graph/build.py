@@ -295,7 +295,17 @@ async def planner(state: DhruvaState) -> dict[str, Any]:
     return {"intent": intent, "plan": plan}
 
 
-async def _fetch(state: DhruvaState, wanted: tuple[Variable, ...]) -> dict[str, Any]:
+def _unplanned(state: DhruvaState, node: str) -> bool:
+    """Every fetch node is wired to run on every query; this is what makes the
+    plan's node list binding. With no plan at all (Studio, scripts) nothing is
+    skipped."""
+    nodes = (state.get("plan") or {}).get("nodes") or []
+    return bool(nodes) and node not in nodes
+
+
+async def _fetch(state: DhruvaState, node: str, wanted: tuple[Variable, ...]) -> dict[str, Any]:
+    if _unplanned(state, node):
+        return {}
     plan = state.get("plan") or {}
     planned: tuple[Variable, ...] = tuple(plan.get("variables") or DEFAULT_VARIABLES)
     variables = tuple(v for v in planned if v in wanted) or wanted
@@ -320,6 +330,7 @@ async def ocean(state: DhruvaState) -> dict[str, Any]:
     """Node 3. SST, chlorophyll, currents."""
     return await _fetch(
         state,
+        "ocean",
         (Variable.SST, Variable.CHLOROPHYLL, Variable.CURRENT_SPEED, Variable.CURRENT_DIRECTION),
     )
 
@@ -328,6 +339,7 @@ async def weather(state: DhruvaState) -> dict[str, Any]:
     """Node 4. Wind and waves."""
     return await _fetch(
         state,
+        "weather",
         (Variable.WAVE_HEIGHT, Variable.WAVE_PERIOD, Variable.WIND_SPEED, Variable.WIND_DIRECTION),
     )
 
@@ -348,6 +360,8 @@ async def discovery(state: DhruvaState) -> dict[str, Any]:
 async def geo(state: DhruvaState) -> dict[str, Any]:
     """Node 5. Boundaries and zones. Degrades to empty rather than failing the
     run when no database is configured."""
+    if _unplanned(state, "geo"):
+        return {}
     dsn = database_dsn()
     if not dsn:
         return {}
