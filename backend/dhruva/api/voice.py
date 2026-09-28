@@ -9,26 +9,34 @@ from __future__ import annotations
 import base64
 import hashlib
 import os
+import re
 from pathlib import Path
+from typing import Annotated, Literal
 
 import httpx
 from fastapi import APIRouter, HTTPException, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, StringConstraints
 
 from dhruva.lang import bhashini
 
 router = APIRouter(tags=["voice"])
 
 
+# A language code names a cache directory, so it is held to what a code looks
+# like: two or three lowercase letters. Anything else (a path, "..") is refused
+# before it reaches the filesystem.
+LanguageCode = Annotated[str, StringConstraints(pattern=r"^[a-z]{2,3}$")]
+
+
 class TtsRequest(BaseModel):
-    text: str
-    language: str = "ta"
-    gender: str = "female"
+    text: Annotated[str, StringConstraints(min_length=1, max_length=2000)]
+    language: LanguageCode = "ta"
+    gender: Literal["female", "male"] = "female"
 
 
 class AsrRequest(BaseModel):
     audio_base64: str
-    language: str = "ta"
+    language: LanguageCode = "ta"
     sample_rate: int = 16000
 
 
@@ -39,8 +47,15 @@ VOICE_CACHE = Path(__file__).resolve().parents[2] / ".voice-cache"
 
 
 def cache_path(text: str, language: str, gender: str) -> Path:
+    """The cache file for one sentence. Raises ValueError for a language that
+    is not a plain code, so no caller can steer the path out of VOICE_CACHE."""
+    if not re.fullmatch(r"[a-z]{2,3}", language):
+        raise ValueError(f"not a language code: {language!r}")
     digest = hashlib.sha256(f"{language}|{gender}|{text}".encode()).hexdigest()[:32]
-    return VOICE_CACHE / language / f"{digest}.wav"
+    path = (VOICE_CACHE / language / f"{digest}.wav").resolve()
+    if not path.is_relative_to(VOICE_CACHE.resolve()):
+        raise ValueError("voice cache path escaped the cache directory")
+    return path
 
 
 def _key() -> str:
