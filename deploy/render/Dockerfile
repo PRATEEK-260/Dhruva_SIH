@@ -40,20 +40,22 @@ COPY titiler/main.py /app/titiler/
 # TiTiler is handed file:///data/cogs/... by the frontend, and the api reads
 # DHRUVA_DATA_DIR/cogs; one /data serves both.
 COPY data /data
-COPY deploy/render/Caddyfile deploy/render/start.sh deploy/render/boundaries.sql deploy/render/seed-requests.txt /app/
+COPY deploy/render/Caddyfile deploy/render/start.sh deploy/render/boundaries.sql deploy/render/pfz.sql deploy/render/seed-requests.txt /app/
 
 RUN useradd -u 1000 -m app && chmod +x /app/start.sh && chown -R app:app /app /data
 USER app
 
 # Build the database into the image. On 0.1 CPU, initdb plus the boundary
-# restore at every wake-up would add a minute to each cold start.
+# restore at every wake-up would add a minute to each cold start. pfz.sql holds the
+# INCOIS PFZ lines and landing centres as last fetched locally; refresh it with
+# `python -m dhruva.sources.pfz_wfs`, then pg_dump -t pfz_line -t landing_centre.
 ENV PGDATA=/home/app/pgdata
 RUN initdb -U dhruva --auth=trust -D "$PGDATA" >/dev/null \
 	&& pg_ctl -D "$PGDATA" -w -o "-c shared_preload_libraries=timescaledb -c unix_socket_directories=/tmp -c listen_addresses=127.0.0.1" start \
 	&& psql -h 127.0.0.1 -U dhruva -d postgres -q -c "CREATE DATABASE dhruva" \
 	&& psql -h 127.0.0.1 -U dhruva -d dhruva -q -v ON_ERROR_STOP=1 \
 		-c "CREATE EXTENSION postgis" -c "CREATE EXTENSION vector" -c "CREATE EXTENSION timescaledb" \
-		-f /app/boundaries.sql >/dev/null \
+		-f /app/boundaries.sql -f /app/pfz.sql >/dev/null \
 	&& pg_ctl -D "$PGDATA" -w stop
 
 ENV DHRUVA_DATA_DIR=/data DHRUVA_REGISTRY=/data/registry.yaml ENV=prod \
