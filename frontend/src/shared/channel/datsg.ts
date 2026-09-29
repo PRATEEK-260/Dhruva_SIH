@@ -3,6 +3,7 @@
 // one terminal. DAT-SG has no boat-to-shore message a question could ride, so this
 // adapter only sends.
 
+import type { Channel } from ".";
 import { CAPSULE_BYTES, TOTAL_BITS } from "../capsule/fields";
 
 export const MESSAGE_ID = 41;
@@ -108,3 +109,17 @@ export const LAYOUT = [
 export function demoTerminalId(terminal = 0x2a51): number {
   return (1 << 23) | (0x1 << 18) | (terminal & 0x3ffff);
 }
+
+/** DAT-SG as a Channel: answers only, since its one uplink is the distress alert. */
+export const datsg: Channel = {
+  id: "datsg",
+  name: "DAT-SG",
+  short: "DAT-SG",
+  published: true,
+  sendsQuestions: false,
+  sendsAnswers: true,
+  answer(capsule, terminalId) {
+    const payload = capsuleToText(capsule);
+    return { bits: frame(terminalId, payload), payload };
+  },
+};

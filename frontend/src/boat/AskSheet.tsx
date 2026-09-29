@@ -10,10 +10,10 @@ import {
   QUESTIONS,
   departureTime,
   questionText,
-  uplinkPayload,
   type Departure,
   type Question,
 } from "../shared/questions";
+import { QUESTION_CHANNEL } from "../shared/channel";
 import { startRecording, transcribe, type Recorder } from "../shared/voice";
 
 /** The network half of Ask, kept out of the component so it is testable. */
@@ -120,7 +120,7 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
   }
 
   async function sendBySatellite(q: Question) {
-    const svg = await QRCode.toString(uplinkPayload(q.code, lang), { type: "svg", margin: 1 });
+    const svg = await QRCode.toString(QUESTION_CHANNEL.question!(q.code, lang), { type: "svg", margin: 1 });
     setUplink({ q, svg });
   }
 

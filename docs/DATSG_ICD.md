@@ -23,7 +23,7 @@ Read on 29 Sep 2026. Section and table numbers below are the ICD's.
 
 - A **text message (control word 0x3) carries at most 23 bytes** to one terminal (§8.1.3). The
   ICD does not say which character set the text uses.
-- The capsule is 145 bits, which is **19 bytes**. It fits the 23-byte payload with 4 bytes spare.
+- The capsule is 145 bits, which is **19 bytes**. Sent as text (below) it becomes 23 characters.
 
 What the ICD does not give us: a control word for binary data (0x5–0x7 are unassigned). So
 DHRUVA sends the capsule as an ordinary **text message, control word 0x3**: the 145 bits written

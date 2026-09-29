@@ -7,6 +7,11 @@ Deep-sea Hazard, Routing & Understanding via Vernacular Agents. ISRO PS 26176 (O
 v1.2 Table 8), and the phone reconstructs a spoken regional-language explanation from a shipped
 codebook with no network. What the ICD allows is in `docs/DATSG_ICD.md`.
 
+**The channel:** built for Nabhmitra's two-way link (VCSS); demonstrated against ISRO's published
+DAT-SG format because Nabhmitra's is not public. Questions go up over Nabhmitra, never DAT-SG
+(its only uplink is the distress alert). Code names no channel outside
+`frontend/src/shared/channel/`.
+
 Plan: `dhruva-plan.html`. Build contract and phase gates: `IMPLEMENTATION.md`. Neither is
 re-opened mid-build; if a decision here looks wrong, say so and stop, do not quietly change it.
 

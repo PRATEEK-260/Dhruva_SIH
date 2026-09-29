@@ -13,6 +13,7 @@ import {
   parse,
   textToCapsule,
 } from "./datsg";
+import { ANSWER_CHANNEL, CHANNELS, QUESTION_CHANNEL, TARGET_CHANNEL } from ".";
 
 // The 500-capsule cross-language corpus the decoder is tested against.
 const samples: string[] = readFileSync("../eval/capsule_corpus.jsonl", "utf8")
@@ -58,5 +59,26 @@ describe("DAT-SG message 41 (ICD v1.2 Table 8)", () => {
     const id = demoTerminalId();
     expect(id >> 23).toBe(1);
     expect((id >> 18) & 0x1f).toBe(0x1); // Chennai MRCC
+  });
+});
+
+describe("channels", () => {
+  it("never sends a question over DAT-SG", () => {
+    expect(QUESTION_CHANNEL.sendsQuestions).toBe(true);
+    expect(QUESTION_CHANNEL.id).not.toBe("datsg");
+  });
+
+  it("targets Nabhmitra and does not pretend to know its format", () => {
+    expect(TARGET_CHANNEL.id).toBe("nabhmitra");
+    expect(TARGET_CHANNEL.published).toBe(false);
+    expect(TARGET_CHANNEL.answer).toBeUndefined();
+  });
+
+  it("builds answers only on a channel whose format is published", () => {
+    for (const c of CHANNELS) if (c.answer) expect(c.published).toBe(true);
+    const bytes = decodeBase32(samples[0]);
+    const f = ANSWER_CHANNEL.answer!(bytes, demoTerminalId());
+    expect(f.bits).toHaveLength(MESSAGE_BITS);
+    expect(decode(textToCapsule(parse(f.bits).text))).toEqual(decode(bytes));
   });
 });

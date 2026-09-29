@@ -120,7 +120,7 @@
 
   <div style="margin-top:14mm">
     <h3>Integration, not invention</h3>
-    <p style="margin-top:2mm; max-width:160mm">DHRUVA does not replace Nabhmitra, DAT-SG or GEMINI and needs no new hardware. It gives the channel ISRO already runs something worth saying to each boat: a specific, explained, spoken answer.</p>
+    <p style="margin-top:2mm; max-width:160mm">DHRUVA is built for Nabhmitra's two-way link and needs no new hardware. Nabhmitra's message format is not public, so the prototype is demonstrated against ISRO's published DAT-SG format. It replaces neither: it gives the channels ISRO already runs something worth saying to each boat, a specific, explained, spoken answer.</p>
   </div>
   <p class="small soft" style="position:absolute; bottom:18mm; left:18mm; right:18mm">Sources: ISRO, ICD for DAT-SG emergency messaging via NavIC, v1.2; ISRO at UN ICG-16 (2022); PIB, GEMINI launch (2019); reporting on Cyclone Ockhi by The Wire and The News Minute.</p>
   <div class="folio"><span>DHRUVA</span><span>2</span></div>
@@ -132,7 +132,7 @@
   <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 7mm; margin-top: 12mm">
     <div class="stat"><div class="big">Ask</div><p><b>In your own language, by voice.</b> Speak a question in Tamil. Bhashini hears it, DHRUVA's agents check the sea for your boat, and Bhashini speaks the answer back.</p></div>
     <div class="stat"><div class="big">Trust</div><p><b>Every number traced.</b> A rule engine decides safety, not a language model. Every figure shows where it came from and when, or it is not shown at all.</p></div>
-    <div class="stat"><div class="big">Reach</div><p><b>Still there at sea.</b> The whole answer fits in 145 bits: one DAT-SG message to one boat. The phone rebuilds and speaks it with no network.</p></div>
+    <div class="stat"><div class="big">Reach</div><p><b>Still there at sea.</b> The whole answer fits in 145 bits: one short message to one boat. The phone rebuilds and speaks it with no network.</p></div>
   </div>
   <div class="grid2" style="margin-top:14mm; align-items:start">
     <div>
@@ -199,7 +199,7 @@
     <div class="stat"><div class="big">1<span style="font-size:18pt"> byte</span></div><p>for the question going up, over Nabhmitra's two-way messaging. DAT-SG cannot carry it: its only uplink is the distress alert.</p></div>
   </div>
   <img class="shot" src="img/terminal.jpg" style="width:100%; height:78mm; object-fit:cover; object-position:top; margin-top:8mm" alt="" />
-  <p class="note" style="margin-top:4mm">No team may transmit on ISRO's uplink. In this prototype a boat-terminal screen stands in for DAT-SG, and a QR code stands in for its Bluetooth link to the phone. The bits are identical, and the message format is checkable arithmetic against the published field table.</p>
+  <p class="note" style="margin-top:4mm">Built for Nabhmitra's two-way link; demonstrated against ISRO's published DAT-SG format because Nabhmitra's is not public. No team may transmit on ISRO's links, so a boat-terminal screen stands in for the terminals and a QR code for Bluetooth. The DAT-SG message is built bit for bit from the ICD and checked in tests.</p>
   <div class="folio"><span>DHRUVA</span><span>6</span></div>
 </section>
 
@@ -259,7 +259,8 @@
     <tr><td>Bhashini</td><td>Speech recognition, translation and speech in Tamil, Malayalam, Odia and Hindi</td><td><span class="tag live">Live</span></td></tr>
     <tr><td>Gemini</td><td>Understands the question and plans which agents run. A keyword planner takes over when it does not answer</td><td><span class="tag live">Live</span></td></tr>
     <tr><td>IMD cyclone warnings</td><td>The warning override is built and tested; the feed is not connected yet</td><td><span class="tag sim">Test input</span></td></tr>
-    <tr><td>DAT-SG link</td><td>ISRO's uplink, simulated by a terminal screen and a QR code</td><td><span class="tag sim">Simulated</span></td></tr>
+    <tr><td>Nabhmitra / VCSS</td><td>The channel DHRUVA is built for. Its message format is not public, so the one-byte question uses DHRUVA's own code</td><td><span class="tag sim">Simulated</span></td></tr>
+    <tr><td>DAT-SG message 41</td><td>The answer's frame, built bit for bit from ISRO's ICD v1.2. Sending it is simulated by a terminal screen and a QR code</td><td><span class="tag sim">Simulated</span></td></tr>
     <tr><td>Safety limits</td><td>Engineering placeholders until replaced with INCOIS Ocean State Forecast criteria</td><td><span class="tag sim">Provisional</span></td></tr>
     <tr><td>Regional wording</td><td>Verdict labels machine-translated with Bhashini, pending a native speaker's review</td><td><span class="tag sim">In review</span></td></tr>
   </table>

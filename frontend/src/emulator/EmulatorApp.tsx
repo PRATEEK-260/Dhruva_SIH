@@ -5,6 +5,7 @@ import { postAdvisory } from "../shared/api/client";
 import { decodeBase32, decodeCapsule } from "../shared/capsule/decode";
 import { FIELDS, TOTAL_BITS, CAPSULE_BYTES } from "../shared/capsule/fields";
 import * as datsg from "../shared/channel/datsg";
+import { ANSWER_CHANNEL, QUESTION_CHANNEL, TARGET_CHANNEL } from "../shared/channel";
 import type { Language } from "../shared/capsule/codebook";
 import { QUESTIONS, departureTime, parseUplink, questionText, type Question } from "../shared/questions";
 import { verdictLabel, verdictState, type VerdictState } from "../shared/verdict";
@@ -158,8 +159,9 @@ export function EmulatorApp() {
 
   const busy = step === "uplink" || step === "shore" || step === "downlink";
   const bits = sent ? bitsOf(sent.base32) : "";
-  const text = sent ? datsg.capsuleToText(decodeBase32(sent.base32)) : "";
-  const frameBits = sent ? datsg.frame(TERMINAL_ID, text) : "";
+  const answerFrame = sent ? ANSWER_CHANNEL.answer!(decodeBase32(sent.base32), TERMINAL_ID) : null;
+  const text = answerFrame?.payload ?? "";
+  const frameBits = answerFrame?.bits ?? "";
 
   return (
     <div className="min-h-dvh bg-ink text-white">
@@ -182,7 +184,9 @@ export function EmulatorApp() {
           <div>
             <h1 className="text-3xl font-extrabold leading-none">Boat terminal</h1>
             <p className="text-white/70 mt-1">
-              Stands in for the boat's Nabhmitra and DAT-SG terminals. The satellite and Bluetooth links are simulated.
+              Built for {TARGET_CHANNEL.short}'s two-way link; demonstrated against ISRO's published{" "}
+              {ANSWER_CHANNEL.short} format because {TARGET_CHANNEL.short}'s is not public. The
+              satellite and Bluetooth links are simulated.
             </p>
           </div>
         </div>
@@ -214,7 +218,8 @@ export function EmulatorApp() {
             <h2 className="text-xl font-extrabold">Question from the phone</h2>
             <p className="text-white/70 mt-1">
               The phone has no signal. It hands its question to this terminal, which sends it to shore
-              as one byte over Nabhmitra. DAT-SG cannot carry it: its only uplink is the distress alert.
+              as one byte over {QUESTION_CHANNEL.name}. {ANSWER_CHANNEL.name} cannot carry it: its only uplink is
+              the distress alert.
             </p>
             <button
               onClick={() => setScanning(true)}
@@ -270,9 +275,9 @@ export function EmulatorApp() {
           <ol className="grid grid-cols-5 gap-2 text-center text-sm" aria-label="Link">
             {[
               { icon: Smartphone, label: "Phone", on: step !== "idle" },
-              { icon: Satellite, label: "Up, 1 byte (Nabhmitra)", on: step !== "idle" },
+              { icon: Satellite, label: `Up, 1 byte (${QUESTION_CHANNEL.short})`, on: step !== "idle" },
               { icon: Waves, label: "DHRUVA on shore", on: step === "shore" || step === "downlink" || step === "ready" },
-              { icon: Satellite, label: "Down, one DAT-SG message", on: step === "downlink" || step === "ready" },
+              { icon: Satellite, label: `Down, one ${ANSWER_CHANNEL.short} message`, on: step === "downlink" || step === "ready" },
               { icon: Smartphone, label: "Phone speaks", on: step === "ready" },
             ].map((s, i) => (
               <li
@@ -333,12 +338,13 @@ export function EmulatorApp() {
                 <p className="font-mono text-sm mt-3 break-all text-ink-soft">{sent.base32}</p>
 
 <h3 className="text-lg font-extrabold mt-6">
-                  Sent as one DAT-SG message to this boat
+                  Sent as one {ANSWER_CHANNEL.name} message to this boat
                 </h3>
                 <p className="text-sm text-ink-soft">
                   NavIC message {datsg.MESSAGE_ID}, laid out as ISRO's ICD v1.2 Table 8: a text message
                   of {datsg.TEXT_CHARS} characters, the most it holds. Built byte for byte here; only ISRO's
-                  control room can transmit it.
+                  control room can transmit it. On {TARGET_CHANNEL.name} the same {TOTAL_BITS} bits would
+                  ride its own message format once that is published.
                 </p>
                 <div className="mt-2 grid gap-[2px]" style={{ gridTemplateColumns: "repeat(44, minmax(0, 1fr))" }} aria-label={`${datsg.MESSAGE_BITS}-bit DAT-SG message`}>
                   {[...frameBits].map((b, i) => (

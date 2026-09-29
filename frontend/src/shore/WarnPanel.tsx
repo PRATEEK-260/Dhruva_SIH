@@ -166,7 +166,7 @@ export function WarnPanel({
       {!running && done.length > 0 && (
         <p className="text-ink font-semibold">
           {done.length} boat{done.length === 1 ? "" : "s"}, {distinct} different message{distinct === 1 ? "" : "s"}.
-          Each goes to one terminal as a DAT-SG text message; the phone speaks it in the crew's language.
+          Each goes to one boat as a single short message, built here as a DAT-SG text message; the phone speaks it in the crew's language.
         </p>
       )}
     </div>
