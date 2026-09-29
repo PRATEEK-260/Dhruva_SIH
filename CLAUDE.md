@@ -3,8 +3,9 @@
 Deep-sea Hazard, Routing & Understanding via Vernacular Agents. ISRO PS 26176 (ORCA).
 
 **The thesis:** reasoning runs onshore, answers survive offshore. A full advisory compresses to
-**145 bits** — one NavIC L5 segment is 220 — and the phone reconstructs a spoken
-regional-language explanation from a shipped codebook with no network.
+**145 bits**, sent as one 23-character DAT-SG text message (NavIC message 41, 220 bits, ISRO ICD
+v1.2 Table 8), and the phone reconstructs a spoken regional-language explanation from a shipped
+codebook with no network. What the ICD allows is in `docs/DATSG_ICD.md`.
 
 Plan: `dhruva-plan.html`. Build contract and phase gates: `IMPLEMENTATION.md`. Neither is
 re-opened mid-build; if a decision here looks wrong, say so and stop, do not quietly change it.
@@ -77,7 +78,8 @@ This includes the shore console.
 ## Capsule
 
 Field table is `docs/CAPSULE_SPEC.md` and it is the single source of truth: generate encoder and
-decoder from it so they cannot drift. Total **145 bits**, 75 free inside a 220-bit segment.
+decoder from it so they cannot drift. Total **145 bits**. On DAT-SG it rides as 23 base-85 characters, which fill a text message's
+23-byte payload exactly (`frontend/src/shared/channel/datsg.ts`).
 
 - Every quantiser **clamps**. Wrapping a 9 m sea into a calm reading is the worst bug we can ship.
 - Capsule figures are quantised, not rounded for display: wave 0.25 m, SST 0.5 °C, current

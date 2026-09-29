@@ -112,8 +112,8 @@ has no return message for a question, see `docs/DATSG_ICD.md`) → shore graph a
 spoken answer, in his language, from the codebook.
 
 *Have:* graph, codec, codebook renderer, QR/BT demo transport.
-*Missing:* a base-85 (or raw) wrapper for the 23-byte payload, and a DAT-SG message-41 framer
-built from the public ICD so the demo emits a byte-exact frame.
+*Done (29 Sep):* `frontend/src/shared/channel/datsg.ts` frames the capsule as ICD Table 8
+message 41: control word 0x3 (text), 23 base-85 characters, tested over the 500-capsule corpus.
 *Verify:* whether the 0x3 text payload is 8-bit clean or printable-only (base-85 needs printable
 ASCII; raw needs 8-bit clean).
 

@@ -194,9 +194,9 @@
     <span><i style="background:#6e0d12"></i>Sentence code</span><span><i style="background:#4a5f69"></i>Evidence fingerprint</span>
   </div>
   <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 7mm; margin-top: 10mm">
-    <div class="stat"><div class="big">19<span style="font-size:18pt"> of 23</span></div><p>bytes of the text payload in one DAT-SG control-room message, addressed to one terminal (ISRO ICD v1.2).</p></div>
-    <div class="stat"><div class="big">145<span style="font-size:18pt"> of 220</span></div><p>bits of one NavIC message. Every figure sits on a fixed grid, and every scale saturates rather than wrapping.</p></div>
-    <div class="stat"><div class="big">1<span style="font-size:18pt"> byte</span></div><p>for the question going up: the terminal's short boat-to-shore message carries a question code, not text.</p></div>
+    <div class="stat"><div class="big">23<span style="font-size:18pt"> of 23</span></div><p>characters of one DAT-SG text message to one terminal, framed as ISRO's ICD v1.2 Table 8 lays it out.</p></div>
+    <div class="stat"><div class="big">145<span style="font-size:18pt"> bits</span></div><p>hold the whole answer. Every figure sits on a fixed grid, and every scale saturates rather than wrapping.</p></div>
+    <div class="stat"><div class="big">1<span style="font-size:18pt"> byte</span></div><p>for the question going up, over Nabhmitra's two-way messaging. DAT-SG cannot carry it: its only uplink is the distress alert.</p></div>
   </div>
   <img class="shot" src="img/terminal.jpg" style="width:100%; height:78mm; object-fit:cover; object-position:top; margin-top:8mm" alt="" />
   <p class="note" style="margin-top:4mm">No team may transmit on ISRO's uplink. In this prototype a boat-terminal screen stands in for DAT-SG, and a QR code stands in for its Bluetooth link to the phone. The bits are identical, and the message format is checkable arithmetic against the published field table.</p>

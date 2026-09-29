@@ -25,10 +25,13 @@ Read on 29 Sep 2026. Section and table numbers below are the ICD's.
   ICD does not say which character set the text uses.
 - The capsule is 145 bits, which is **19 bytes**. It fits the 23-byte payload with 4 bytes spare.
 
-What the ICD does not give us: a control word for binary data. Codes 0x5–0x7 are unassigned.
-So the capsule rides message 41 either as a text message (0x3) in a printable encoding, or under
-a control word ISRO would have to assign. Either way it is ISRO's control room that sends it;
-no team transmits.
+What the ICD does not give us: a control word for binary data (0x5–0x7 are unassigned). So
+DHRUVA sends the capsule as an ordinary **text message, control word 0x3**: the 145 bits written
+as 23 base-85 characters (85^23 ≈ 2^147.4), which fill the payload exactly. The alphabet is
+RFC 1924's printable ASCII; the ICD does not name a character set, so that is an assumption to
+confirm with ISRO. `frontend/src/shared/channel/datsg.ts` builds the 220-bit frame and parses it
+back, tested over the 500-capsule corpus. It is ISRO's control room that would send it; no team
+transmits.
 
 ## Boat to shore: no general message
 

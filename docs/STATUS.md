@@ -128,8 +128,8 @@ proactive alerts, geofence notifications, route optimisation. NavIC and offline 
 appear. Getting alerts to boats is already done by ISRO and INCOIS systems (DAT-SG,
 NavIC Messaging Receiver, GEMINI, VCSS + Nabhmitra, SAMUDRA); none found takes a
 question. ISRO's public DAT-SG ICD v1.2 defines a message addressed to one terminal
-with a **23-byte** text payload — the capsule is 19 bytes, so one answer fits one
-DAT-SG message. DAT-SG's only boat-to-shore packet is the distress alert, so the
+with a **23-byte** text payload. The capsule goes as 23 base-85 characters in that text
+message, framed byte for byte by `frontend/src/shared/channel/datsg.ts`. DAT-SG's only boat-to-shore packet is the distress alert, so the
 question goes up over Nabhmitra (simulated); see `docs/DATSG_ICD.md`. The pitch's "every other app goes blank offshore" is false and should
 not be said to ISRO judges. A repositioning draft exists but has not been adopted.
 

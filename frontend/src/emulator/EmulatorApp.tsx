@@ -3,7 +3,8 @@ import QRCode from "qrcode";
 import { Camera, CloudLightning, History, Loader2, Radio, Satellite, Smartphone, Waves, X } from "lucide-react";
 import { postAdvisory } from "../shared/api/client";
 import { decodeBase32, decodeCapsule } from "../shared/capsule/decode";
-import { FIELDS, SEGMENT_BITS, TOTAL_BITS, CAPSULE_BYTES } from "../shared/capsule/fields";
+import { FIELDS, TOTAL_BITS, CAPSULE_BYTES } from "../shared/capsule/fields";
+import * as datsg from "../shared/channel/datsg";
 import type { Language } from "../shared/capsule/codebook";
 import { QUESTIONS, departureTime, parseUplink, questionText, type Question } from "../shared/questions";
 import { verdictLabel, verdictState, type VerdictState } from "../shared/verdict";
@@ -14,8 +15,15 @@ import { advisoryDate, istTime } from "../boat/Explain";
 
 const DEFAULT_LAT = 11.05;
 const DEFAULT_LON = 79.95;
-// DAT-SG control-room text message, ICD v1.2: 23 bytes addressed to one terminal.
-const DATSG_PAYLOAD_BYTES = 23;
+const TERMINAL_ID = datsg.demoTerminalId();
+const FRAME_COLOURS: Record<string, string> = {
+  "Terminal ID": "#0e6178",
+  "Control word": "#c62a1f",
+  Length: "#e0a100",
+  Payload: "#2b8a9e",
+  Reserved: "#8aa1ab",
+};
+const FRAME_BIT_COLOURS = datsg.LAYOUT.flatMap((f) => Array<string>(f.width).fill(FRAME_COLOURS[f.name]));
 const TEST_CYCLONE_KM = 180;
 
 export async function generateHandoffQr(capsuleBase32: string): Promise<string> {
@@ -150,6 +158,8 @@ export function EmulatorApp() {
 
   const busy = step === "uplink" || step === "shore" || step === "downlink";
   const bits = sent ? bitsOf(sent.base32) : "";
+  const text = sent ? datsg.capsuleToText(decodeBase32(sent.base32)) : "";
+  const frameBits = sent ? datsg.frame(TERMINAL_ID, text) : "";
 
   return (
     <div className="min-h-dvh bg-ink text-white">
@@ -262,7 +272,7 @@ export function EmulatorApp() {
               { icon: Smartphone, label: "Phone", on: step !== "idle" },
               { icon: Satellite, label: "Up, 1 byte (Nabhmitra)", on: step !== "idle" },
               { icon: Waves, label: "DHRUVA on shore", on: step === "shore" || step === "downlink" || step === "ready" },
-              { icon: Satellite, label: `Down, ${CAPSULE_BYTES} bytes (DAT-SG)`, on: step === "downlink" || step === "ready" },
+              { icon: Satellite, label: "Down, one DAT-SG message", on: step === "downlink" || step === "ready" },
               { icon: Smartphone, label: "Phone speaks", on: step === "ready" },
             ].map((s, i) => (
               <li
@@ -322,18 +332,43 @@ export function EmulatorApp() {
                 </ul>
                 <p className="font-mono text-sm mt-3 break-all text-ink-soft">{sent.base32}</p>
 
+<h3 className="text-lg font-extrabold mt-6">
+                  Sent as one DAT-SG message to this boat
+                </h3>
+                <p className="text-sm text-ink-soft">
+                  NavIC message {datsg.MESSAGE_ID}, laid out as ISRO's ICD v1.2 Table 8: a text message
+                  of {datsg.TEXT_CHARS} characters, the most it holds. Built byte for byte here; only ISRO's
+                  control room can transmit it.
+                </p>
+                <div className="mt-2 grid gap-[2px]" style={{ gridTemplateColumns: "repeat(44, minmax(0, 1fr))" }} aria-label={`${datsg.MESSAGE_BITS}-bit DAT-SG message`}>
+                  {[...frameBits].map((b, i) => (
+                    <span
+                      key={i}
+                      className="aspect-square rounded-[2px]"
+                      style={{ background: FRAME_BIT_COLOURS[i], opacity: b === "1" ? 1 : 0.28 }}
+                    />
+                  ))}
+                </div>
+                <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  {datsg.LAYOUT.map((f) => (
+                    <li key={f.name} className="flex items-center gap-1.5">
+                      <span className="w-3 h-3 rounded-sm" style={{ background: FRAME_COLOURS[f.name] }} />
+                      {f.name}, {f.width}
+                    </li>
+                  ))}
+                </ul>
                 <dl className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-xl bg-mist p-3">
-                    <dt className="text-sm text-ink-soft">DAT-SG text message to one boat</dt>
-                    <dd className="text-xl font-extrabold">
-                      {CAPSULE_BYTES} of {DATSG_PAYLOAD_BYTES} bytes
-                    </dd>
+                    <dt className="text-sm text-ink-soft">Terminal ID (demo)</dt>
+                    <dd className="text-xl font-extrabold font-mono">{TERMINAL_ID.toString(16).toUpperCase()}</dd>
                   </div>
                   <div className="rounded-xl bg-mist p-3">
-                    <dt className="text-sm text-ink-soft">One NavIC message</dt>
-                    <dd className="text-xl font-extrabold">
-                      {TOTAL_BITS} of {SEGMENT_BITS} bits
-                    </dd>
+                    <dt className="text-sm text-ink-soft">Control word</dt>
+                    <dd className="text-xl font-extrabold">0x{datsg.CONTROL_TEXT}, text</dd>
+                  </div>
+                  <div className="rounded-xl bg-mist p-3 col-span-2">
+                    <dt className="text-sm text-ink-soft">Text payload, {CAPSULE_BYTES}-byte capsule in base-85</dt>
+                    <dd className="text-xl font-extrabold font-mono break-all">{text}</dd>
                   </div>
                 </dl>
                 <p className="text-sm text-ink-soft mt-3">
