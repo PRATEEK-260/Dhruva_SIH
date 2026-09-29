@@ -77,6 +77,9 @@ class DhruvaState(TypedDict, total=False):
     # --- hazard inputs: absolute overrides, set by a hazard feed or a labelled test.
     # None / False means no information, never "no hazard confirmed".
     cyclone_distance_km: float | None
+    # The IMD bulletin that cyclone_distance_km came from, when it came from one
+    # (sources/imd_bulletin.py); None for a labelled test input.
+    cyclone_source: dict[str, Any] | None
     lightning_distance_km: float | None
     tsunami_alert: bool
     # Alert types from a warning feed, by name. Default-deny: a type the risk
@@ -130,6 +133,7 @@ def initial_state(
     heading_deg: float | None = None,
     speed_kt: float | None = None,
     cyclone_distance_km: float | None = None,
+    cyclone_source: dict[str, Any] | None = None,
     lightning_distance_km: float | None = None,
     tsunami_alert: bool = False,
     alerts: list[str] | None = None,
@@ -149,6 +153,7 @@ def initial_state(
         heading_deg=heading_deg,
         speed_kt=speed_kt,
         cyclone_distance_km=cyclone_distance_km,
+        cyclone_source=cyclone_source,
         lightning_distance_km=lightning_distance_km,
         tsunami_alert=tsunami_alert,
         alerts=list(alerts or []),

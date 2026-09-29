@@ -130,15 +130,16 @@ export function EmulatorApp() {
     );
 
   // A real past rough day, replayed from the archives: the same check, for a
-  // boat at the storm's position on that date.
+  // boat at the storm's position on that date, with IMD's own bulletin for the
+  // cyclone's centre rather than a test input.
   const storm = () => {
     const q = QUESTIONS.find((x) => x.code === 1)!;
     return transmit(
       "answer",
-      `Replay: ${demo.storm.name}, ${advisoryDate(demo.storm.when)}, boat off Chennai`,
+      `Replay: ${demo.storm.name}, ${advisoryDate(demo.storm.when)}, boat off Chennai. ${demo.storm.bulletin_label}`,
       questionText(q, lang),
       lang,
-      { when: demo.storm.when },
+      { when: demo.storm.when, bulletin: demo.storm.bulletin },
       { lat: demo.storm.lat, lon: demo.storm.lon },
     );
   };
@@ -265,7 +266,8 @@ export function EmulatorApp() {
               <History className="w-5 h-5" /> Replay a real storm: {demo.storm.name}
             </button>
             <p className="text-sm text-white/60 mt-2">
-              Real archived waves and wind from that day, not a test input.
+              Real archived waves and wind from that day, and the cyclone's centre from IMD's own
+              bulletin for that hour. Not a test input.
             </p>
           </div>
           {error && <p className="rounded-xl bg-danger px-4 py-3 font-semibold">{error}</p>}

@@ -31,6 +31,7 @@ from dhruva.graph.planner_model import classify_with_model
 from dhruva.graph.state import BoatClass, DhruvaState, Intent, ToolPlan, observation_for
 from dhruva.risk.rules import assess
 from dhruva.sources.conditions import DEFAULT_VARIABLES, conditions_at, default_adapters
+from dhruva.sources.imd_bulletin import cyclone_item
 from dhruva.sources.registry import Registry, Variable
 
 # Which variables each intent actually needs. Fetching everything for every
@@ -434,6 +435,14 @@ def _bundle(state: DhruvaState, a: Any) -> Any:
     bundle = build_bundle(state.get("observations", []), a)
     if pfz := state.get("pfz"):
         bundle.items.append(pfz_item(pfz))
+    if src := state.get("cyclone_source"):
+        # The override's row says risk_engine; the number is IMD's. Keep the rule
+        # and threshold, swap in the bulletin's provenance.
+        item = cyclone_item(src)
+        if (fired := bundle.by_key("cyclone_distance")) is not None:
+            item.threshold, item.rule_id = fired.threshold, fired.rule_id
+            bundle.items.remove(fired)
+        bundle.items.append(item)
     return bundle
 
 

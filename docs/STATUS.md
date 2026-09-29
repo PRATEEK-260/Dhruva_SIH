@@ -41,6 +41,12 @@ to `main`: phase 4 and 5 work lives on `finish-phase-4` → `phase-5-demo-ui` �
   wave-height raster layers served by TiTiler (`/tiles` behind Caddy, COGs from
   `scripts/`); point-inspect panel; replay-aware advisory log.
 - **Planner:** Gemini routes intents, keyword `classify()` is the fallback (below).
+- **IMD bulletin (29 Sep):** the Cyclone Michaung replay uses RSMC New Delhi's Tropical
+  Cyclone Advisory No. 9 (issued 0300 UTC 4 Dec 2023, centre 13.2N 81.2E at 0000 UTC),
+  stored with its URL, a local PDF copy and its hash in `data/imd/`. `POST /advisory`
+  takes `bulletin`; the cyclone distance is measured from IMD's centre and its evidence row
+  cites the advisory. A bulletin refuses any time more than 6 h from its centre time. Still
+  no live IMD feed: the "Simulate a cyclone warning" button stays a labelled test input.
 - **Deploy:** backend on Render, frontend on Vercel (`deploy/`). On 2026-09-28
   `https://dhruva-api.onrender.com/health` did not answer within 60 s — possibly a
   free-tier cold start; check before any demo.

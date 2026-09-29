@@ -9,7 +9,9 @@
     "lat": 13.0,
     "lon": 80.45,
     "when": "2023-12-04T00:00:00Z",
-    "note": "A real past rough day off Chennai, replayed from Open-Meteo marine and ERA5 archives."
+    "bulletin": "rsmc_michaung_adv9",
+    "bulletin_label": "Cyclone position from IMD RSMC New Delhi, Tropical Cyclone Advisory No. 9, issued 0300 UTC 4 Dec 2023.",
+    "note": "A real past rough day off Chennai, replayed from Open-Meteo marine and ERA5 archives, with IMD's bulletin for that hour (data/imd/bulletins.json)."
   },
   "boat": {
     "lat": 11.05,

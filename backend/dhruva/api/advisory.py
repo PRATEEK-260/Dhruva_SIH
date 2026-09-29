@@ -16,6 +16,7 @@ from dhruva.config import database_dsn
 from dhruva.demo import replay
 from dhruva.graph.build import arun
 from dhruva.graph.state import BoatClass, DhruvaState
+from dhruva.sources.imd_bulletin import BulletinError, cyclone_source
 
 router = APIRouter(tags=["advisory"])
 
@@ -44,6 +45,9 @@ class AdvisoryRequest(BaseModel):
     # TEST INPUT. Alert types as a warning feed would name them; an unrecognised
     # one forces at least CAUTION (default-deny).
     test_alerts: list[str] = []
+    # A stored past IMD bulletin (data/imd/bulletins.json). The cyclone distance is
+    # then worked out from the centre IMD published, not supplied as a test input.
+    bulletin: str | None = None
 
 
 class AdvisoryResponse(BaseModel):
@@ -83,6 +87,12 @@ async def _connect() -> asyncpg.Connection | None:
 
 @router.post("/advisory", response_model=AdvisoryResponse)
 async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
+    cyclone = None
+    if req.bulletin is not None:
+        try:
+            cyclone = cyclone_source(req.bulletin, req.lat, req.lon, req.when)
+        except BulletinError as exc:
+            raise HTTPException(422, str(exc)) from exc
     rec_key = replay.key(
         req.query,
         req.language,
@@ -92,6 +102,7 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
         req.when,
         req.test_cyclone_km,
         req.test_alerts,
+        req.bulletin,
     )
     mode = replay.mode()
     recorded = replay.find(rec_key) if mode != "off" else None
@@ -107,7 +118,10 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
                 language=req.language,
                 boat_class=req.boat_class,
                 when=req.when,
-                cyclone_distance_km=req.test_cyclone_km,
+                cyclone_distance_km=(
+                    cyclone["distance_km"] if cyclone is not None else req.test_cyclone_km
+                ),
+                cyclone_source=cyclone,
                 alerts=req.test_alerts,
             )
         except Exception as exc:

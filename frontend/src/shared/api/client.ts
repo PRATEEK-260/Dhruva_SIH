@@ -21,6 +21,8 @@ export interface AdvisoryRequest {
   log?: boolean;
   /** TEST INPUT: simulates a cyclone warning this far away. */
   test_cyclone_km?: number;
+  /** A stored past IMD bulletin; the cyclone distance comes from its centre. */
+  bulletin?: string;
 }
 
 export interface EvidenceItem {

@@ -33,8 +33,10 @@ export function sourceName(datasetId: string): string {
   if (datasetId === "open_meteo_marine") return "Open-Meteo marine forecast";
   if (datasetId === "open_meteo_forecast") return "Open-Meteo weather forecast";
   if (datasetId.startsWith("cmems") || datasetId.startsWith("copernicus")) return "Copernicus Marine";
-  // No live IMD feed is wired, so every warning distance today is a test input.
   if (datasetId === "incois_pfz") return "INCOIS fishing-zone advisory";
+  // No live IMD feed is wired. A warning distance is either worked out from a
+  // stored past IMD bulletin (a replayed storm) or a labelled test input.
+  if (datasetId === "imd_rsmc_bulletin") return "IMD cyclone bulletin (past, replayed)";
   if (datasetId === "risk_engine") return "Simulated cyclone warning (test input)";
   return datasetId;
 }
@@ -85,7 +87,9 @@ export function EvidenceList({ items, capsule }: { items: EvidenceItem[]; capsul
                 <br />
                 {item.dataset_id === "incois_pfz"
                   ? `issued ${advisoryDate(item.valid_time)}, nearest point of the line`
-                  : `valid ${istTime(item.valid_time)}`}
+                  : item.dataset_id === "imd_rsmc_bulletin"
+                    ? `${item.upstream_dataset_id ?? ""}; centre ${item.cell} at ${istTime(item.valid_time)}`
+                    : `valid ${istTime(item.valid_time)}`}
                 {item.offset_km ? `, grid cell ${fmt(kmToNm(item.offset_km))} nm away` : ""}
               </p>
               {item.rule_id && (
