@@ -7,7 +7,7 @@
 // as BLOCKED; any other no-go is UNSAFE, a threshold the sea itself crossed.
 
 import type { Capsule } from "./capsule/decode";
-import type { Language } from "./capsule/codebook";
+import { renderReason, type Language } from "./capsule/codebook";
 // Machine-translated from EN_LABELS by scripts/verdict_labels.py (Bhashini
 // IndicTrans2). Needs a native speaker's check before any public claim.
 import translated from "./verdict-labels.json";
@@ -111,4 +111,11 @@ const REASONS = reasonsJson as Partial<Record<string, Partial<Record<ReasonKey, 
 export function verdictReason(capsule: Pick<Capsule, "risk_class" | "hazards">, lang: Language): string {
   const k = reasonKey(capsule);
   return REASONS[lang]?.[k] ?? EN_REASONS[k];
+}
+
+/** What the boat hears: the headline's action line first, then the phrasebook
+ * sentence. Voice, the phone's "What the voice says" and the shore's "What the
+ * boat will hear" all use this, so none of them opens with the technical part. */
+export function spokenAnswer(capsule: Capsule, lang: Language): string {
+  return `${verdictLabel(verdictState(capsule), lang).line} ${renderReason(capsule, lang).text}`;
 }

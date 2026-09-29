@@ -12,6 +12,7 @@ import { verdictLabel, verdictState, type VerdictState } from "../shared/verdict
 import { SIGN_THEME, VerdictSign } from "../boat/VerdictSign";
 import { QrCamera } from "../shared/QrCamera";
 import demo from "../shared/demo.json";
+import { kmToNm } from "../shared/harbour";
 import { advisoryDate, istTime } from "../boat/Explain";
 
 const DEFAULT_LAT = 11.05;
@@ -26,6 +27,7 @@ const FRAME_COLOURS: Record<string, string> = {
 };
 const FRAME_BIT_COLOURS = datsg.LAYOUT.flatMap((f) => Array<string>(f.width).fill(FRAME_COLOURS[f.name]));
 const TEST_CYCLONE_KM = 180;
+const TEST_CYCLONE_NM = Math.round(kmToNm(TEST_CYCLONE_KM));
 
 export async function generateHandoffQr(capsuleBase32: string): Promise<string> {
   return QRCode.toString(capsuleBase32, { type: "svg" });
@@ -123,7 +125,7 @@ export function EmulatorApp() {
   const alert = () =>
     transmit(
       "alert",
-      `Shore alert: cyclone warning ${TEST_CYCLONE_KM} km away (test input)`,
+      `Shore alert: cyclone warning ${TEST_CYCLONE_NM} nm away (test input)`,
       "Is there a cyclone warning?",
       lang,
       { test_cyclone_km: TEST_CYCLONE_KM, log: false },
@@ -256,7 +258,7 @@ export function EmulatorApp() {
               disabled={busy}
               className="mt-4 w-full min-h-[56px] rounded-xl bg-danger font-bold text-lg flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <CloudLightning className="w-6 h-6" /> Simulate a cyclone warning, {TEST_CYCLONE_KM} km
+              <CloudLightning className="w-6 h-6" /> Simulate a cyclone warning, {TEST_CYCLONE_NM} nm
             </button>
             <button
               onClick={() => void storm()}

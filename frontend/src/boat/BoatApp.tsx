@@ -8,7 +8,7 @@ import { CapsuleFigures, EvidenceList, TracePanel, advisoryDate, hasFigures, ist
 import type { Capsule } from "../shared/capsule/decode";
 import { compassWord, renderReason, spokenSlots, type Language } from "../shared/capsule/codebook";
 import type { EvidenceItem } from "../shared/api/client";
-import { suppressesFishing, verdictLabel, verdictReason, verdictState, type VerdictState } from "../shared/verdict";
+import { spokenAnswer, suppressesFishing, verdictLabel, verdictReason, verdictState, type VerdictState } from "../shared/verdict";
 import { kmToNm, wayHome } from "../shared/harbour";
 import { DEPARTURE_LABEL, departureTime, type Departure } from "../shared/questions";
 import { speakAdvisory, type VoiceSource } from "../shared/voice";
@@ -87,7 +87,7 @@ export function BoatApp() {
     async (s: Shown, l: Language) => {
       const st = verdictState(s.capsule);
       setVoice("speaking");
-      const text = `${verdictLabel(st, l).word}. ${renderReason(s.capsule, l).text}`;
+      const text = spokenAnswer(s.capsule, l);
       setVoice(await speakAdvisory({ text, lang: l, state: st, online: navigator.onLine }));
     },
     [],
@@ -263,8 +263,10 @@ export function BoatApp() {
                   </div>
                 </div>
                 <p className="text-sm text-ink-soft mt-3">
-                  Worked out on this phone from the message's position and the harbour list, with no
-                  network. Straight-line distance, not a route.
+                  {shown.via === "satellite"
+                    ? "Worked out on this phone from the message's position and the harbour list, with no network. "
+                    : ""}
+                  Straight-line distance, not a route.
                 </p>
               </section>
 
@@ -319,7 +321,7 @@ export function BoatApp() {
                   <section className="rounded-2xl bg-white p-4">
                     <h2 className="text-lg font-extrabold">What the voice says</h2>
                     <p lang={lang} className="text-base mt-2 leading-relaxed">
-                      {sentence.text}
+                      {spokenAnswer(shown.capsule, lang)}
                     </p>
                   </section>
                   {shown.asked && evidence?.items && evidence.items.length > 0 ? (

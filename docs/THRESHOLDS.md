@@ -40,8 +40,12 @@ be traced to the line that produced it rather than to "the model decided".
 
 | ID | Meaning |
 |---|---|
+| `WAVE-S1` / `WIND-S1` | Below the class's caution limit: safe on this variable. The evidence row shows the caution limit it was compared with |
 | `WAVE-C2` / `WAVE-N3` | Wave height reached caution / no-go for the boat class |
 | `WIND-C2` / `WIND-N3` | Wind reached caution / no-go for the boat class |
+
+A Safe row quotes the caution limit and a No-go row quotes the no-go limit, so two rows
+for the same boat class can show different limits. Both come from the one table above.
 | `CYCLONE-A1`, `LIGHTNING-A2`, `TSUNAMI-A3` | Absolute overrides above |
 | `DATA-U0` | A threshold variable was unavailable, so no verdict is possible |
 

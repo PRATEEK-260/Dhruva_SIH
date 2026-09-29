@@ -4,9 +4,9 @@ import { AlertTriangle, CheckCircle2, Copy, History, Loader2, MousePointerClick 
 import demo from "../shared/demo.json";
 import type { AdvisoryResponse, EvidenceBundle } from "../shared/api/client";
 import { decodeCapsule } from "../shared/capsule/decode";
-import { LANGUAGES, renderReason, type Language } from "../shared/capsule/codebook";
+import { LANGUAGES, type Language } from "../shared/capsule/codebook";
 import { CAPSULE_BYTES, SEGMENT_BITS, TOTAL_BITS } from "../shared/capsule/fields";
-import { verdictLabel, verdictState } from "../shared/verdict";
+import { spokenAnswer, verdictLabel, verdictState } from "../shared/verdict";
 import { SIGN_THEME, VerdictSign } from "../boat/VerdictSign";
 import { EvidenceList, TracePanel, advisoryDate, istTime } from "../boat/Explain";
 
@@ -180,7 +180,7 @@ function Spoken({ base32 }: { base32: string }) {
   const [language, setLanguage] = useState<Language>("ta");
   let text: string;
   try {
-    text = renderReason(decodeCapsule(base32), language).text;
+    text = spokenAnswer(decodeCapsule(base32), language);
   } catch (err) {
     text = `Capsule failed to decode: ${err instanceof Error ? err.message : String(err)}`;
   }

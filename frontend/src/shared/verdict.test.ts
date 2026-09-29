@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EN_LABELS, EN_REASONS, reasonKey, suppressesFishing, verdictLabel, verdictState } from "./verdict";
+import { EN_LABELS, EN_REASONS, reasonKey, spokenAnswer, suppressesFishing, verdictLabel, verdictState } from "./verdict";
 import { bearingDeg, distanceKm, wayHome } from "./harbour";
 import { departureTime, parseUplink, uplinkPayload } from "./questions";
 
@@ -81,5 +81,19 @@ describe("action-first wording", () => {
     expect(EN_LABELS.safe.line).toBe("You can go to sea.");
     expect(EN_LABELS.unsafe.line.startsWith("Do not go to sea")).toBe(true);
     expect(EN_LABELS.blocked.line.startsWith("Do not go to sea")).toBe(true);
+  });
+});
+
+describe("spoken answer", () => {
+  it("opens with the same action line as the headline", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { decodeCapsule } = await import("./capsule/decode");
+    const rows = readFileSync("../eval/capsule_corpus.jsonl", "utf8").trim().split("\n").slice(0, 50);
+    for (const row of rows) {
+      const capsule = decodeCapsule((JSON.parse(row) as { base32: string }).base32);
+      for (const lang of ["en", "ta", "hi"] as const) {
+        expect(spokenAnswer(capsule, lang).startsWith(verdictLabel(verdictState(capsule), lang).line)).toBe(true);
+      }
+    }
   });
 });

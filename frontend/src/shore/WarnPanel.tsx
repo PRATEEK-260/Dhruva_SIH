@@ -3,7 +3,7 @@ import { CloudLightning, Loader2, MapPin, Send } from "lucide-react";
 import { postAdvisory } from "../shared/api/client";
 import { decodeCapsule } from "../shared/capsule/decode";
 import { CAPSULE_BYTES } from "../shared/capsule/fields";
-import { distanceKm } from "../shared/harbour";
+import { distanceKm, kmToNm } from "../shared/harbour";
 import { verdictLabel, verdictState, type VerdictState } from "../shared/verdict";
 import { SIGN_THEME, VerdictSign } from "../boat/VerdictSign";
 
@@ -105,7 +105,8 @@ export function WarnPanel({
           <MapPin className="w-7 h-7 mx-auto text-danger" />
           <p className="mt-2 font-semibold text-ink">Click the map to place the cyclone</p>
           <p className="text-sm">
-            The red ring shows {CYCLONE_RADIUS_KM} km, the distance at which a warning means no boat goes out.
+            The red ring shows {Math.round(kmToNm(CYCLONE_RADIUS_KM))} nm, the distance at which a warning means no
+            boat goes out.
           </p>
           <button
             onClick={onPlaceDemo}
@@ -148,7 +149,7 @@ export function WarnPanel({
                 <p className="font-extrabold text-ink">
                   {r.status === "ok" ? verdictLabel(r.state, "en").word : r.status === "error" ? "Failed" : "Waiting"}
                   <span className="font-semibold text-ink-soft">
-                    , {Math.round(r.km)} km from the cyclone
+                    , {Math.round(kmToNm(r.km))} nm from the cyclone
                   </span>
                 </p>
                 <p className="text-sm text-ink-soft">
