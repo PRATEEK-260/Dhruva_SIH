@@ -41,7 +41,15 @@ async function play(blob: Blob): Promise<void> {
   stop();
   const audio = new Audio(URL.createObjectURL(blob));
   current = audio;
-  await audio.play();
+  try {
+    await audio.play();
+  } catch (err) {
+    // Some browser extensions re-issue play() on every media element, and the
+    // first promise then rejects while the second one plays. Trust what the
+    // element is doing, not the promise: playing a moment later means it played.
+    await new Promise((r) => setTimeout(r, 200));
+    if (current !== audio || audio.paused) throw err;
+  }
 }
 
 async function openCache(): Promise<Cache | null> {
