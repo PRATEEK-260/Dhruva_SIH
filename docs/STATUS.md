@@ -129,7 +129,8 @@ appear. Getting alerts to boats is already done by ISRO and INCOIS systems (DAT-
 NavIC Messaging Receiver, GEMINI, VCSS + Nabhmitra, SAMUDRA); none found takes a
 question. ISRO's public DAT-SG ICD v1.2 defines a message addressed to one terminal
 with a **23-byte** text payload — the capsule is 19 bytes, so one answer fits one
-DAT-SG message. The pitch's "every other app goes blank offshore" is false and should
+DAT-SG message. DAT-SG's only boat-to-shore packet is the distress alert, so the
+question goes up over Nabhmitra (simulated); see `docs/DATSG_ICD.md`. The pitch's "every other app goes blank offshore" is false and should
 not be said to ISRO judges. A repositioning draft exists but has not been adopted.
 
 ---

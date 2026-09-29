@@ -156,7 +156,7 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
             <p className="text-lg font-semibold text-ink">{questionText(uplink.q, lang)}</p>
             <div className="my-4 w-52 h-52 bg-white p-2 rounded-xl border-2 border-ink [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: uplink.svg }} />
             <p className="text-base text-ink leading-snug max-w-xs">
-              Show this to the boat terminal. It sends your question to shore as one byte.
+              Show this to the boat terminal. It sends your question to shore as one byte over Nabhmitra.
             </p>
             <p className="text-sm text-ink-soft mt-1">
               Then tap Receive to read the answer. The Bluetooth link is simulated with a QR code.
@@ -198,8 +198,8 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
               </div>
             ) : (
               <p className="px-5 pb-3 text-base text-ink leading-snug">
-                No mobile signal. Pick a question and the boat terminal sends it to shore over the
-                satellite link.
+                No mobile signal. Pick a question and the boat terminal sends it to shore over
+                Nabhmitra's satellite messaging.
               </p>
             )}
 

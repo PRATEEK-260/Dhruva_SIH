@@ -15,7 +15,7 @@ const SCREENS = [
     to: "/emulator",
     icon: Radio,
     title: "Boat terminal",
-    body: "Stands in for the DAT-SG box on the boat: sends a question up as one byte, brings a 145-bit answer down.",
+    body: "Stands in for the boat's terminals: the question goes up as one byte over Nabhmitra, the 145-bit answer comes down in one DAT-SG message.",
   },
   {
     to: "/shore",

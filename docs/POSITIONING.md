@@ -107,8 +107,8 @@ capsule polish come after.
 ### 1. One answer, one boat, one DAT-SG message — *strongest, and documented*
 
 The DAT-SG control room can already send a 23-byte message to a single terminal. The capsule is
-19 bytes. So: fisherman asks (VCSS messaging, or DAT-SG's short return messages, or before
-leaving port) → shore graph answers → one addressed DAT-SG message → phone rebuilds the full
+19 bytes. So: fisherman asks (VCSS messaging via Nabhmitra, or before leaving port; DAT-SG
+has no return message for a question, see `docs/DATSG_ICD.md`) → shore graph answers → one addressed DAT-SG message → phone rebuilds the full
 spoken answer, in his language, from the codebook.
 
 *Have:* graph, codec, codebook renderer, QR/BT demo transport.

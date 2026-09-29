@@ -1,6 +1,8 @@
 // The one-tap questions. Each has a one-byte code so that, at sea, the question
-// can go up the boat terminal's short-message link as a single byte while the
-// answer comes back as a 145-bit capsule. Every one routes to a node set that
+// can go up Nabhmitra's two-way messaging as a single byte while the answer comes
+// back as a 145-bit capsule. Not over DAT-SG: its only boat-to-shore packet is the
+// distress alert, whose 8-bit field holds fixed emergency codes (ICD v1.2 Table 14;
+// docs/DATSG_ICD.md). Every one routes to a node set that
 // answers it today; questions the system cannot answer yet are not offered.
 
 import type { Language } from "./capsule/codebook";

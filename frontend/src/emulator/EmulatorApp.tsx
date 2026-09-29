@@ -172,7 +172,7 @@ export function EmulatorApp() {
           <div>
             <h1 className="text-3xl font-extrabold leading-none">Boat terminal</h1>
             <p className="text-white/70 mt-1">
-              Stands in for ISRO's DAT-SG on the boat. The satellite and Bluetooth links are simulated.
+              Stands in for the boat's Nabhmitra and DAT-SG terminals. The satellite and Bluetooth links are simulated.
             </p>
           </div>
         </div>
@@ -204,7 +204,7 @@ export function EmulatorApp() {
             <h2 className="text-xl font-extrabold">Question from the phone</h2>
             <p className="text-white/70 mt-1">
               The phone has no signal. It hands its question to this terminal, which sends it to shore
-              as one byte.
+              as one byte over Nabhmitra. DAT-SG cannot carry it: its only uplink is the distress alert.
             </p>
             <button
               onClick={() => setScanning(true)}
@@ -260,9 +260,9 @@ export function EmulatorApp() {
           <ol className="grid grid-cols-5 gap-2 text-center text-sm" aria-label="Link">
             {[
               { icon: Smartphone, label: "Phone", on: step !== "idle" },
-              { icon: Satellite, label: "Up, 1 byte", on: step !== "idle" },
+              { icon: Satellite, label: "Up, 1 byte (Nabhmitra)", on: step !== "idle" },
               { icon: Waves, label: "DHRUVA on shore", on: step === "shore" || step === "downlink" || step === "ready" },
-              { icon: Satellite, label: `Down, ${CAPSULE_BYTES} bytes`, on: step === "downlink" || step === "ready" },
+              { icon: Satellite, label: `Down, ${CAPSULE_BYTES} bytes (DAT-SG)`, on: step === "downlink" || step === "ready" },
               { icon: Smartphone, label: "Phone speaks", on: step === "ready" },
             ].map((s, i) => (
               <li
