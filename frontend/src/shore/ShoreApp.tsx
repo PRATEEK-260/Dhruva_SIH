@@ -20,7 +20,7 @@ import { verdictState, type VerdictState } from "../shared/verdict";
 import { SIGN_THEME, VerdictSign } from "../boat/VerdictSign";
 import { sourceName } from "../boat/Explain";
 import { InspectPanel, utcStamp, variableName, type InspectState } from "./InspectPanel";
-import { WarnPanel, CYCLONE_RADIUS_KM, boatKey, type Boat } from "./WarnPanel";
+import { WarnPanel, CYCLONE_RADIUS_KM, boatKey, type Boat, type Cyclone } from "./WarnPanel";
 import { ageLabel, displayStatus, filterRequests, inCapsuleGrid, type RequestFilter } from "./status";
 
 export const RASTER_STYLE: Record<string, { rescale: [number, number]; colormap: string; gradient: string }> = {
@@ -80,7 +80,7 @@ export function ShoreApp() {
   const [boatClass, setBoatClass] = useState("frp_under_12m");
   const [inspect, setInspect] = useState<InspectState>({ state: "idle" });
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [cyclone, setCyclone] = useState<Boat | null>(null);
+  const [cyclone, setCyclone] = useState<Cyclone | null>(null);
   const [demoBoats, setDemoBoats] = useState<DemoBoat[]>([]);
   // Verdicts under the placed warning, shown on the map while Warn boats is open.
   const [warned, setWarned] = useState<Record<string, VerdictState>>({});
@@ -121,7 +121,10 @@ export function ShoreApp() {
     }
     setInspect({ state: "loading", lat, lon, when });
     try {
-      const response = await postAdvisory({ query: GO_NO_GO_QUERY, lat, lon, boat_class: cls, when: when ?? undefined, log: false });
+      // The replayed storm's hour carries IMD's bulletin, so the check sees the
+      // cyclone as the terminal's replay does, not waves and wind alone.
+      const bulletin = when === demo.storm.when ? demo.storm.bulletin : undefined;
+      const response = await postAdvisory({ query: GO_NO_GO_QUERY, lat, lon, boat_class: cls, when: when ?? undefined, bulletin, log: false });
       setInspect({ state: "ok", lat, lon, when, boatClass: cls, response });
     } catch (err) {
       setInspect({ state: "error", message: `The check failed: ${errorText(err)}` });
@@ -204,6 +207,17 @@ export function ShoreApp() {
 
   function placeDemoCyclone() {
     setCyclone({ lat: demo.cyclone.lat, lon: demo.cyclone.lon });
+    setWarned({});
+    mapRef.current?.flyTo({ center: [80.8, 11.3], zoom: 5.2 });
+  }
+
+  function placeStorm() {
+    const c = demo.storm.imd_centre;
+    setCyclone({
+      lat: c.lat,
+      lon: c.lon,
+      replay: { when: demo.storm.when, bulletin: demo.storm.bulletin, label: demo.storm.bulletin_label },
+    });
     setWarned({});
     mapRef.current?.flyTo({ center: [80.8, 11.3], zoom: 5.2 });
   }
@@ -457,6 +471,7 @@ export function ShoreApp() {
                 centre={cyclone}
                 boats={boats}
                 onPlaceDemo={placeDemoCyclone}
+                onPlaceStorm={placeStorm}
                 onVerdict={(b, st) => setWarned((w) => ({ ...w, [boatKey(b)]: st }))}
               />
             )}

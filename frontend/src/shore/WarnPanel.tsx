@@ -24,6 +24,13 @@ type Result =
   | { boat: Boat; km: number; status: "error"; message: string }
   | { boat: Boat; km: number; status: "ok"; state: VerdictState; base32: string; recordedAt: string | null };
 
+/** Where the warning is. A replayed storm carries the bulletin and the hour it is
+ * for, so every boat is judged on that hour's archived sea and IMD's own centre;
+ * without it the centre is a hand-placed test input judged on today's sea. */
+export interface Cyclone extends Boat {
+  replay?: { when: string; bulletin: string; label: string };
+}
+
 export function boatKey(b: Boat): string {
   return `${b.lat.toFixed(3)},${b.lon.toFixed(3)}`;
 }
@@ -33,11 +40,14 @@ export function WarnPanel({
   boats,
   onVerdict,
   onPlaceDemo,
+  onPlaceStorm,
 }: {
-  centre: Boat | null;
+  centre: Cyclone | null;
   boats: Boat[];
   /** Put the cyclone at the demo position (shared/demo.json). */
   onPlaceDemo: () => void;
+  /** Put the cyclone where IMD's bulletin placed Michaung, at that hour. */
+  onPlaceStorm: () => void;
   /** Each boat's verdict under this warning, so the map can show it. */
   onVerdict: (boat: Boat, state: VerdictState) => void;
 }) {
@@ -61,7 +71,9 @@ export function WarnPanel({
           lat: boat.lat,
           lon: boat.lon,
           language: "ta",
-          test_cyclone_km: Math.round(km),
+          ...(centre.replay
+            ? { when: centre.replay.when, bulletin: centre.replay.bulletin }
+            : { test_cyclone_km: Math.round(km) }),
           log: false,
         });
         const state = verdictState(decodeCapsule(res.capsule_base32));
@@ -94,11 +106,19 @@ export function WarnPanel({
         </div>
       </div>
 
-      <p className="rounded-xl bg-caution-light text-ink text-sm p-3 leading-snug">
-        Test input. No live IMD cyclone feed is connected yet, so the warning is placed by hand. Boats
-        are the positions in the request log and {boats.filter((b) => b.name).length} labelled demo
-        boats on real fishing grounds; the demo boats are not vessels.
-      </p>
+      {centre?.replay ? (
+        <p className="rounded-xl bg-mist text-ink text-sm p-3 leading-snug">
+          {centre.replay.label} Each boat is judged on that hour's archived sea and its distance from IMD's
+          centre. Boats are {boats.filter((b) => b.name).length} labelled demo positions on real fishing
+          grounds and the request log; the demo boats are not vessels.
+        </p>
+      ) : (
+        <p className="rounded-xl bg-caution-light text-ink text-sm p-3 leading-snug">
+          Test input. No live IMD cyclone feed is connected yet, so the warning is placed by hand. Boats
+          are the positions in the request log and {boats.filter((b) => b.name).length} labelled demo
+          boats on real fishing grounds; the demo boats are not vessels.
+        </p>
+      )}
 
       {!centre ? (
         <div className="rounded-xl border-2 border-dashed border-rule p-5 text-center text-ink-soft">
@@ -108,17 +128,27 @@ export function WarnPanel({
             The red ring shows {Math.round(kmToNm(CYCLONE_RADIUS_KM))} nm, the distance at which a warning means no
             boat goes out.
           </p>
-          <button
-            onClick={onPlaceDemo}
-            className="mt-3 min-h-[44px] px-4 rounded-xl border-2 border-danger text-danger font-bold"
-          >
-            Use the demo cyclone position
-          </button>
+          <div className="mt-3 flex flex-col gap-2">
+            <button
+              onClick={onPlaceStorm}
+              className="min-h-[48px] px-4 rounded-xl bg-danger text-white font-bold"
+            >
+              Use Cyclone Michaung, 4 Dec 2023 (IMD)
+            </button>
+            <button
+              onClick={onPlaceDemo}
+              className="min-h-[44px] px-4 rounded-xl border-2 border-danger text-danger font-bold"
+            >
+              Use the demo cyclone position (test input)
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           <p className="text-ink">
-            Cyclone at <strong>{centre.lat.toFixed(2)}° N, {centre.lon.toFixed(2)}° E</strong>.{" "}
+            {centre.replay ? "Cyclone Michaung" : "Cyclone"} at{" "}
+            <strong>{centre.lat.toFixed(2)}° N, {centre.lon.toFixed(2)}° E</strong>
+            {centre.replay ? ", 0000 UTC 4 Dec 2023" : ""}.{" "}
             {boats.length} boat{boats.length === 1 ? "" : "s"} known.
           </p>
           <button
