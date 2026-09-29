@@ -1,0 +1,12 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "cd frontend && npm ci",
+  "buildCommand": "cd frontend && npm run build",
+  "outputDirectory": "frontend/dist",
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://dhruva-api.onrender.com/api/:path*" },
+    { "source": "/tiles/:path*", "destination": "https://dhruva-api.onrender.com/tiles/:path*" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
