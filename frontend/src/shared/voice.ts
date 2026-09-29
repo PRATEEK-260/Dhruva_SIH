@@ -18,6 +18,12 @@ export type VoiceSource = "bhashini" | "saved" | "shipped" | "phone" | "none";
 
 const CACHE = "dhruva-voice-v1";
 let current: HTMLAudioElement | null = null;
+// Each speakAdvisory call takes a number. A newer call pauses the older one's
+// audio, and the older call must then stop quietly, not read the pause as a
+// failed source and fall through to the next one: two overlapping calls used
+// to pause each other down the whole list and both report "none" while a clip
+// was playing.
+let generation = 0;
 
 function stop(): void {
   current?.pause();
@@ -77,37 +83,44 @@ export async function speakAdvisory(opts: {
   lang: Language;
   state: VerdictState;
   online: boolean;
-}): Promise<VoiceSource> {
+}): Promise<VoiceSource | null> {
   const { text, lang, state, online } = opts;
-  if (online && lang !== "en") {
+  const mine = ++generation;
+  const superseded = () => mine !== generation;
+  // Fetch first, then play only if this call is still the newest.
+  const attempt = async (get: () => Promise<Blob | null>): Promise<boolean | null> => {
     try {
-      await play(await bhashini(text, lang));
-      return "bhashini";
+      const blob = await get();
+      if (superseded()) return null;
+      if (!blob) return false;
+      await play(blob);
+      return true;
     } catch {
-      // fall through to what the phone already has
+      return superseded() ? null : false;
     }
+  };
+
+  if (online && lang !== "en") {
+    const ok = await attempt(() => bhashini(text, lang));
+    if (ok === null) return null;
+    if (ok) return "bhashini";
   }
   const cache = await openCache();
   const saved = await cache?.match(cacheKey(text, lang));
   if (saved) {
-    try {
-      await play(await saved.blob());
-      return "saved";
-    } catch {
-      // fall through
-    }
+    const ok = await attempt(() => saved.blob());
+    if (ok === null) return null;
+    if (ok) return "saved";
   }
   if (lang !== "en") {
-    try {
+    const ok = await attempt(async () => {
       const res = await fetch(`/voice/${lang}/${state}.wav`);
-      if (res.ok) {
-        await play(await res.blob());
-        return "shipped";
-      }
-    } catch {
-      // fall through
-    }
+      return res.ok ? res.blob() : null;
+    });
+    if (ok === null) return null;
+    if (ok) return "shipped";
   }
+  if (superseded()) return null;
   return phoneVoice(text, lang) ? "phone" : "none";
 }
 

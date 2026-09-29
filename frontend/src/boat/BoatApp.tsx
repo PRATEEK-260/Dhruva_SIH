@@ -88,7 +88,9 @@ export function BoatApp() {
       const st = verdictState(s.capsule);
       setVoice("speaking");
       const text = spokenAnswer(s.capsule, l);
-      setVoice(await speakAdvisory({ text, lang: l, state: st, online: navigator.onLine }));
+      const source = await speakAdvisory({ text, lang: l, state: st, online: navigator.onLine });
+      // null: a newer request took over, and it will set the label itself.
+      if (source !== null) setVoice(source);
     },
     [],
   );
