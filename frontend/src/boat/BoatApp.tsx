@@ -8,7 +8,7 @@ import { CapsuleFigures, EvidenceList, TracePanel, advisoryDate, hasFigures, ist
 import type { Capsule } from "../shared/capsule/decode";
 import { compassWord, renderReason, spokenSlots, type Language } from "../shared/capsule/codebook";
 import type { EvidenceItem } from "../shared/api/client";
-import { suppressesFishing, verdictLabel, verdictState, type VerdictState } from "../shared/verdict";
+import { suppressesFishing, verdictLabel, verdictReason, verdictState, type VerdictState } from "../shared/verdict";
 import { kmToNm, wayHome } from "../shared/harbour";
 import { DEPARTURE_LABEL, departureTime, type Departure } from "../shared/questions";
 import { speakAdvisory, type VoiceSource } from "../shared/voice";
@@ -203,8 +203,10 @@ export function BoatApp() {
                   {lang !== "en" && <p className={`text-lg font-semibold mt-2 ${theme.soft}`}>{verdictLabel(state, "en").word}</p>}
                 </div>
               </div>
-              <p className="text-xl font-semibold mt-5 leading-snug">{label.line}</p>
-              <p className={`text-base mt-3 leading-relaxed ${theme.soft}`}>{sentence.text}</p>
+              {/* Action first, then one reason with no numbers. The full sentence,
+                  figures and all, is spoken, and written out under Show evidence. */}
+              <p className="text-2xl font-extrabold mt-5 leading-snug">{label.line}</p>
+              <p className={`text-lg mt-2 leading-snug ${theme.soft}`}>{verdictReason(shown.capsule, lang)}</p>
 
               <div className="mt-5 flex items-center gap-3">
                 <button
@@ -314,6 +316,12 @@ export function BoatApp() {
               </button>
               {evidenceOpen && (
                 <div id="evidence" className="flex flex-col gap-4">
+                  <section className="rounded-2xl bg-white p-4">
+                    <h2 className="text-lg font-extrabold">What the voice says</h2>
+                    <p lang={lang} className="text-base mt-2 leading-relaxed">
+                      {sentence.text}
+                    </p>
+                  </section>
                   {shown.asked && evidence?.items && evidence.items.length > 0 ? (
                     <section className="rounded-2xl bg-white p-4">
                       <h2 className="text-lg font-extrabold">The numbers behind this</h2>

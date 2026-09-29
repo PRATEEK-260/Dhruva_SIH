@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { suppressesFishing, verdictLabel, verdictState } from "./verdict";
+import { EN_LABELS, EN_REASONS, reasonKey, suppressesFishing, verdictLabel, verdictState } from "./verdict";
 import { bearingDeg, distanceKm, wayHome } from "./harbour";
 import { departureTime, parseUplink, uplinkPayload } from "./questions";
 
@@ -56,5 +56,30 @@ describe("questions", () => {
     expect(departureTime("tomorrow5", from)).toBe("2026-09-28T23:30:00.000Z");
     expect(departureTime("tomorrow7", from)).toBe("2026-09-29T01:30:00.000Z");
     expect(departureTime("now", from)).toBeUndefined();
+  });
+});
+
+describe("action-first wording", () => {
+  it("names the reason from the capsule's own hazard flags", () => {
+    expect(reasonKey({ risk_class: "safe", hazards: [] })).toBe("safe");
+    expect(reasonKey({ risk_class: "caution", hazards: ["wind"] })).toBe("caution_wind");
+    expect(reasonKey({ risk_class: "caution", hazards: [] })).toBe("caution_alert");
+    expect(reasonKey({ risk_class: "no_go", hazards: ["wave", "wind"] })).toBe("unsafe_wave");
+    expect(reasonKey({ risk_class: "no_go", hazards: ["wind"] })).toBe("unsafe_wind");
+    expect(reasonKey({ risk_class: "no_go", hazards: ["wave", "cyclone"] })).toBe("blocked_cyclone");
+    expect(reasonKey({ risk_class: "no_go", hazards: ["tsunami"] })).toBe("blocked_tsunami");
+    expect(reasonKey({ risk_class: "unknown", hazards: [] })).toBe("unavailable");
+  });
+
+  it("puts no number on the fisherman's main screen", () => {
+    for (const text of [...Object.values(EN_LABELS).map((l) => l.line), ...Object.values(EN_REASONS)]) {
+      expect(text).not.toMatch(/\d/);
+    }
+  });
+
+  it("leads with what to do", () => {
+    expect(EN_LABELS.safe.line).toBe("You can go to sea.");
+    expect(EN_LABELS.unsafe.line.startsWith("Do not go to sea")).toBe(true);
+    expect(EN_LABELS.blocked.line.startsWith("Do not go to sea")).toBe(true);
   });
 });

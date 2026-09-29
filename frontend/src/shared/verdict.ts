@@ -11,6 +11,7 @@ import type { Language } from "./capsule/codebook";
 // Machine-translated from EN_LABELS by scripts/verdict_labels.py (Bhashini
 // IndicTrans2). Needs a native speaker's check before any public claim.
 import translated from "./verdict-labels.json";
+import reasonsJson from "./verdict-reasons.json";
 
 export type VerdictState = "safe" | "caution" | "unsafe" | "blocked" | "unavailable";
 
@@ -41,19 +42,73 @@ export interface Label {
   line: string;
 }
 
+// The line is the action, first: what to do, before why. Must match
+// scripts/verdict_labels.py, which translates these and speaks them as the
+// offline clips.
 export const EN_LABELS: Record<VerdictState, Label> = {
-  safe: { word: "Safe", line: "Conditions are within the limits for your boat." },
-  caution: { word: "Caution", line: "Conditions are near the limit for your boat. Take care." },
-  unsafe: { word: "Unsafe", line: "Do not go to sea. The sea is too rough for your boat." },
+  safe: { word: "Safe", line: "You can go to sea." },
+  caution: { word: "Caution", line: "Go only with care." },
+  unsafe: { word: "Unsafe", line: "Do not go to sea." },
   blocked: { word: "Blocked", line: "Do not go to sea. An official warning is active." },
-  unavailable: {
-    word: "No data",
-    line: "The sea could not be checked. Follow the official warning.",
-  },
+  unavailable: { word: "No data", line: "Check the official warning before you go." },
 };
 
-const LABELS = translated as Partial<Record<string, Record<VerdictState, Label>>>;
+// _source records the English each line was translated from; it is not a language.
+const LABELS = translated as unknown as Partial<Record<string, Record<VerdictState, Label>>>;
 
 export function verdictLabel(state: VerdictState, lang: Language): Label {
   return LABELS[lang]?.[state] ?? EN_LABELS[state];
+}
+
+// ---------------------------------------------------------------- reasons ----
+// One short reason, with no numbers. The figures are spoken, and shown only
+// under "Show evidence". Worked out from the capsule's own hazard flags, so a
+// satellite message gets the same reason as an online answer.
+
+export type ReasonKey =
+  | "safe"
+  | "caution_wave"
+  | "caution_wind"
+  | "caution_alert"
+  | "unsafe_wave"
+  | "unsafe_wind"
+  | "blocked_cyclone"
+  | "blocked_lightning"
+  | "blocked_tsunami"
+  | "unavailable";
+
+export const EN_REASONS: Record<ReasonKey, string> = {
+  safe: "Waves and wind are within your boat's limits.",
+  caution_wave: "The waves are near your boat's limit.",
+  caution_wind: "The wind is near your boat's limit.",
+  caution_alert: "A warning is out that could not be checked.",
+  unsafe_wave: "The waves are too high for your boat.",
+  unsafe_wind: "The wind is too strong for your boat.",
+  blocked_cyclone: "A cyclone warning is active near you.",
+  blocked_lightning: "Lightning is reported near you.",
+  blocked_tsunami: "A tsunami alert is in force.",
+  unavailable: "The sea could not be checked.",
+};
+
+export function reasonKey(capsule: Pick<Capsule, "risk_class" | "hazards">): ReasonKey {
+  const h = new Set(capsule.hazards);
+  switch (verdictState(capsule)) {
+    case "safe":
+      return "safe";
+    case "caution":
+      return h.has("wave") ? "caution_wave" : h.has("wind") ? "caution_wind" : "caution_alert";
+    case "unsafe":
+      return h.has("wind") && !h.has("wave") ? "unsafe_wind" : "unsafe_wave";
+    case "blocked":
+      return h.has("tsunami") ? "blocked_tsunami" : h.has("cyclone") ? "blocked_cyclone" : "blocked_lightning";
+    default:
+      return "unavailable";
+  }
+}
+
+const REASONS = reasonsJson as Partial<Record<string, Partial<Record<ReasonKey, string>>>>;
+
+export function verdictReason(capsule: Pick<Capsule, "risk_class" | "hazards">, lang: Language): string {
+  const k = reasonKey(capsule);
+  return REASONS[lang]?.[k] ?? EN_REASONS[k];
 }
