@@ -1,6 +1,6 @@
 """Build DHRUVA-brochure.pdf from docs/brochure/index.html.
 
-    uvx --with playwright==1.58.0 python docs/brochure/build.py --shots --tests 412
+    uvx --with playwright==1.58.0 python docs/brochure/build.py --shots --tests 449
 
 --shots retakes every screenshot from the running app (dev server on :5173, the
 production preview on :4173 for the offline phone, backend on :8000). Without it
@@ -49,7 +49,7 @@ async def shots(p) -> str:
     await phone.screenshot(path=IMG / "phone_answer.png")
     y = await phone.evaluate(
         "() => { const t=[...document.querySelectorAll('section')]"
-        ".find(s=>s.textContent.includes('Nearest fishing zone'));"
+        ".find(s=>s.textContent.includes('Nearest potential fishing zone'));"
         " return t.getBoundingClientRect().top + window.scrollY - 12; }"
     )
     await phone.evaluate(f"window.scrollTo(0, {y})")
@@ -57,11 +57,11 @@ async def shots(p) -> str:
     await phone.screenshot(path=IMG / "phone_evidence.png")
     print("phone", flush=True)
 
-    term = await (await browser.new_context(viewport={"width": 1400, "height": 820}, device_scale_factor=2)).new_page()
+    term = await (await browser.new_context(viewport={"width": 1400, "height": 1180}, device_scale_factor=2)).new_page()
     await term.goto(f"{DEV}/emulator")
     await term.wait_for_timeout(800)
     await term.get_by_text("Simulate a cyclone warning").click()
-    await term.wait_for_selector("text=The whole answer", timeout=300_000)
+    await term.wait_for_selector("text=Sent as one DAT-SG message", timeout=300_000)
     await term.wait_for_timeout(800)
     await term.screenshot(path=IMG / "terminal.jpg")
     capsule = (await term.locator("p.font-mono").inner_text()).strip()
@@ -142,7 +142,7 @@ async def pdf(p, tests: str, capsule: str | None) -> None:
 async def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--shots", action="store_true")
-    ap.add_argument("--tests", default="412")
+    ap.add_argument("--tests", default="449")
     args = ap.parse_args()
     async with async_playwright() as p:
         capsule = None
