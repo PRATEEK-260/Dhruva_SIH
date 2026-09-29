@@ -108,12 +108,12 @@
   <div class="grid2" style="margin-top:14mm">
     <div>
       <h3>Today: a warning for a coast</h3>
-      <p style="margin-top:2mm">Warnings and fishing-zone advisories are issued by region and sector. No system we found takes a fisherman's question and answers it.</p>
+      <p style="margin-top:2mm">Warnings and fishing-zone advisories are issued by region and sector. No system we found answers a fisherman's question with reasoning specific to that boat.</p>
       <p class="soft small" style="margin-top:2mm">A boat in the storm's path and a boat far outside it read the same regional bulletin.</p>
     </div>
     <div>
       <h3>DHRUVA's answer, for one boat</h3>
-      <p style="margin-top:2mm">Blocked. Do not go to sea: an official warning is active near you. Spoken in Tamil, with the way back to Karaikal Port, 26 km south-south-west, on screen.</p>
+      <p style="margin-top:2mm">Blocked. Do not go to sea. An official warning is active. Spoken in Tamil, with the way back to Karaikal Port, 14 nautical miles south-south-west, on screen.</p>
       <p class="soft small" style="margin-top:2mm">Built from that boat's position, its class and the live data, and delivered in one satellite message.</p>
     </div>
   </div>
@@ -166,7 +166,7 @@
 <section class="page">
   <div class="kicker">Trust</div>
   <h2>A language model never decides whether you go to sea.</h2>
-  <p class="lede">Many teams now say that. DHRUVA goes further: the model may not introduce a number at all.</p>
+  <p class="lede">Many teams now say that. DHRUVA goes further: today's answers are built from checked templates, and any model-written text must pass the number check before it is shown.</p>
   <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap: 4mm; margin-top: 10mm">
     <div class="stat"><h3>1. Tools measure</h3><p class="small">Each reading becomes an evidence row: value, unit, dataset, the grid cell that answered, and when it is valid.</p></div>
     <div class="stat"><h3>2. Rules decide</h3><p class="small">A deterministic rule table sets the verdict per boat class. A cyclone, lightning or tsunami warning forces NO-GO for everyone.</p></div>
@@ -258,7 +258,8 @@
     <tr><td>Marine Regions (VLIZ)</td><td>EEZ, territorial sea and boundary lines, in PostGIS</td><td><span class="tag live">Loaded</span></td></tr>
     <tr><td>Bhashini</td><td>Speech recognition, translation and speech in Tamil, Malayalam, Odia and Hindi</td><td><span class="tag live">Live</span></td></tr>
     <tr><td>Gemini</td><td>Understands the question and plans which agents run. A keyword planner takes over when it does not answer</td><td><span class="tag live">Live</span></td></tr>
-    <tr><td>IMD cyclone warnings</td><td>The warning override is built and tested; the feed is not connected yet</td><td><span class="tag sim">Test input</span></td></tr>
+    <tr><td>IMD cyclone warnings</td><td>The warning override is built and tested; the live feed is not connected yet, so the demo's cyclone alert is a labelled test input</td><td><span class="tag sim">Test input</span></td></tr>
+    <tr><td>IMD RSMC bulletin, Cyclone Michaung</td><td>Tropical Cyclone Advisory No. 9, issued 0300 UTC 4 Dec 2023: the storm replay measures the boat's distance from the centre IMD published, and the evidence row cites it</td><td><span class="tag live">Past, dated</span></td></tr>
     <tr><td>Nabhmitra / VCSS</td><td>The channel DHRUVA is built for. Its message format is not public, so the one-byte question uses DHRUVA's own code</td><td><span class="tag sim">Simulated</span></td></tr>
     <tr><td>DAT-SG message 41</td><td>The answer's frame, built bit for bit from ISRO's ICD v1.2. Sending it is simulated by a terminal screen and a QR code</td><td><span class="tag sim">Simulated</span></td></tr>
     <tr><td>Safety limits</td><td>Engineering placeholders until replaced with INCOIS Ocean State Forecast criteria</td><td><span class="tag sim">Provisional</span></td></tr>
