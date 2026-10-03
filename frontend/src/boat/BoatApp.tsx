@@ -519,6 +519,18 @@ function DeclineCard({ shown, lang }: { shown: Shown; lang: Language }) {
   );
 }
 
+/** Only an https link on IMD's own host is rendered: the URL comes from a
+ * scraped page, and a javascript: URL in an href runs when tapped. */
+function isImdLink(url: string | null): url is string {
+  if (!url) return false;
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && u.hostname === "rsmcnewdelhi.imd.gov.in";
+  } catch {
+    return false;
+  }
+}
+
 /** What IMD's cyclone bulletins in force say. With one in force: its fishermen
  * warning in IMD's own words and the link, whatever the verdict. With none:
  * one plain line with when the list was checked, never "no danger". */
@@ -545,7 +557,7 @@ function ImdCard({ imd }: { imd: ImdStatus }) {
               DHRUVA could not read this bulletin, so it is treated as at least Caution. Read it before you go.
             </p>
           )}
-          {b.source_url && (
+          {isImdLink(b.source_url) && (
             <a href={b.source_url} target="_blank" rel="noopener" className="text-sea font-semibold underline text-sm">
               {b.title}, IMD RSMC New Delhi
             </a>

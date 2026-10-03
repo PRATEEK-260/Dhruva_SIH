@@ -56,6 +56,11 @@ def listing_rows(page: str) -> list[dict[str, str]]:
     rows = []
     for title, when, href in _ROW.findall(page):
         url = urljoin(BASE, quote(html.unescape(href), safe="/%:"))
+        # The page is scraped, so its links are untrusted: only a PDF on IMD's
+        # own host is fetched or shown. urljoin passes "javascript:..." or
+        # another host straight through, and the phone renders this as a link.
+        if not url.startswith(BASE + "uploads/"):
+            continue
         rows.append({"title": title.strip(), "listed_at": when.strip(), "url": url})
     return rows
 

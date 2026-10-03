@@ -207,3 +207,21 @@ def _calm_sea():
         )
         for v, val, u in ((Variable.WAVE_HEIGHT, 0.5, "m"), (Variable.WIND_SPEED, 6.0, "kt"))
     ]
+
+
+def test_the_listing_drops_links_that_are_not_imd_pdfs():
+    """The archive page is scraped; its links are untrusted and end up as an
+    href on the phone."""
+    from dhruva.sources.imd_feed import listing_rows
+
+    row = '<td>National Bulletin x</td><td>t</td><td><a href="{}">'
+    page = "".join(
+        row.format(h)
+        for h in (
+            "javascript:alert(1)//x.pdf",
+            "https://evil.example/uploads/x.pdf",
+            "uploads/archive/1/1_ok_No.1.pdf",
+        )
+    )
+    urls = [r["url"] for r in listing_rows(page)]
+    assert urls == ["https://rsmcnewdelhi.imd.gov.in/uploads/archive/1/1_ok_No.1.pdf"]
