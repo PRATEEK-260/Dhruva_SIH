@@ -105,6 +105,16 @@ class DhruvaState(TypedDict, total=False):
     # None for No data) and "box". Absent unless the intent is decline. ---
     decline: dict[str, Any] | None
 
+    # --- the brief's other example queries (answers/): single writers each ---
+    # IMD's live bulletins for this boat, set by the caller (api/advisory.py).
+    imd: dict[str, Any] | None
+    thunder: dict[str, Any] | None  # weather node: forecast thunderstorm hour
+    tide: dict[str, Any] | None  # weather node, conditions: next high and low water
+    productive: dict[str, Any] | None  # ocean node, fishing zone: chl + SST cell
+    route_check: dict[str, Any] | None  # route node: waves along the line
+    # The spoken answer for this question beyond the verdict (answers/).
+    answer: dict[str, Any]
+
     # --- risk (node 6): single writer, no reducer ---
     risk_class: RiskClass
     fired_rules: list[str]
@@ -144,6 +154,7 @@ def initial_state(
     lightning_distance_km: float | None = None,
     tsunami_alert: bool = False,
     alerts: list[str] | None = None,
+    imd: dict[str, Any] | None = None,
 ) -> DhruvaState:
     """Seed a run.
 
@@ -164,6 +175,7 @@ def initial_state(
         lightning_distance_km=lightning_distance_km,
         tsunami_alert=tsunami_alert,
         alerts=list(alerts or []),
+        imd=imd,
         observations=[],
         errors=[],
         boundaries=[],

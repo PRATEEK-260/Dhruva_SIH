@@ -239,5 +239,15 @@ def build_trace(state: DhruvaState) -> list[dict[str, Any]]:
     )
 
     if plan.get("needs_route"):
-        add("Route planning", "route", True, "Safe-route search is not built yet; no route given")
+        check = state.get("route_check") or {}
+        waves = [w for w in (check.get("waves") or []) if w is not None]
+        add(
+            "Route planning",
+            "route",
+            True,
+            f"Straight-line check to the INCOIS zone: highest wave {_fmt(max(waves))} m at "
+            f"{len(waves)} points (Open-Meteo marine). A reference, not navigation"
+            if waves
+            else "No INCOIS zone to check a line to, or the waves could not be read",
+        )
     return trace

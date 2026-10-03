@@ -51,7 +51,7 @@ const VOICE_NOTE: Record<VoiceSource, string> = {
 /** What the voice says. The verdict's action line always comes first, so safety
  * leads; for query #7 the comparison follows, in the language it was asked in. */
 function spokenText(s: Shown, lang: Language): string {
-  const lines = s.asked?.decline?.lines;
+  const lines = s.asked?.decline?.lines?.length ? s.asked.decline.lines : s.asked?.answer?.lines;
   if (lines && lines.length > 0 && s.asked?.lang === lang) {
     const action = verdictLabel(verdictState(s.capsule), lang).line;
     return [action, ...lines.map((l) => l.text)].join(" ");
@@ -286,6 +286,8 @@ export function BoatApp() {
               {shown.asked?.imd && <ImdCard imd={shown.asked.imd} />}
 
               {shown.asked?.decline && <DeclineCard shown={shown} lang={lang} />}
+
+              {shown.asked?.answer && <AnswerCard shown={shown} />}
 
               {!suppressesFishing(state) && (
                 <FishingZone shown={shown} lang={lang} />
@@ -564,6 +566,48 @@ function ImdCard({ imd }: { imd: ImdStatus }) {
           )}
         </div>
       ))}
+    </section>
+  );
+}
+
+const ANSWER_TITLE: Record<string, string> = {
+  avoid: "Zones to avoid",
+  thunder: "Cyclone and thunderstorm alerts",
+  tide: "Tides",
+  productive: "High chlorophyll, favourable temperature",
+  route: "Straight line to the fishing zone",
+};
+
+/** The answer to the brief's other example queries. Sentences picked by rule,
+ * every figure an evidence row; online only, like query #7. */
+function AnswerCard({ shown }: { shown: Shown }) {
+  const a = shown.asked?.answer;
+  if (!a) return null;
+  const caveat = a.lines.find((l) => l.part === "caveat");
+  const body = a.lines.filter((l) => l.part !== "caveat");
+  return (
+    <section className="rounded-2xl bg-white p-4">
+      <h2 className="text-lg font-extrabold leading-tight">{ANSWER_TITLE[a.kind] ?? "Answer"}</h2>
+      {body.length === 0 ? (
+        <p className="text-base mt-3">This answer could not be checked, so it is not shown.</p>
+      ) : (
+        <div className="mt-2 flex flex-col gap-2">
+          {body.map((l, i) => (
+            <p key={i} lang={a.language} className="text-base leading-snug">
+              {l.text}
+            </p>
+          ))}
+        </div>
+      )}
+      {caveat && (
+        <p lang={a.language} className="text-sm font-semibold mt-3">
+          {caveat.text}
+        </p>
+      )}
+      <p className="text-sm text-ink-soft mt-2">
+        {a.kind === "route" && a.line ? "The line is drawn on the fishing-zone map below. " : ""}
+        Sources and times are under Show evidence.
+      </p>
     </section>
   );
 }

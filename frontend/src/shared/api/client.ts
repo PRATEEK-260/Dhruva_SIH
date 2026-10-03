@@ -44,6 +44,16 @@ export interface EvidenceItem {
   baseline_years?: number[] | null;
 }
 
+/** Zones to avoid, alerts, tides, productive water or the straight-line route. */
+export interface BriefAnswer {
+  kind: "avoid" | "thunder" | "tide" | "productive" | "route";
+  status: "ok" | "no_data";
+  /** In `language`; empty if the number check failed. */
+  lines: { part: string; text: string }[];
+  language: string;
+  line?: [number, number][];
+}
+
 /** An IMD National Bulletin in force, read from its PDF (backend sources/imd_parser.py). */
 export interface ImdBulletin {
   title: string;
@@ -154,6 +164,8 @@ export interface AdvisoryResponse {
   view?: { cards?: string[]; layers?: string[] };
   pfz?: NearestPfz | null;
   decline?: DeclineAnswer | null;
+  /** The spoken answer for the brief's other queries (backend answers/). */
+  answer?: BriefAnswer | null;
   /** IMD's live bulletins for this boat; null for a replayed past storm. */
   imd?: ImdStatus | null;
   /** Set only when this answer is a recorded real run, replayed. */

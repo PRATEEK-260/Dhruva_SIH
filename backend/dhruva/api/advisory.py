@@ -76,6 +76,9 @@ class AdvisoryResponse(BaseModel):
     # Query #7's answer: status, the rendered parts and each variable's change.
     # Online only; the capsule cannot carry a baseline. Null for other questions.
     decline: dict[str, Any] | None = None
+    # The spoken answer for the brief's other example queries (answers/):
+    # kind ("avoid", "thunder", "tide", "productive", "route"), status, lines.
+    answer: dict[str, Any] | None = None
     # Set only when this is a recorded run replayed (dhruva/demo/replay.py):
     # when it was recorded, and why it was used instead of a live run.
     recorded_at: str | None = None
@@ -145,6 +148,7 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
                 ),
                 cyclone_source=cyclone,
                 alerts=alerts,
+                imd=imd,
             )
         except Exception as exc:
             if recorded is None:
@@ -194,6 +198,7 @@ def _from_state(state: DhruvaState) -> AdvisoryResponse:
         boundaries=list(state.get("boundaries", [])),
         pfz=state.get("pfz"),
         decline=state.get("decline_answer"),
+        answer=state.get("answer"),
     )
 
 

@@ -231,6 +231,11 @@ _WORD_NUMBERS: dict[str, dict[str, float]] = {
 }
 
 _NUMBER_TOKEN = re.compile(r"\d[\d,]*(?:[.٫]\d+)?", re.UNICODE)
+# A clock time is one number, not two: "06:40" is 6 h 40 min, read as the
+# decimal hour 6.6667 and matched against a bundle row whose unit is TIME_UNIT.
+# Without this "06:40" would need a row valued 6 and another valued 40.
+_TIME_TOKEN = re.compile(r"(?<![\d.:])([01]?\d|2[0-3]):([0-5]\d)(?![\d:])")
+TIME_UNIT = "h IST"
 
 
 @dataclass(frozen=True, slots=True)
@@ -275,6 +280,12 @@ def extract_numbers(text: str, language: str = "en") -> tuple[list[tuple[str, fl
     normalised = transliterate_digits(text)
     found: list[tuple[str, float]] = []
     unparsed: list[str] = []
+
+    def _time(m: re.Match[str]) -> str:
+        found.append((m.group(0), int(m.group(1)) + int(m.group(2)) / 60))
+        return " " * len(m.group(0))  # keep offsets; the parts are not numbers
+
+    normalised = _TIME_TOKEN.sub(_time, normalised)
 
     for match in _NUMBER_TOKEN.finditer(normalised):
         if _is_unit_exponent(normalised, match.start()):

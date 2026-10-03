@@ -140,7 +140,7 @@ class TestAnswer:
         """The plan's banned wording, checked across every English sentence;
         translations are checked by a native speaker."""
         table = phrases()
-        assert lang in table, f"{lang} phrases missing; run scripts/decline_phrases.py"
+        assert lang in table, f"{lang} phrases missing; run scripts/phrases.py"
         if lang != "en":
             return
         for key, sentence in table["en"].items():

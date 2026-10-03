@@ -1,0 +1,174 @@
+{
+  "_about": "Query #4, lightning or cyclone alerts (backend/dhruva/answers/thunder.py). Thunderstorms are a forecast, never observed lightning: there is no lightning feed. Indic lines are machine translations and need a native speaker's check. Hand-corrected 2026-10-03: 'Depression' came back as the mental-health word in all four languages (ta, ml, hi, or); all four languages now use IMD's meteorological terms for Depression and Deep Depression (the Odia term needs a native speaker's confirmation). Article 'एक'/'ଏକ' (also the number one) removed 2026-10-03 so the number check reads no number the evidence lacks: hi.cyclone_read_bulletin, hi.caveat, or.cyclone_read_bulletin, or.caveat.",
+  "en": {
+    "cyclone_in_force": "IMD's {category} is in force: its centre is {distance} nautical miles away, in the {bearing} direction.",
+    "cyclone_read_bulletin": "An IMD bulletin is in force for your sea. Read it before you go.",
+    "cyclone_none": "No IMD cyclone warning is in force for your sea.",
+    "cyclone_unchecked": "IMD's cyclone bulletins could not be checked.",
+    "thunder_from": "Thunderstorms are forecast from {time}. Take care.",
+    "thunder_none": "No thunderstorm is forecast for the next {hours} hours.",
+    "thunder_unchecked": "The thunderstorm forecast could not be checked.",
+    "caveat": "This is a forecast, not observed lightning.",
+    "categories": {
+      "Depression": "Depression",
+      "Deep Depression": "Deep Depression",
+      "Cyclonic Storm": "Cyclonic Storm",
+      "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+      "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+      "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+      "Super Cyclonic Storm": "Super Cyclonic Storm"
+    }
+  },
+  "ta": {
+    "_en": {
+      "cyclone_in_force": "IMD's {category} is in force: its centre is {distance} nautical miles away, in the {bearing} direction.",
+      "cyclone_read_bulletin": "An IMD bulletin is in force for your sea. Read it before you go.",
+      "cyclone_none": "No IMD cyclone warning is in force for your sea.",
+      "cyclone_unchecked": "IMD's cyclone bulletins could not be checked.",
+      "thunder_from": "Thunderstorms are forecast from {time}. Take care.",
+      "thunder_unchecked": "The thunderstorm forecast could not be checked.",
+      "caveat": "This is a forecast, not observed lightning.",
+      "categories": {
+        "Depression": "Depression",
+        "Deep Depression": "Deep Depression",
+        "Cyclonic Storm": "Cyclonic Storm",
+        "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+        "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+        "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+        "Super Cyclonic Storm": "Super Cyclonic Storm"
+      },
+      "thunder_none": "No thunderstorm is forecast for the next {hours} hours."
+    },
+    "cyclone_in_force": "ஐஎம்டியின் {category} நடைமுறையில் உள்ளது: அதன் மையம் {distance} கடல் மைல் தொலைவில், {bearing} திசையில் உள்ளது.",
+    "cyclone_read_bulletin": "உங்கள் கடலுக்கு ஒரு ஐஎம்டி புல்லட்டின் நடைமுறையில் உள்ளது. நீங்கள் செல்வதற்கு முன் அதைப் படியுங்கள்.",
+    "cyclone_none": "உங்கள் கடலுக்கு ஐஎம்டி சூறாவளி எச்சரிக்கை எதுவும் இல்லை.",
+    "cyclone_unchecked": "ஐஎம்டியின் சூறாவளி செய்தித்தாள்களை சரிபார்க்க முடியவில்லை.",
+    "thunder_from": "{time} முதல் இடியுடன் கூடிய மழை பெய்யும் என்று கணிக்கப்பட்டுள்ளது. கவனித்துக் கொள்ளுங்கள்.",
+    "thunder_unchecked": "இடியுடன் கூடிய மழைக்கான முன்னறிவிப்பை சரிபார்க்க முடியவில்லை.",
+    "caveat": "இது ஒரு முன்னறிவிப்பு, கவனிக்கப்பட்ட மின்னல் அல்ல.",
+    "categories": {
+      "Depression": "காற்றழுத்தத் தாழ்வு மண்டலம்",
+      "Deep Depression": "ஆழ்ந்த காற்றழுத்தத் தாழ்வு மண்டலம்",
+      "Cyclonic Storm": "சூறாவளி புயல்",
+      "Severe Cyclonic Storm": "கடுமையான சூறாவளி புயல்",
+      "Very Severe Cyclonic Storm": "மிகவும் கடுமையான சூறாவளி புயல்",
+      "Extremely Severe Cyclonic Storm": "மிகவும் கடுமையான சூறாவளி புயல்",
+      "Super Cyclonic Storm": "சூப்பர் சூறாவளி புயல்"
+    },
+    "thunder_none": "அடுத்த {hours} மணி நேரத்திற்கு இடியுடன் கூடிய மழைக்கு வாய்ப்பில்லை."
+  },
+  "ml": {
+    "_en": {
+      "cyclone_in_force": "IMD's {category} is in force: its centre is {distance} nautical miles away, in the {bearing} direction.",
+      "cyclone_read_bulletin": "An IMD bulletin is in force for your sea. Read it before you go.",
+      "cyclone_none": "No IMD cyclone warning is in force for your sea.",
+      "cyclone_unchecked": "IMD's cyclone bulletins could not be checked.",
+      "thunder_from": "Thunderstorms are forecast from {time}. Take care.",
+      "thunder_unchecked": "The thunderstorm forecast could not be checked.",
+      "caveat": "This is a forecast, not observed lightning.",
+      "categories": {
+        "Depression": "Depression",
+        "Deep Depression": "Deep Depression",
+        "Cyclonic Storm": "Cyclonic Storm",
+        "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+        "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+        "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+        "Super Cyclonic Storm": "Super Cyclonic Storm"
+      },
+      "thunder_none": "No thunderstorm is forecast for the next {hours} hours."
+    },
+    "cyclone_in_force": "ഐഎംഡിയുടെ {category} പ്രാബല്യത്തിൽ ഉണ്ട്ഃ അതിന്റെ കേന്ദ്രം {distance} നോട്ടിക്കൽ മൈൽ അകലെയാണ്, {bearing} ദിശയിലാണ്.",
+    "cyclone_read_bulletin": "നിങ്ങളുടെ കടലിനായി ഒരു ഐഎംഡി ബുള്ളറ്റിൻ പ്രാബല്യത്തിൽ ഉണ്ട്. പോകുന്നതിനുമുമ്പ് അത് വായിക്കുക.",
+    "cyclone_none": "നിങ്ങളുടെ കടലിൽ ഐഎംഡി ചുഴലിക്കാറ്റ് മുന്നറിയിപ്പ് നിലവിലില്ല.",
+    "cyclone_unchecked": "ഐഎംഡിയുടെ ചുഴലിക്കാറ്റ് ബുള്ളറ്റിനുകൾ പരിശോധിക്കാൻ കഴിഞ്ഞില്ല.",
+    "thunder_from": "{time} മുതൽ ഇടിമിന്നൽ പ്രവചിക്കപ്പെടുന്നു. ശ്രദ്ധിക്കുക.",
+    "thunder_unchecked": "ഇടിമിന്നൽ പ്രവചനം പരിശോധിക്കാൻ കഴിഞ്ഞില്ല.",
+    "caveat": "ഇത് ഒരു പ്രവചനമാണ്, ഇടിമിന്നൽ നിരീക്ഷിച്ചതല്ല.",
+    "categories": {
+      "Depression": "ന്യൂനമർദ്ദം",
+      "Deep Depression": "തീവ്ര ന്യൂനമർദ്ദം",
+      "Cyclonic Storm": "ചുഴലിക്കാറ്റ്",
+      "Severe Cyclonic Storm": "ശക്തമായ ചുഴലിക്കാറ്റ്",
+      "Very Severe Cyclonic Storm": "വളരെ ശക്തമായ ചുഴലിക്കാറ്റ്",
+      "Extremely Severe Cyclonic Storm": "അതിശക്തമായ ചുഴലിക്കാറ്റ്",
+      "Super Cyclonic Storm": "സൂപ്പർ ചുഴലിക്കാറ്റ്"
+    },
+    "thunder_none": "അടുത്ത {hours} മണിക്കൂറിനുള്ളിൽ ഇടിമിന്നലോട് കൂടിയ മഴയ്ക്ക് സാധ്യതയില്ല."
+  },
+  "or": {
+    "_en": {
+      "cyclone_in_force": "IMD's {category} is in force: its centre is {distance} nautical miles away, in the {bearing} direction.",
+      "cyclone_read_bulletin": "An IMD bulletin is in force for your sea. Read it before you go.",
+      "cyclone_none": "No IMD cyclone warning is in force for your sea.",
+      "cyclone_unchecked": "IMD's cyclone bulletins could not be checked.",
+      "thunder_from": "Thunderstorms are forecast from {time}. Take care.",
+      "thunder_unchecked": "The thunderstorm forecast could not be checked.",
+      "caveat": "This is a forecast, not observed lightning.",
+      "categories": {
+        "Depression": "Depression",
+        "Deep Depression": "Deep Depression",
+        "Cyclonic Storm": "Cyclonic Storm",
+        "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+        "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+        "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+        "Super Cyclonic Storm": "Super Cyclonic Storm"
+      },
+      "thunder_none": "No thunderstorm is forecast for the next {hours} hours."
+    },
+    "cyclone_in_force": "ଆଇଏମଡିର {category} ବଳବତ୍ତର ରହିଛି: ଏହାର କେନ୍ଦ୍ର {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ ରହିଛି।",
+    "cyclone_read_bulletin": "ଆପଣଙ୍କ ସମୁଦ୍ର ପାଇଁ ଆଇଏମଡି ବୁଲେଟିନ୍ ବଳବତ୍ତର ଅଛି। ଯିବା ପୂର୍ବରୁ ଏହାକୁ ପଢ଼ନ୍ତୁ।",
+    "cyclone_none": "ଆପଣଙ୍କ ସମୁଦ୍ର ପାଇଁ କୌଣସି ଆଇ. ଏମ୍. ଡି. ବାତ୍ୟା ଚେତାବନୀ ବଳବତ୍ତର ନାହିଁ।",
+    "cyclone_unchecked": "ଆଇ. ଏମ୍. ଡି. ର ବାତ୍ୟା ବୁଲେଟିନଗୁଡ଼ିକୁ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ।",
+    "thunder_from": "{time} ରୁ ବଜ୍ରପାତର ପୂର୍ବାନୁମାନ କରାଯାଇଛି। ଯତ୍ନ ନିଅନ୍ତୁ।",
+    "thunder_unchecked": "ବଜ୍ରପାତର ପୂର୍ବାନୁମାନକୁ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ।",
+    "caveat": "ଏହା ପୂର୍ବାନୁମାନ, ବଜ୍ରପାତ ପର୍ଯ୍ୟବେକ୍ଷିତ ନୁହେଁ।",
+    "categories": {
+      "Depression": "ଅବପାତ",
+      "Deep Depression": "ଗଭୀର ଅବପାତ",
+      "Cyclonic Storm": "ଘୂର୍ଣ୍ଣିବଳୟ",
+      "Severe Cyclonic Storm": "ଭୟଙ୍କର ଘୂର୍ଣ୍ଣିବଳୟ",
+      "Very Severe Cyclonic Storm": "ଅତି ଭୟଙ୍କର ଘୂର୍ଣ୍ଣିବଳୟ",
+      "Extremely Severe Cyclonic Storm": "ଅତି ଭୟଙ୍କର ଘୂର୍ଣ୍ଣିବଳୟ",
+      "Super Cyclonic Storm": "ସୁପର ସାଇକ୍ଲୋନିକ ଷ୍ଟର୍ମ"
+    },
+    "thunder_none": "ଆଗାମୀ {hours} ଘଣ୍ଟା ପର୍ଯ୍ୟନ୍ତ ବଜ୍ରପାତ ହେବାର କୌଣସି ପୂର୍ବାନୁମାନ ନାହିଁ।"
+  },
+  "hi": {
+    "_en": {
+      "cyclone_in_force": "IMD's {category} is in force: its centre is {distance} nautical miles away, in the {bearing} direction.",
+      "cyclone_read_bulletin": "An IMD bulletin is in force for your sea. Read it before you go.",
+      "cyclone_none": "No IMD cyclone warning is in force for your sea.",
+      "cyclone_unchecked": "IMD's cyclone bulletins could not be checked.",
+      "thunder_from": "Thunderstorms are forecast from {time}. Take care.",
+      "thunder_unchecked": "The thunderstorm forecast could not be checked.",
+      "caveat": "This is a forecast, not observed lightning.",
+      "categories": {
+        "Depression": "Depression",
+        "Deep Depression": "Deep Depression",
+        "Cyclonic Storm": "Cyclonic Storm",
+        "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+        "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+        "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+        "Super Cyclonic Storm": "Super Cyclonic Storm"
+      },
+      "thunder_none": "No thunderstorm is forecast for the next {hours} hours."
+    },
+    "cyclone_in_force": "आईएमडी का {category} लागू हैः इसका केंद्र {distance} समुद्री मील दूर, {bearing} दिशा में है।",
+    "cyclone_read_bulletin": "आपके समुद्र के लिए आईएमडी बुलेटिन लागू है। जाने से पहले इसे पढ़ लें।",
+    "cyclone_none": "आपके समुद्र के लिए कोई आईएमडी चक्रवात की चेतावनी लागू नहीं है।",
+    "cyclone_unchecked": "आईएमडी के चक्रवात बुलेटिनों की जाँच नहीं की जा सकी।",
+    "thunder_from": "{time} से गरज के साथ बारिश होने का अनुमान है। ख्याल रखें।",
+    "thunder_unchecked": "आंधी-तूफान के पूर्वानुमान की जांच नहीं की जा सकी।",
+    "caveat": "यह पूर्वानुमान है, बिजली गिरने का नहीं।",
+    "categories": {
+      "Depression": "अवदाब",
+      "Deep Depression": "गहरा अवदाब",
+      "Cyclonic Storm": "चक्रवाती तूफान",
+      "Severe Cyclonic Storm": "भीषण चक्रवाती तूफान",
+      "Very Severe Cyclonic Storm": "बहुत गंभीर चक्रवाती तूफान",
+      "Extremely Severe Cyclonic Storm": "अत्यंत भीषण चक्रवाती तूफान",
+      "Super Cyclonic Storm": "सुपर चक्रवाती तूफान"
+    },
+    "thunder_none": "अगले {hours} घंटों तक आंधी-तूफान का कोई पूर्वानुमान नहीं है।"
+  }
+}

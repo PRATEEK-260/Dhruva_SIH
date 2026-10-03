@@ -166,6 +166,25 @@ def assess(
         fired.append(FiredRule("ALERT-C0", RiskClass.CAUTION, None, None, None, "", reason))
         verdicts.append(RiskClass.CAUTION)
 
+    # --- forecast thunderstorm: CAUTION, never NO-GO ------------------------
+    # A forecast, not observed lightning (LIGHTNING-A2 is the observed rule and
+    # nothing feeds it yet). Its time is in the evidence through the answer.
+    thunder = state.get("thunder") or {}
+    if thunder.get("from"):
+        flags.append("squall")
+        fired.append(
+            FiredRule(
+                "TSTORM-C1",
+                RiskClass.CAUTION,
+                None,
+                None,
+                None,
+                "",
+                "Thunderstorm forecast within the next hours (forecast, not observed)",
+            )
+        )
+        verdicts.append(RiskClass.CAUTION)
+
     # --- per-class thresholds -----------------------------------------------
     for rule in (_wave_rule, _wind_rule):
         outcome = rule(state, limits)

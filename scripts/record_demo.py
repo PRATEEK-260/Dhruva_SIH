@@ -157,6 +157,8 @@ async def prewarm(entries: dict[str, dict[str, Any]], languages: set[str]) -> No
         # Query #7: the phone says the verdict's action line, then the
         # comparison, in the language it was asked in (BoatApp spokenText()).
         decline = entry.get("decline") or {}
+        if not decline.get("lines"):
+            decline = entry.get("answer") or {}  # the brief's other queries
         dlang = decline.get("language")
         if decline.get("lines") and dlang in LABELS:
             lines = " ".join(line["text"] for line in decline["lines"])

@@ -22,6 +22,21 @@ const NAMES: Record<string, string> = {
   sst_30d: "Sea temperature, last 30 days",
   sst_baseline: "Sea temperature, usual for these weeks",
   sst_difference: "Sea temperature difference",
+  storm_distance_nm: "IMD system's centre",
+  boundary_1_nm: "Nearest boundary line",
+  boundary_2_nm: "Next boundary line",
+  boundary_3_nm: "Third boundary line",
+  thunderstorm_from: "Thunderstorm forecast from",
+  thunder_window_hours: "Thunderstorm forecast window",
+  high_water: "High water",
+  low_water: "Low water",
+  productive_distance_nm: "Productive water",
+  productive_chl: "Chlorophyll there",
+  productive_sst: "Sea temperature there",
+  favourable_sst_low: "Favourable temperature from (provisional)",
+  favourable_sst_high: "Favourable temperature to (provisional)",
+  route_distance_nm: "Straight line to the zone",
+  route_max_wave: "Highest wave along the line",
 };
 
 const UNITS: Record<string, string> = { degC: "°C", degree: "°", "mg m-3": "mg/m³" };
@@ -58,6 +73,9 @@ export function sourceName(datasetId: string): string {
   if (datasetId === "copernicus_ostia_rep") return "OSTIA satellite sea temperature record (Copernicus)";
   if (datasetId.startsWith("cmems") || datasetId.startsWith("copernicus")) return "Copernicus Marine";
   if (datasetId === "incois_pfz") return "INCOIS fishing-zone advisory";
+  if (datasetId === "marine_regions") return "Marine Regions (indicative, not legal)";
+  if (datasetId === "copernicus_globcolour_nrt") return "Copernicus GlobColour satellite chlorophyll";
+  if (datasetId === "provisional_range") return "Provisional range, not an INCOIS criterion";
   // A warning distance comes from an IMD National Bulletin read from its PDF,
   // live or replayed with a past storm, or from a labelled test input.
   if (datasetId === "imd_rsmc_bulletin") return "IMD National Bulletin, RSMC New Delhi";
@@ -83,6 +101,13 @@ export function istTime(iso: string | null | undefined): string {
 export function advisoryDate(iso: string | null | undefined): string {
   if (!iso) return "date not given";
   return new Date(iso).toLocaleDateString("en-IN", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" });
+}
+
+/** A clock-time row (unit "h IST") as HH:MM, the way the sentence says it. */
+function clockOf(v: number): string {
+  const h = Math.floor(v + 1e-9);
+  const m = Math.round((v - h) * 60);
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 function fmt(v: number): string {
@@ -131,8 +156,8 @@ export function EvidenceList({ items, capsule }: { items: EvidenceItem[]; capsul
             </div>
             <div className="text-right shrink-0">
               <p className="text-2xl font-extrabold text-ink tabular-nums leading-none">
-                {fmt(shownValue)}
-                <span className="text-base font-semibold text-ink-soft ml-1">{unit}</span>
+                {item.unit === "h IST" ? clockOf(item.value) : fmt(shownValue)}
+                <span className="text-base font-semibold text-ink-soft ml-1">{item.unit === "h IST" ? "IST" : unit}</span>
               </p>
               {inKm && <p className="text-xs text-ink-soft mt-1">given as {fmt(item.value)} km</p>}
               {showSent && (

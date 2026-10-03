@@ -1,0 +1,57 @@
+{
+  "_about": "Query #3, tides (backend/dhruva/answers/tide.py). Open-Meteo marine model; not for navigation. Indic lines are machine translations and need a native speaker's check. Article 'एक'/'ଏକ' (also the number one) removed 2026-10-03 so the number check reads no number the evidence lacks: hi.caveat, or.caveat.",
+  "en": {
+    "tide_high_first": "High water around {high}, then low water around {low}.",
+    "tide_low_first": "Low water around {low}, then high water around {high}.",
+    "tide_no_data": "Tide times could not be checked.",
+    "caveat": "Tide times are a model estimate, not for navigation."
+  },
+  "ta": {
+    "_en": {
+      "tide_high_first": "High water around {high}, then low water around {low}.",
+      "tide_low_first": "Low water around {low}, then high water around {high}.",
+      "tide_no_data": "Tide times could not be checked.",
+      "caveat": "Tide times are a model estimate, not for navigation."
+    },
+    "tide_high_first": "{high} ஐச் சுற்றி அதிக நீர், பின்னர் {low} ஐச் சுற்றி குறைந்த நீர்.",
+    "tide_low_first": "{low} இல் குறைந்த நீர், பின்னர் {high} இல் அதிக நீர்.",
+    "tide_no_data": "அலை நேரங்களை சரிபார்க்க முடியவில்லை.",
+    "caveat": "அலை நேரங்கள் ஒரு மாதிரி மதிப்பீடு, வழிசெலுத்தலுக்கானவை அல்ல."
+  },
+  "ml": {
+    "_en": {
+      "tide_high_first": "High water around {high}, then low water around {low}.",
+      "tide_low_first": "Low water around {low}, then high water around {high}.",
+      "tide_no_data": "Tide times could not be checked.",
+      "caveat": "Tide times are a model estimate, not for navigation."
+    },
+    "tide_high_first": "{high} ന് ചുറ്റും ഉയർന്ന ജലവും {low} ന് ചുറ്റും താഴ്ന്ന ജലവും.",
+    "tide_low_first": "{low} ന് അടുത്ത് താഴ്ന്ന ജലവും {high} ന് അടുത്ത് ഉയർന്ന ജലവും.",
+    "tide_no_data": "വേലിയേറ്റ സമയങ്ങൾ പരിശോധിക്കാൻ കഴിഞ്ഞില്ല.",
+    "caveat": "വേലിയേറ്റ സമയങ്ങൾ ഒരു മോഡൽ എസ്റ്റിമേറ്റാണ്, നാവിഗേഷനു വേണ്ടിയല്ല."
+  },
+  "or": {
+    "_en": {
+      "tide_high_first": "High water around {high}, then low water around {low}.",
+      "tide_low_first": "Low water around {low}, then high water around {high}.",
+      "tide_no_data": "Tide times could not be checked.",
+      "caveat": "Tide times are a model estimate, not for navigation."
+    },
+    "tide_high_first": "ଉଚ୍ଚ ଜଳ ପାଖାପାଖି {high}, ତା 'ପରେ ନିମ୍ନ ଜଳ ପାଖାପାଖି {low}।",
+    "tide_low_first": "ନିମ୍ନ ଜଳ ପାଖାପାଖି {low}, ତା 'ପରେ ଉଚ୍ଚ ଜଳ ପାଖାପାଖି {high}।",
+    "tide_no_data": "ଜୁଆର ସମୟ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ।",
+    "caveat": "ଜୁଆର ସମୟ ହେଉଛି ମଡେଲ ଆକଳନ, ନୌଚାଳନା ପାଇଁ ନୁହେଁ।"
+  },
+  "hi": {
+    "_en": {
+      "tide_high_first": "High water around {high}, then low water around {low}.",
+      "tide_low_first": "Low water around {low}, then high water around {high}.",
+      "tide_no_data": "Tide times could not be checked.",
+      "caveat": "Tide times are a model estimate, not for navigation."
+    },
+    "tide_high_first": "{high} के आसपास अधिक पानी, फिर {low} के आसपास कम पानी।",
+    "tide_low_first": "कम पानी {low} के आसपास, फिर उच्च पानी {high} के आसपास।",
+    "tide_no_data": "ज्वार के समय की जाँच नहीं की जा सकी।",
+    "caveat": "ज्वार का समय मॉडल अनुमान है, नौवहन के लिए नहीं।"
+  }
+}

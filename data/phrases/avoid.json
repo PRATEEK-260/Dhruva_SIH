@@ -1,0 +1,264 @@
+{
+  "_about": "Query #8, zones to avoid (backend/dhruva/answers/avoid.py). Warnings before lines. Every {placeholder} is an evidence row or a word from the tables below. Indic lines are machine translations from scripts/phrases.py and need a native speaker's check. Hand-corrected 2026-10-03: 'Depression' came back as the mental-health word in all four languages (ta, ml, hi, or); all four languages now use IMD's meteorological terms for Depression and Deep Depression (the Odia term needs a native speaker's confirmation). Article 'एक'/'ଏକ' (also the number one) removed 2026-10-03 so the number check reads no number the evidence lacks: hi.avoid_test_storm, hi.avoid_imd_read, or.avoid_test_storm, or.avoid_imd_read.",
+  "en": {
+    "avoid_storm": "Stay away from IMD's {category}: its centre is {distance} nautical miles away, in the {bearing} direction, and its fishermen warning applies.",
+    "avoid_test_storm": "Test input: a cyclone placed by hand, {distance} nautical miles away.",
+    "avoid_imd_read": "An IMD bulletin is in force for your sea. Read it before you go.",
+    "avoid_no_imd": "No IMD cyclone warning is in force for your sea.",
+    "bnd_neighbour": "The maritime boundary with {country} is {distance} nautical miles away, in the {bearing} direction.",
+    "bnd_baseline": "India's straight baseline is {distance} nautical miles away, in the {bearing} direction.",
+    "bnd_eez": "The outer edge of India's EEZ is {distance} nautical miles away, in the {bearing} direction.",
+    "bnd_unknown": "The boundary map could not be checked.",
+    "caveat": "Boundary lines are indicative, not legal lines.",
+    "countries": {
+      "Sri Lanka": "Sri Lanka",
+      "Bangladesh": "Bangladesh",
+      "Myanmar": "Myanmar",
+      "Maldives": "Maldives",
+      "Pakistan": "Pakistan",
+      "Indonesia": "Indonesia",
+      "Thailand": "Thailand"
+    },
+    "categories": {
+      "Depression": "Depression",
+      "Deep Depression": "Deep Depression",
+      "Cyclonic Storm": "Cyclonic Storm",
+      "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+      "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+      "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+      "Super Cyclonic Storm": "Super Cyclonic Storm"
+    }
+  },
+  "ta": {
+    "_en": {
+      "avoid_storm": "Stay away from IMD's {category}: its centre is {distance} nautical miles away, in the {bearing} direction, and its fishermen warning applies.",
+      "avoid_test_storm": "Test input: a cyclone placed by hand, {distance} nautical miles away.",
+      "avoid_imd_read": "An IMD bulletin is in force for your sea. Read it before you go.",
+      "avoid_no_imd": "No IMD cyclone warning is in force for your sea.",
+      "bnd_neighbour": "The maritime boundary with {country} is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_baseline": "India's straight baseline is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_eez": "The outer edge of India's EEZ is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_unknown": "The boundary map could not be checked.",
+      "caveat": "Boundary lines are indicative, not legal lines.",
+      "countries": {
+        "Sri Lanka": "Sri Lanka",
+        "Bangladesh": "Bangladesh",
+        "Myanmar": "Myanmar",
+        "Maldives": "Maldives",
+        "Pakistan": "Pakistan",
+        "Indonesia": "Indonesia",
+        "Thailand": "Thailand"
+      },
+      "categories": {
+        "Depression": "Depression",
+        "Deep Depression": "Deep Depression",
+        "Cyclonic Storm": "Cyclonic Storm",
+        "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+        "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+        "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+        "Super Cyclonic Storm": "Super Cyclonic Storm"
+      }
+    },
+    "avoid_storm": "ஐஎம்டியின் {category} இலிருந்து விலகி இருங்கள்: அதன் மையம் {distance} கடல் மைல் தொலைவில், {bearing} திசையில் உள்ளது, மேலும் அதன் மீனவர்களின் எச்சரிக்கை பொருந்தும்.",
+    "avoid_test_storm": "சோதனை உள்ளீடு: {distance} கடல் மைல் தொலைவில் கையால் வைக்கப்பட்ட ஒரு சூறாவளி.",
+    "avoid_imd_read": "உங்கள் கடலுக்கு ஒரு ஐஎம்டி புல்லட்டின் நடைமுறையில் உள்ளது. நீங்கள் செல்வதற்கு முன் அதைப் படியுங்கள்.",
+    "avoid_no_imd": "உங்கள் கடலுக்கு ஐஎம்டி சூறாவளி எச்சரிக்கை எதுவும் இல்லை.",
+    "bnd_neighbour": "{country} உடன் கடல் எல்லை {distance} கடல் மைல் தொலைவில், {bearing} திசையில் உள்ளது.",
+    "bnd_baseline": "இந்தியாவின் நேரான அடிப்படைக் கோடு {distance} கடல் மைல் தொலைவில், {bearing} திசையில் உள்ளது.",
+    "bnd_eez": "இந்தியாவின் EEZ இன் வெளிப்புற விளிம்பு {distance} கடல் மைல் தொலைவில், {bearing} திசையில் உள்ளது.",
+    "bnd_unknown": "எல்லை வரைபடத்தை சரிபார்க்க முடியவில்லை.",
+    "caveat": "எல்லைக் கோடுகள் குறிக்கின்றன, சட்டக் கோடுகள் அல்ல.",
+    "countries": {
+      "Sri Lanka": "இலங்கை",
+      "Bangladesh": "பங்களாதேஷ்",
+      "Myanmar": "மியான்மர்",
+      "Maldives": "மாலத்தீவு",
+      "Pakistan": "பாகிஸ்தான்",
+      "Indonesia": "இந்தோனேசியா",
+      "Thailand": "தாய்லாந்து"
+    },
+    "categories": {
+      "Depression": "காற்றழுத்தத் தாழ்வு மண்டலம்",
+      "Deep Depression": "ஆழ்ந்த காற்றழுத்தத் தாழ்வு மண்டலம்",
+      "Cyclonic Storm": "சூறாவளி புயல்",
+      "Severe Cyclonic Storm": "கடுமையான சூறாவளி புயல்",
+      "Very Severe Cyclonic Storm": "மிகவும் கடுமையான சூறாவளி புயல்",
+      "Extremely Severe Cyclonic Storm": "மிகவும் கடுமையான சூறாவளி புயல்",
+      "Super Cyclonic Storm": "சூப்பர் சூறாவளி புயல்"
+    }
+  },
+  "ml": {
+    "_en": {
+      "avoid_storm": "Stay away from IMD's {category}: its centre is {distance} nautical miles away, in the {bearing} direction, and its fishermen warning applies.",
+      "avoid_test_storm": "Test input: a cyclone placed by hand, {distance} nautical miles away.",
+      "avoid_imd_read": "An IMD bulletin is in force for your sea. Read it before you go.",
+      "avoid_no_imd": "No IMD cyclone warning is in force for your sea.",
+      "bnd_neighbour": "The maritime boundary with {country} is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_baseline": "India's straight baseline is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_eez": "The outer edge of India's EEZ is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_unknown": "The boundary map could not be checked.",
+      "caveat": "Boundary lines are indicative, not legal lines.",
+      "countries": {
+        "Sri Lanka": "Sri Lanka",
+        "Bangladesh": "Bangladesh",
+        "Myanmar": "Myanmar",
+        "Maldives": "Maldives",
+        "Pakistan": "Pakistan",
+        "Indonesia": "Indonesia",
+        "Thailand": "Thailand"
+      },
+      "categories": {
+        "Depression": "Depression",
+        "Deep Depression": "Deep Depression",
+        "Cyclonic Storm": "Cyclonic Storm",
+        "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+        "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+        "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+        "Super Cyclonic Storm": "Super Cyclonic Storm"
+      }
+    },
+    "avoid_storm": "ഐഎംഡിയുടെ {category} ൽ നിന്ന് അകന്നുനിൽക്കുകഃ അതിന്റെ കേന്ദ്രം {distance} നോട്ടിക്കൽ മൈൽ അകലെയാണ്, {bearing} ദിശയിലാണ്, അതിന്റെ മത്സ്യത്തൊഴിലാളി മുന്നറിയിപ്പ് ബാധകമാണ്.",
+    "avoid_test_storm": "ടെസ്റ്റ് ഇൻപുട്ട്ഃ {distance} നോട്ടിക്കൽ മൈൽ അകലെ കൈകൊണ്ട് സ്ഥാപിച്ച ചുഴലിക്കാറ്റ്.",
+    "avoid_imd_read": "നിങ്ങളുടെ കടലിനായി ഒരു ഐഎംഡി ബുള്ളറ്റിൻ പ്രാബല്യത്തിൽ ഉണ്ട്. പോകുന്നതിനുമുമ്പ് അത് വായിക്കുക.",
+    "avoid_no_imd": "നിങ്ങളുടെ കടലിൽ ഐഎംഡി ചുഴലിക്കാറ്റ് മുന്നറിയിപ്പ് നിലവിലില്ല.",
+    "bnd_neighbour": "{country} എന്ന സമുദ്രാതിർത്തി {distance} നോട്ടിക്കൽ മൈൽ അകലെ, {bearing} ദിശയിലാണ്.",
+    "bnd_baseline": "ഇന്ത്യയുടെ നേർരേഖ {distance} നോട്ടിക്കൽ മൈൽ അകലെ, {bearing} ദിശയിലാണ്.",
+    "bnd_eez": "ഇന്ത്യയുടെ ഇ. ഇ. ഇസഡിന്റെ പുറം അറ്റം {distance} നോട്ടിക്കൽ മൈൽ അകലെ, {bearing} ദിശയിലാണ്.",
+    "bnd_unknown": "അതിർത്തി ഭൂപടം പരിശോധിക്കാൻ കഴിഞ്ഞില്ല.",
+    "caveat": "അതിർത്തി രേഖകൾ സൂചിപ്പിക്കുന്നവയാണ്, നിയമപരമായ രേഖകളല്ല.",
+    "countries": {
+      "Sri Lanka": "ശ്രീലങ്ക",
+      "Bangladesh": "ബംഗ്ലാദേശ്",
+      "Myanmar": "മ്യാൻമർ",
+      "Maldives": "മാലിദ്വീപ്",
+      "Pakistan": "പാക്കിസ്ഥാൻ",
+      "Indonesia": "ഇന്തോനേഷ്യ",
+      "Thailand": "തായ്ലൻഡ്"
+    },
+    "categories": {
+      "Depression": "ന്യൂനമർദ്ദം",
+      "Deep Depression": "തീവ്ര ന്യൂനമർദ്ദം",
+      "Cyclonic Storm": "ചുഴലിക്കാറ്റ്",
+      "Severe Cyclonic Storm": "ശക്തമായ ചുഴലിക്കാറ്റ്",
+      "Very Severe Cyclonic Storm": "വളരെ ശക്തമായ ചുഴലിക്കാറ്റ്",
+      "Extremely Severe Cyclonic Storm": "അതിശക്തമായ ചുഴലിക്കാറ്റ്",
+      "Super Cyclonic Storm": "സൂപ്പർ ചുഴലിക്കാറ്റ്"
+    }
+  },
+  "or": {
+    "_en": {
+      "avoid_storm": "Stay away from IMD's {category}: its centre is {distance} nautical miles away, in the {bearing} direction, and its fishermen warning applies.",
+      "avoid_test_storm": "Test input: a cyclone placed by hand, {distance} nautical miles away.",
+      "avoid_imd_read": "An IMD bulletin is in force for your sea. Read it before you go.",
+      "avoid_no_imd": "No IMD cyclone warning is in force for your sea.",
+      "bnd_neighbour": "The maritime boundary with {country} is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_baseline": "India's straight baseline is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_eez": "The outer edge of India's EEZ is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_unknown": "The boundary map could not be checked.",
+      "caveat": "Boundary lines are indicative, not legal lines.",
+      "countries": {
+        "Sri Lanka": "Sri Lanka",
+        "Bangladesh": "Bangladesh",
+        "Myanmar": "Myanmar",
+        "Maldives": "Maldives",
+        "Pakistan": "Pakistan",
+        "Indonesia": "Indonesia",
+        "Thailand": "Thailand"
+      },
+      "categories": {
+        "Depression": "Depression",
+        "Deep Depression": "Deep Depression",
+        "Cyclonic Storm": "Cyclonic Storm",
+        "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+        "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+        "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+        "Super Cyclonic Storm": "Super Cyclonic Storm"
+      }
+    },
+    "avoid_storm": "ଆଇଏମଡିର {category} ଠାରୁ ଦୂରରେ ରୁହନ୍ତୁ: ଏହାର କେନ୍ଦ୍ର {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ, ଏବଂ ଏହାର ମତ୍ସ୍ୟଜୀବୀ ଚେତାବନୀ ପ୍ରଯୁଜ୍ୟ |",
+    "avoid_test_storm": "ପରୀକ୍ଷଣ ସୂଚନା: {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ ହାତରେ ରଖାଯାଇଥିବା ଘୂର୍ଣ୍ଣିବାତ୍ୟା।",
+    "avoid_imd_read": "ଆପଣଙ୍କ ସମୁଦ୍ର ପାଇଁ ଆଇଏମଡି ବୁଲେଟିନ୍ ବଳବତ୍ତର ଅଛି। ଯିବା ପୂର୍ବରୁ ଏହାକୁ ପଢ଼ନ୍ତୁ।",
+    "avoid_no_imd": "ଆପଣଙ୍କ ସମୁଦ୍ର ପାଇଁ କୌଣସି ଆଇ. ଏମ୍. ଡି. ବାତ୍ୟା ଚେତାବନୀ ବଳବତ୍ତର ନାହିଁ।",
+    "bnd_neighbour": "{country} ସହିତ ସାମୁଦ୍ରିକ ସୀମା {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ |",
+    "bnd_baseline": "ଭାରତର ସିଧା ବେସଲାଇନ {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ ରହିଛି।",
+    "bnd_eez": "ଭାରତର ଇ. ଇ. ଜେଡ୍. ର ବାହ୍ୟ ପ୍ରାନ୍ତ {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ ରହିଛି।",
+    "bnd_unknown": "ସୀମା ମାନଚିତ୍ରକୁ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ।",
+    "caveat": "ସୀମା ରେଖାଗୁଡ଼ିକ ସୂଚକ, ଆଇନଗତ ରେଖା ନୁହେଁ।",
+    "countries": {
+      "Sri Lanka": "ଶ୍ରୀଲଙ୍କା",
+      "Bangladesh": "ବାଂଲାଦେଶ",
+      "Myanmar": "ମିଆଁମାର",
+      "Maldives": "ମାଳଦ୍ୱୀପ",
+      "Pakistan": "ପାକିସ୍ତାନ",
+      "Indonesia": "ଇଣ୍ଡୋନେସିଆ",
+      "Thailand": "ଥାଇଲାଣ୍ଡ"
+    },
+    "categories": {
+      "Depression": "ଅବପାତ",
+      "Deep Depression": "ଗଭୀର ଅବପାତ",
+      "Cyclonic Storm": "ଘୂର୍ଣ୍ଣିବଳୟ",
+      "Severe Cyclonic Storm": "ଭୟଙ୍କର ଘୂର୍ଣ୍ଣିବଳୟ",
+      "Very Severe Cyclonic Storm": "ଅତି ଭୟଙ୍କର ଘୂର୍ଣ୍ଣିବଳୟ",
+      "Extremely Severe Cyclonic Storm": "ଅତି ଭୟଙ୍କର ଘୂର୍ଣ୍ଣିବଳୟ",
+      "Super Cyclonic Storm": "ସୁପର ସାଇକ୍ଲୋନିକ ଷ୍ଟର୍ମ"
+    }
+  },
+  "hi": {
+    "_en": {
+      "avoid_storm": "Stay away from IMD's {category}: its centre is {distance} nautical miles away, in the {bearing} direction, and its fishermen warning applies.",
+      "avoid_test_storm": "Test input: a cyclone placed by hand, {distance} nautical miles away.",
+      "avoid_imd_read": "An IMD bulletin is in force for your sea. Read it before you go.",
+      "avoid_no_imd": "No IMD cyclone warning is in force for your sea.",
+      "bnd_neighbour": "The maritime boundary with {country} is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_baseline": "India's straight baseline is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_eez": "The outer edge of India's EEZ is {distance} nautical miles away, in the {bearing} direction.",
+      "bnd_unknown": "The boundary map could not be checked.",
+      "caveat": "Boundary lines are indicative, not legal lines.",
+      "countries": {
+        "Sri Lanka": "Sri Lanka",
+        "Bangladesh": "Bangladesh",
+        "Myanmar": "Myanmar",
+        "Maldives": "Maldives",
+        "Pakistan": "Pakistan",
+        "Indonesia": "Indonesia",
+        "Thailand": "Thailand"
+      },
+      "categories": {
+        "Depression": "Depression",
+        "Deep Depression": "Deep Depression",
+        "Cyclonic Storm": "Cyclonic Storm",
+        "Severe Cyclonic Storm": "Severe Cyclonic Storm",
+        "Very Severe Cyclonic Storm": "Very Severe Cyclonic Storm",
+        "Extremely Severe Cyclonic Storm": "Extremely Severe Cyclonic Storm",
+        "Super Cyclonic Storm": "Super Cyclonic Storm"
+      }
+    },
+    "avoid_storm": "आईएमडी के {category} से दूर रहेंः इसका केंद्र {bearing} दिशा में {distance} समुद्री मील दूर है, और इसकी मछुआरों की चेतावनी लागू होती है।",
+    "avoid_test_storm": "परीक्षण इनपुटः {distance} समुद्री मील दूर हाथ से रखा गया चक्रवात।",
+    "avoid_imd_read": "आपके समुद्र के लिए आईएमडी बुलेटिन लागू है। जाने से पहले इसे पढ़ लें।",
+    "avoid_no_imd": "आपके समुद्र के लिए कोई आईएमडी चक्रवात की चेतावनी लागू नहीं है।",
+    "bnd_neighbour": "{country} के साथ समुद्री सीमा {bearing} दिशा में {distance} समुद्री मील दूर है।",
+    "bnd_baseline": "भारत की सीधी आधार रेखा {bearing} दिशा में {distance} समुद्री मील दूर है।",
+    "bnd_eez": "भारत के ई. ई. जेड. का बाहरी किनारा {bearing} दिशा में {distance} समुद्री मील दूर है।",
+    "bnd_unknown": "सीमा मानचित्र की जाँच नहीं की जा सकी।",
+    "caveat": "सीमा रेखाएँ सूचक होती हैं, कानूनी रेखाएँ नहीं।",
+    "countries": {
+      "Sri Lanka": "श्रीलंका",
+      "Bangladesh": "बांग्लादेश",
+      "Myanmar": "म्यांमार",
+      "Maldives": "मालदीव",
+      "Pakistan": "पाकिस्तान",
+      "Indonesia": "इंडोनेशिया",
+      "Thailand": "थाईलैंड"
+    },
+    "categories": {
+      "Depression": "अवदाब",
+      "Deep Depression": "गहरा अवदाब",
+      "Cyclonic Storm": "चक्रवाती तूफान",
+      "Severe Cyclonic Storm": "भीषण चक्रवाती तूफान",
+      "Very Severe Cyclonic Storm": "बहुत गंभीर चक्रवाती तूफान",
+      "Extremely Severe Cyclonic Storm": "अत्यंत भीषण चक्रवाती तूफान",
+      "Super Cyclonic Storm": "सुपर चक्रवाती तूफान"
+    }
+  }
+}

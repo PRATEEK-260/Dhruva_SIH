@@ -64,7 +64,13 @@ INTENT_VARIABLES: dict[Intent, tuple[Variable, ...]] = {
         Variable.CURRENT_SPEED,
         Variable.CURRENT_DIRECTION,
     ),
-    Intent.BOUNDARY: (Variable.CURRENT_SPEED, Variable.CURRENT_DIRECTION),
+    # Waves and wind too: "zones to avoid" carries a real safety verdict.
+    Intent.BOUNDARY: (
+        Variable.CURRENT_SPEED,
+        Variable.CURRENT_DIRECTION,
+        Variable.WAVE_HEIGHT,
+        Variable.WIND_SPEED,
+    ),
     Intent.HAZARD: (Variable.WAVE_HEIGHT, Variable.WIND_SPEED),
     Intent.CONDITIONS: DEFAULT_VARIABLES,
     # The decline comparison fetches its own 30-day windows (analytics/baseline.py);
@@ -84,7 +90,7 @@ INTENT_NODES: dict[Intent, tuple[str, ...]] = {
     # no zone to answer with.
     Intent.FISHING_ZONE: ("ocean", "weather", "geo"),
     Intent.ROUTE: ("ocean", "weather", "geo"),
-    Intent.BOUNDARY: ("geo", "ocean"),
+    Intent.BOUNDARY: ("geo", "ocean", "weather"),
     Intent.HAZARD: ("weather", "geo"),
     Intent.CONDITIONS: ("ocean", "weather"),
     # ocean compares the windows, geo finds the INCOIS zone for "where to try",
@@ -157,6 +163,14 @@ _SIGNALS: dict[Intent, list[tuple[str, float]]] = {
         ("cross the", 4),
         ("which side", 5),
         ("எல்லை", 6),
+        # Query #8, zones to avoid: boundaries plus warnings.
+        ("zones should i avoid", 9),
+        ("zones to avoid", 9),
+        ("avoid", 5),
+        ("தவிர்க்க", 7),
+        ("ഒഴിവാക്ക", 7),
+        ("ଏଡ଼ାଇବା", 7),
+        ("बचना", 7),
         ("सीमा", 6),
     ],
     Intent.HAZARD: [
@@ -164,6 +178,10 @@ _SIGNALS: dict[Intent, list[tuple[str, float]]] = {
         ("tsunami", 8),
         ("storm", 6),
         ("lightning", 7),
+        ("மின்னல்", 7),
+        ("മിന്നൽ", 7),
+        ("ବଜ୍ରପାତ", 7),
+        ("बिजली", 6),
         ("warning", 4),
         ("alert", 4),
         ("புயல்", 7),
@@ -187,6 +205,11 @@ _SIGNALS: dict[Intent, list[tuple[str, float]]] = {
         ("to the harbour", 6),
         ("harbour", 3),
         ("avoiding", 4),
+        ("safest route", 9),
+        ("பாதுகாப்பான பாதை", 9),
+        ("സുരക്ഷിതമായ വഴി", 9),
+        ("ସୁରକ୍ଷିତ ରାସ୍ତା", 9),
+        ("सुरक्षित मार्ग", 9),
     ],
     Intent.GO_NO_GO: [
         ("can i go", 7),
@@ -203,6 +226,8 @@ _SIGNALS: dict[Intent, list[tuple[str, float]]] = {
     ],
     Intent.FISHING_ZONE: [
         ("pfz", 8),
+        # Asks where, not whether: outweighs "should i" (go/no-go).
+        ("where should i go fishing", 9),
         ("fishing zone", 8),
         ("find fish", 6),
         ("where can i find", 5),
@@ -215,6 +240,12 @@ _SIGNALS: dict[Intent, list[tuple[str, float]]] = {
         ("மீன்", 3),
         ("मछली", 4),
         ("fish", 2),
+        # Query #5: high chlorophyll and favourable temperature.
+        ("chlorophyll", 8),
+        ("குளோரோஃபில்", 8),
+        ("ക്ലോറോഫി", 8),  # stem: Malayalam inflects it (ക്ലോറോഫില്ലും)
+        ("କ୍ଲୋରୋଫିଲ୍", 8),
+        ("क्लोरोफिल", 8),
     ],
     Intent.CONDITIONS: [
         ("sea conditions", 6),
@@ -229,6 +260,12 @@ _SIGNALS: dict[Intent, list[tuple[str, float]]] = {
         ("கடல் நிலவரம்", 7),
         ("समुद्र की स्थिति", 7),
         ("sea", 1),
+        # Tides, the missing part of query #3.
+        ("tide", 7),
+        ("ஓதம்", 8),
+        ("വേലിയേറ്റ", 8),
+        ("ଜୁଆର", 8),
+        ("ज्वार", 8),
     ],
 }
 
@@ -378,6 +415,32 @@ async def ocean(state: DhruvaState) -> dict[str, Any]:
             password=os.environ.get("COPERNICUSMARINE_SERVICE_PASSWORD"),
         )
         return {"decline": decline, "errors": errors}
+    if state.get("intent") is Intent.FISHING_ZONE and not _unplanned(state, "ocean"):
+        import asyncio
+
+        from dhruva.answers import productive
+
+        lat, lon = _point(state)
+        fetched, found = await asyncio.gather(
+            _fetch(
+                state,
+                "ocean",
+                (
+                    Variable.SST,
+                    Variable.CHLOROPHYLL,
+                    Variable.CURRENT_SPEED,
+                    Variable.CURRENT_DIRECTION,
+                ),
+            ),
+            productive.fetch(
+                lat,
+                lon,
+                state.get("when") or dt.datetime.now(dt.UTC),
+                username=os.environ.get("COPERNICUSMARINE_SERVICE_USERNAME"),
+                password=os.environ.get("COPERNICUSMARINE_SERVICE_PASSWORD"),
+            ),
+        )
+        return {**fetched, "productive": found}
     return await _fetch(
         state,
         "ocean",
@@ -386,12 +449,35 @@ async def ocean(state: DhruvaState) -> dict[str, Any]:
 
 
 async def weather(state: DhruvaState) -> dict[str, Any]:
-    """Node 4. Wind and waves."""
-    return await _fetch(
-        state,
-        "weather",
-        (Variable.WAVE_HEIGHT, Variable.WAVE_PERIOD, Variable.WIND_SPEED, Variable.WIND_DIRECTION),
+    """Node 4. Wind and waves; the thunderstorm forecast, which can make the
+    verdict CAUTION; and for a conditions question, the next tides."""
+    import asyncio
+
+    from dhruva.sources import openmeteo_extra
+
+    if _unplanned(state, "weather"):
+        return {}
+    lat, lon = _point(state)
+    when = state.get("when") or dt.datetime.now(dt.UTC)
+    want_tide = state.get("intent") is Intent.CONDITIONS
+    fetched, thunder, tide = await asyncio.gather(
+        _fetch(
+            state,
+            "weather",
+            (
+                Variable.WAVE_HEIGHT,
+                Variable.WAVE_PERIOD,
+                Variable.WIND_SPEED,
+                Variable.WIND_DIRECTION,
+            ),
+        ),
+        openmeteo_extra.thunder(lat, lon, when),
+        openmeteo_extra.tide(lat, lon, when) if want_tide else asyncio.sleep(0, None),
     )
+    out = {**fetched, "thunder": thunder}
+    if want_tide:
+        out["tide"] = tide
+    return out
 
 
 async def discovery(state: DhruvaState) -> dict[str, Any]:
@@ -426,7 +512,7 @@ async def geo(state: DhruvaState) -> dict[str, Any]:
         return {}
     try:
         lat, lon = _point(state)
-        near = await nearest_boundaries(conn, lat, lon, limit=3)
+        near = await nearest_boundaries(conn, lat, lon, limit=6)
         zones = await zones_containing(conn, lat, lon)
         on = (state.get("when") or dt.datetime.now(dt.UTC)).astimezone(dt.UTC).date()
         try:
@@ -441,8 +527,13 @@ async def geo(state: DhruvaState) -> dict[str, Any]:
             {
                 "name": b.name,
                 "line_type": b.line_type,
+                "territory1": b.territory1,
+                "territory2": b.territory2,
                 "distance_nm": round(b.distance_nm, 2),
                 "indicative": b.indicative,
+                "closest_lat": b.closest_lat,
+                "closest_lon": b.closest_lon,
+                "source_url": b.source_url,
             }
             for b in near
         ],
@@ -460,13 +551,27 @@ def risk(state: DhruvaState) -> dict[str, Any]:
     }
 
 
-def route(state: DhruvaState) -> dict[str, Any]:
-    """Node 7. A* over the cost grid lands here in a later phase; it is a
-    declared stub rather than a silent no-op so the trace shows it ran."""
+async def route(state: DhruvaState) -> dict[str, Any]:
+    """Node 7. A straight-line check to the nearest INCOIS zone: wave height at
+    points along the line (answers/route.py). Not a route planner; A* over a
+    cost grid is future work."""
     plan = state.get("plan") or {}
     if not plan.get("needs_route"):
         return {}
-    return {"waypoints": [], "fuel_proxy": None}
+    from dhruva.answers.route import line_points
+    from dhruva.sources import openmeteo_extra
+
+    pfz = state.get("pfz")
+    if pfz is None:
+        return {"waypoints": [], "fuel_proxy": None, "route_check": None}
+    lat, lon = _point(state)
+    points = line_points(lat, lon, pfz["lat"], pfz["lon"])
+    waves = await openmeteo_extra.waves_at(points, state.get("when") or dt.datetime.now(dt.UTC))
+    return {
+        "waypoints": [points[0], points[-1]],
+        "fuel_proxy": None,
+        "route_check": {"points": points, "waves": waves},
+    }
 
 
 def _decline_answer(state: DhruvaState, a: Any) -> DeclineAnswer | None:
@@ -483,10 +588,33 @@ def _decline_answer(state: DhruvaState, a: Any) -> DeclineAnswer | None:
     )
 
 
+def _brief_answer(state: DhruvaState, a: Any) -> Any:
+    """The spoken answer for the brief's other example queries, by intent, or
+    None. Deterministic, so evidence() and codec() compose the same one."""
+    from dhruva.answers import avoid, productive, thunder, tide
+    from dhruva.answers import route as route_answer
+
+    intent = state.get("intent")
+    no_go = a.risk_class is RiskClass.NO_GO
+    if intent is Intent.BOUNDARY:
+        return avoid.compose(dict(state))
+    if intent is Intent.HAZARD:
+        return thunder.compose(dict(state))
+    if intent is Intent.CONDITIONS and "tide" in state:
+        return tide.compose(dict(state))
+    if intent is Intent.FISHING_ZONE and "productive" in state:
+        return productive.compose(dict(state), no_go)
+    if intent is Intent.ROUTE and (state.get("plan") or {}).get("needs_route"):
+        return route_answer.compose(dict(state), no_go)
+    return None
+
+
 def _bundle(state: DhruvaState, a: Any) -> Any:
     """One bundle for evidence() and codec() alike, so the capsule's evidence hash
     fingerprints exactly what the evidence card shows."""
     bundle = build_bundle(state.get("observations", []), a)
+    if (brief := _brief_answer(state, a)) is not None:
+        bundle.items.extend(brief.evidence)
     decline = state.get("decline")
     if decline is not None and (result := _decline_answer(state, a)) is not None:
         bundle.items.extend(decline_evidence(result, decline["box"]))
@@ -521,11 +649,25 @@ def evidence(state: DhruvaState) -> dict[str, Any]:
         narration = " ".join(line["text"] for line in lines)
         lang_used = language if language in decline_languages() else "en"
         out["decline_answer"] = {**result.as_dict(), "lines": lines, "language": lang_used}
+    if (brief := _brief_answer(state, a)) is not None:
+        from dhruva.answers import render as render_brief
+
+        lines, lang_used = render_brief(brief, language)
+        narration = " ".join(line["text"] for line in lines)
+        out["answer"] = {
+            "kind": brief.kind,
+            "status": brief.status,
+            "lines": lines,
+            "language": lang_used,
+            **brief.extra,
+        }
     check = validate(narration, bundle, language=language)
     if not check.passed:
         narration = render_template(bundle)
         if "decline_answer" in out:
             out["decline_answer"]["lines"] = []
+        if "answer" in out:
+            out["answer"]["lines"] = []
 
     return {
         **out,

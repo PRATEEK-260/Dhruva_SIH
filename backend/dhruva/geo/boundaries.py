@@ -40,6 +40,11 @@ class BoundaryDistance:
     distance_m: float
     indicative: bool
     source_url: str | None
+    # The line's closest point to the asked position, so an answer can say
+    # which way the line lies. Planar on lon/lat, which is close enough for a
+    # 16-point compass word; the distance above stays geodesic.
+    closest_lat: float | None = None
+    closest_lon: float | None = None
 
     @property
     def distance_nm(self) -> float:
@@ -188,7 +193,9 @@ async def nearest_boundaries(
     rows = await conn.fetch(
         """
         SELECT name, line_type, territory1, territory2, indicative, source_url,
-               ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint($2,$1),4326)::geography) AS d
+               ST_Distance(geom::geography, ST_SetSRID(ST_MakePoint($2,$1),4326)::geography) AS d,
+               ST_Y(ST_ClosestPoint(geom, ST_SetSRID(ST_MakePoint($2,$1),4326))) AS clat,
+               ST_X(ST_ClosestPoint(geom, ST_SetSRID(ST_MakePoint($2,$1),4326))) AS clon
         FROM boundary_line
         ORDER BY geom::geography <-> ST_SetSRID(ST_MakePoint($2,$1),4326)::geography
         LIMIT $3
@@ -206,6 +213,8 @@ async def nearest_boundaries(
             distance_m=float(r["d"]),
             indicative=r["indicative"],
             source_url=r["source_url"],
+            closest_lat=r["clat"],
+            closest_lon=r["clon"],
         )
         for r in rows
     ]

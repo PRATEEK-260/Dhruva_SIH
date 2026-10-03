@@ -1,0 +1,84 @@
+{
+  "_about": "Query #6, safest route (backend/dhruva/answers/route.py). A straight-line check, not navigation. Indic lines are machine translations and need a native speaker's check. Hand-written 2026-10-03: ml.route_storm (machine translation dropped a placeholder). Article 'एक'/'ଏକ' (also the number one) removed 2026-10-03 so the number check reads no number the evidence lacks: hi.caveat, or.caveat.",
+  "en": {
+    "route_ok": "The straight line to the INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction. The highest waves along it are {wave} metres, under your boat's limit of {limit} metres.",
+    "route_rough": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, has waves of {wave} metres, above your boat's limit of {limit} metres. No safe route is suggested.",
+    "route_storm": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, passes too close to IMD's storm. No safe route is suggested.",
+    "route_no_go": "It is not safe to go to sea now, so no route is suggested.",
+    "route_no_target": "There is no fresh INCOIS fishing zone near you to route to.",
+    "route_unchecked": "The waves along the way could not be checked, so no route is suggested.",
+    "caveat": "This is a straight-line reference, not navigation."
+  },
+  "ta": {
+    "_en": {
+      "route_ok": "The straight line to the INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction. The highest waves along it are {wave} metres, under your boat's limit of {limit} metres.",
+      "route_rough": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, has waves of {wave} metres, above your boat's limit of {limit} metres. No safe route is suggested.",
+      "route_storm": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, passes too close to IMD's storm. No safe route is suggested.",
+      "route_no_go": "It is not safe to go to sea now, so no route is suggested.",
+      "route_no_target": "There is no fresh INCOIS fishing zone near you to route to.",
+      "route_unchecked": "The waves along the way could not be checked, so no route is suggested.",
+      "caveat": "This is a straight-line reference, not navigation."
+    },
+    "route_ok": "ஐஎன்சிஓஐஎஸ் மீன்பிடி மண்டலத்திற்கான நேர் கோடு {distance} கடல் மைல் தொலைவில், {bearing} திசையில் உள்ளது. அதன் அருகே உள்ள மிக உயர்ந்த அலைகள் {wave} மீட்டர் ஆகும், இது உங்கள் படகின் வரம்பான {limit} மீட்டரின் கீழ் உள்ளது.",
+    "route_rough": "{bearing} திசையில் {distance} கடல் மைல் தொலைவில் உள்ள ஐஎன்சிஓஐஎஸ் மீன்பிடி மண்டலத்திற்கான நேர் கோடு, {wave} மீட்டர் அலைகளைக் கொண்டுள்ளது, இது உங்கள் படகின் வரம்பான {limit} மீட்டரை விட அதிகமாக உள்ளது. பாதுகாப்பான பாதை எதுவும் பரிந்துரைக்கப்படவில்லை.",
+    "route_storm": "{distance} கடல் மைல் தொலைவில் உள்ள ஐஎன்சிஓஐஎஸ் மீன்பிடி மண்டலத்திற்கான நேர் கோடு, {bearing} திசையில், ஐஎம்டியின் புயலுக்கு மிக அருகில் செல்கிறது. பாதுகாப்பான பாதை எதுவும் பரிந்துரைக்கப்படவில்லை.",
+    "route_no_go": "இப்போது கடலுக்குச் செல்வது பாதுகாப்பானது அல்ல, எனவே எந்தப் பாதையும் பரிந்துரைக்கப்படவில்லை.",
+    "route_no_target": "உங்களுக்கு அருகில் புதிய ஐஎன்சிஓஐஎஸ் மீன்பிடி மண்டலம் எதுவும் இல்லை.",
+    "route_unchecked": "வழியில் உள்ள அலைகளை சரிபார்க்க முடியவில்லை, எனவே எந்த பாதையும் பரிந்துரைக்கப்படவில்லை.",
+    "caveat": "இது ஒரு நேர் கோடு குறிப்பு, வழிசெலுத்தல் அல்ல."
+  },
+  "ml": {
+    "_en": {
+      "route_ok": "The straight line to the INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction. The highest waves along it are {wave} metres, under your boat's limit of {limit} metres.",
+      "route_rough": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, has waves of {wave} metres, above your boat's limit of {limit} metres. No safe route is suggested.",
+      "route_storm": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, passes too close to IMD's storm. No safe route is suggested.",
+      "route_no_go": "It is not safe to go to sea now, so no route is suggested.",
+      "route_no_target": "There is no fresh INCOIS fishing zone near you to route to.",
+      "route_unchecked": "The waves along the way could not be checked, so no route is suggested.",
+      "caveat": "This is a straight-line reference, not navigation."
+    },
+    "route_ok": "ഐഎൻസിഒഐഎസ് മത്സ്യബന്ധന മേഖലയിലേക്കുള്ള നേർരേഖ {bearing} ദിശയിൽ {distance} നോട്ടിക്കൽ മൈൽ അകലെയാണ്. നിങ്ങളുടെ ബോട്ടിന്റെ പരിധി {limit} മീറ്ററിൽ താഴെയുള്ള {wave} മീറ്ററാണ് അതിലെ ഏറ്റവും ഉയർന്ന തിരമാലകൾ.",
+    "route_rough": "{bearing} ദിശയിൽ {distance} നോട്ടിക്കൽ മൈൽ അകലെയുള്ള ഐഎൻസിഒഐഎസ് ഫിഷിംഗ് സോണിലേക്കുള്ള നേർരേഖയിൽ നിങ്ങളുടെ ബോട്ടിന്റെ പരിധി {limit} മീറ്ററിനേക്കാൾ {wave} മീറ്റർ ഉയരമുള്ള തിരമാലകളുണ്ട്. സുരക്ഷിതമായ ഒരു വഴിയും നിർദ്ദേശിച്ചിട്ടില്ല.",
+    "route_storm": "{distance} നോട്ടിക്കൽ മൈൽ അകലെ, {bearing} ദിശയിലുള്ള ഐഎൻസിഒഐഎസ് മത്സ്യബന്ധന മേഖലയിലേക്കുള്ള നേർരേഖ ഐഎംഡിയുടെ കൊടുങ്കാറ്റിനോട് വളരെ അടുത്തുകൂടി കടന്നുപോകുന്നു. സുരക്ഷിതമായ ഒരു വഴിയും നിർദ്ദേശിച്ചിട്ടില്ല.",
+    "route_no_go": "കടലിൽ പോകുന്നത് ഇപ്പോൾ സുരക്ഷിതമല്ലാത്തതിനാൽ ഒരു വഴിയും നിർദ്ദേശിച്ചിട്ടില്ല.",
+    "route_no_target": "നിങ്ങൾക്ക് സമീപമുള്ള പുതിയ ഐ. എൻ. സി. ഒ. ഐ. എസ് മത്സ്യബന്ധന മേഖല ഇല്ല.",
+    "route_unchecked": "വഴിയിലെ തിരമാലകൾ പരിശോധിക്കാൻ കഴിയാത്തതിനാൽ ഒരു വഴിയും നിർദ്ദേശിച്ചിട്ടില്ല.",
+    "caveat": "ഇത് ഒരു നേർരേഖ പരാമർശമാണ്, നാവിഗേഷൻ അല്ല."
+  },
+  "or": {
+    "_en": {
+      "route_ok": "The straight line to the INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction. The highest waves along it are {wave} metres, under your boat's limit of {limit} metres.",
+      "route_rough": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, has waves of {wave} metres, above your boat's limit of {limit} metres. No safe route is suggested.",
+      "route_storm": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, passes too close to IMD's storm. No safe route is suggested.",
+      "route_no_go": "It is not safe to go to sea now, so no route is suggested.",
+      "route_no_target": "There is no fresh INCOIS fishing zone near you to route to.",
+      "route_unchecked": "The waves along the way could not be checked, so no route is suggested.",
+      "caveat": "This is a straight-line reference, not navigation."
+    },
+    "route_ok": "ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ମାଛଧରା ଜୋନ୍କୁ ସିଧା ରେଖା {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ ରହିଛି। ଏହାର ପାର୍ଶ୍ୱରେ ସର୍ବୋଚ୍ଚ ତରଙ୍ଗ {wave} ମିଟର, ଆପଣଙ୍କ ଡଙ୍ଗାର ସୀମା {limit} ମିଟର ତଳେ |",
+    "route_rough": "ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ମାଛଧରା ଜୋନ୍କୁ ସିଧା ରେଖା, {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ, {wave} ମିଟର ତରଙ୍ଗ ଅଛି, ଯାହା ଆପଣଙ୍କ ଡଙ୍ଗାର ସୀମା {limit} ମିଟରରୁ ଅଧିକ | କୌଣସି ସୁରକ୍ଷିତ ମାର୍ଗ ସୁପାରିଶ କରାଯାଇ ନାହିଁ।",
+    "route_storm": "ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ମାଛଧରା ଜୋନ୍କୁ {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ, ଆଇ. ଏମ୍. ଡି. ର ଝଡ଼ର ଅତି ନିକଟତର ହୋଇଥାଏ। କୌଣସି ସୁରକ୍ଷିତ ମାର୍ଗ ସୁପାରିଶ କରାଯାଇ ନାହିଁ।",
+    "route_no_go": "ବର୍ତ୍ତମାନ ସମୁଦ୍ରକୁ ଯିବା ନିରାପଦ ନୁହେଁ, ତେଣୁ କୌଣସି ମାର୍ଗ ପରାମର୍ଶ ଦିଆଯାଏ ନାହିଁ |",
+    "route_no_target": "ଆପଣଙ୍କ ନିକଟବର୍ତ୍ତୀ କୌଣସି ନୂତନ ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ମାଛଧରା ଅଞ୍ଚଳ ନାହିଁ।",
+    "route_unchecked": "ରାସ୍ତାରେ ଥିବା ତରଙ୍ଗଗୁଡ଼ିକୁ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ, ତେଣୁ କୌଣସି ମାର୍ଗ ପରାମର୍ଶ ଦିଆଯାଇ ନାହିଁ।",
+    "caveat": "ଏହା ସରଳ-ରେଖା ସନ୍ଦର୍ଭ, ନେଭିଗେସନ୍ ନୁହେଁ।"
+  },
+  "hi": {
+    "_en": {
+      "route_ok": "The straight line to the INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction. The highest waves along it are {wave} metres, under your boat's limit of {limit} metres.",
+      "route_rough": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, has waves of {wave} metres, above your boat's limit of {limit} metres. No safe route is suggested.",
+      "route_storm": "The straight line to the INCOIS fishing zone, {distance} nautical miles away, in the {bearing} direction, passes too close to IMD's storm. No safe route is suggested.",
+      "route_no_go": "It is not safe to go to sea now, so no route is suggested.",
+      "route_no_target": "There is no fresh INCOIS fishing zone near you to route to.",
+      "route_unchecked": "The waves along the way could not be checked, so no route is suggested.",
+      "caveat": "This is a straight-line reference, not navigation."
+    },
+    "route_ok": "आई. एन. सी. ओ. आई. एस. मछली पकड़ने वाले क्षेत्र की सीधी रेखा {bearing} दिशा में {distance} समुद्री मील दूर है। इसके साथ सबसे ऊँची लहरें {wave} मीटर हैं, जो आपकी नाव की {limit} मीटर की सीमा के नीचे हैं।",
+    "route_rough": "{bearing} दिशा में {distance} समुद्री मील दूर आई. एन. सी. ओ. आई. एस. मछली पकड़ने वाले क्षेत्र की सीधी रेखा में {wave} मीटर की लहरें हैं, जो आपकी नाव की {limit} मीटर की सीमा से अधिक हैं। कोई सुरक्षित मार्ग सुझाया नहीं गया है।",
+    "route_storm": "{bearing} दिशा में {distance} समुद्री मील दूर आई. एन. सी. ओ. आई. एस. मछली पकड़ने वाले क्षेत्र की सीधी रेखा आई. एम. डी. के तूफान के बहुत करीब से गुजरती है। कोई सुरक्षित मार्ग सुझाया नहीं गया है।",
+    "route_no_go": "अब समुद्र में जाना सुरक्षित नहीं है, इसलिए कोई मार्ग नहीं सुझाया गया है।",
+    "route_no_target": "आपके पास कोई नया आई. एन. सी. ओ. आई. एस. मछली पकड़ने का क्षेत्र नहीं है।",
+    "route_unchecked": "रास्ते में लहरों को रोका नहीं जा सका, इसलिए कोई मार्ग नहीं सुझाया गया है।",
+    "caveat": "यह सीधी-रेखा संदर्भ है, नेविगेशन नहीं।"
+  }
+}
