@@ -37,6 +37,8 @@ export interface EvidenceItem {
   is_forecast: boolean;
   threshold?: number | null;
   rule_id?: string | null;
+  /** Where the threshold comes from (IMD's SOP); null for a provisional limit. */
+  threshold_source?: string | null;
   /** Set on a value averaged over a period (query #7's 30-day window). */
   window_start?: string | null;
   window_end?: string | null;

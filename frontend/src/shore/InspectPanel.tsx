@@ -155,7 +155,7 @@ export function InspectPanel({ inspect, boatClass, onBoatClassChange, onReplaySt
               {response.firewall_passed
                 ? "Number check passed: nothing is said that is not listed here."
                 : "Number check failed, so the plain template was used."}
-              {bundle.provisional_thresholds ? " Safety limits are provisional, not yet INCOIS criteria." : ""}
+              {bundle.provisional_thresholds ? " A limit used here is provisional, not yet an official criterion." : ""}
             </p>
           </section>
         ) : (

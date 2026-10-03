@@ -33,6 +33,7 @@ from dhruva.risk.thresholds import (
     LIGHTNING_RADIUS_KM,
     PROVISIONAL,
     ClassThresholds,
+    source_for,
     thresholds_for,
 )
 from dhruva.sources.registry import Variable
@@ -56,6 +57,9 @@ class FiredRule:
     threshold: float | None
     unit: str
     message: str
+    # Where the threshold comes from ("IMD Marine Weather Services SOP, 7.1(ii)"),
+    # or None for a provisional limit.
+    source: str | None = None
 
 
 @dataclass(slots=True)
@@ -189,12 +193,39 @@ def assess(
     for rule in (_wave_rule, _wind_rule):
         outcome = rule(state, limits)
         if outcome is not None:
+            outcome = _cited(outcome, _FIELD.get(outcome.rule_id, ""))
+        if outcome is not None:
             fired.append(outcome)
             verdicts.append(outcome.verdict)
             if outcome.verdict in (RiskClass.CAUTION, RiskClass.NO_GO) and outcome.variable:
                 flags.append(outcome.variable.split("_")[0])
 
-    return RiskAssessment(_worst(verdicts), fired, sorted(set(flags)))
+    # Provisional only if a limit that set or checked this verdict has no
+    # citation; a verdict decided wholly by IMD's cited criteria is not.
+    provisional = any(r.rule_id in _FIELD and r.source is None for r in fired)
+    return RiskAssessment(_worst(verdicts), fired, sorted(set(flags)), provisional)
+
+
+def _cited(rule: FiredRule | None, field: str) -> FiredRule | None:
+    """The rule with its limit's citation attached, if the limit has one."""
+    if rule is None or rule.threshold is None:
+        return rule
+    c = source_for(field, rule.threshold)
+    if c is None:
+        return rule
+    from dataclasses import replace
+
+    return replace(rule, source=c.short)
+
+
+_FIELD = {
+    "WAVE-N3": "no_go_wave_m",
+    "WAVE-C2": "caution_wave_m",
+    "WAVE-S1": "caution_wave_m",
+    "WIND-N3": "no_go_wind_kt",
+    "WIND-C2": "caution_wind_kt",
+    "WIND-S1": "caution_wind_kt",
+}
 
 
 def _wave_rule(state: DhruvaState, limits: ClassThresholds) -> FiredRule | None:

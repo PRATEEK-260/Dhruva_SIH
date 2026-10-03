@@ -56,11 +56,11 @@ const SENT_AS: Record<string, keyof Capsule> = {
  * and "limit 3 m" beside the other is one table, not two standards. */
 function limitPhrase(ruleId: string): string {
   const [, suffix = ""] = ruleId.split("-");
-  if (suffix.startsWith("S")) return "below the caution limit of";
-  if (suffix.startsWith("C")) return "at or above the caution limit of";
-  if (suffix.startsWith("N")) return "at or above the no-go limit of";
-  if (suffix.startsWith("A")) return "within";
-  return "limit";
+  if (suffix.startsWith("S")) return "Below the caution limit of";
+  if (suffix.startsWith("C")) return "At or above the caution limit of";
+  if (suffix.startsWith("N")) return "At or above the no-go limit of";
+  if (suffix.startsWith("A")) return "Within";
+  return "Limit";
 }
 
 export function sourceName(datasetId: string): string {
@@ -147,10 +147,16 @@ export function EvidenceList({ items, capsule }: { items: EvidenceItem[]; capsul
               </p>
               {item.rule_id && (
                 <p className="text-sm text-ink-soft">
-                  Rule {item.rule_id}
                   {item.threshold != null
-                    ? `, ${limitPhrase(item.rule_id)} ${fmt(inKm ? kmToNm(item.threshold) : item.threshold)} ${unit}`
-                    : ""}
+                    ? `${limitPhrase(item.rule_id)} ${fmt(inKm ? kmToNm(item.threshold) : item.threshold)} ${unit}`
+                    : `Rule ${item.rule_id}`}
+                  {item.threshold != null && (item.unit === "m" || item.unit === "kt") && (
+                    <span className={item.threshold_source ? "block font-semibold text-ink" : "block"}>
+                      {item.threshold_source
+                        ? `Limit from ${item.threshold_source}`
+                        : "Provisional limit, not yet an official criterion"}
+                    </span>
+                  )}
                 </p>
               )}
             </div>

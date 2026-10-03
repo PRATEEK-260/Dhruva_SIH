@@ -146,3 +146,54 @@ class TestTraceability:
         """These are placeholders, not INCOIS criteria, and anything showing a
         verdict to a person needs to be able to say so."""
         assert assess(_state(wave=1.0, wind=5.0)).provisional is PROVISIONAL is True
+
+
+class TestCitedLimits:
+    """Upgrade 4: wind and the 4.0 m sea are IMD's own fishermen-warning
+    criteria (Marine Weather Services SOP 7.1); small-boat wave limits are
+    stricter and stay provisional, and each verdict says which it used."""
+
+    def test_wind_limits_are_imds_for_every_class(self):
+        from dhruva.risk.thresholds import IMD_WIND_CAUTION_KT, IMD_WIND_NO_GO_KT
+
+        for boat in BoatClass:
+            t = thresholds_for(boat)
+            assert (t.caution_wind_kt, t.no_go_wind_kt) == (IMD_WIND_CAUTION_KT, IMD_WIND_NO_GO_KT)
+        assert IMD_WIND_NO_GO_KT * 1.852 > 45 > (IMD_WIND_NO_GO_KT - 0.1) * 1.852
+
+    def test_no_class_waves_past_imds_very_rough_sea(self):
+        for boat in BoatClass:
+            assert thresholds_for(boat).no_go_wave_m <= 4.0
+
+    def test_a_wind_no_go_cites_the_sop(self):
+        r = assess(_state(wave=0.5, wind=25.0))
+        rule = next(x for x in r.fired if x.rule_id == "WIND-N3")
+        assert rule.source == "IMD Marine Weather Services SOP, 7.1(ii)"
+
+    def test_a_small_boat_wave_limit_is_provisional_and_says_so(self):
+        r = assess(_state(wave=2.2, wind=8.0))
+        wave = next(x for x in r.fired if x.rule_id == "WAVE-C2")
+        assert wave.source is None and r.provisional
+
+    def test_a_large_boat_at_imds_sea_limit_is_cited(self):
+        r = assess(_state(wave=4.1, wind=8.0, boat=BoatClass.DEEP_SEA_OVER_20M))
+        wave = next(x for x in r.fired if x.rule_id == "WAVE-N3")
+        assert wave.source == "IMD Marine Weather Services SOP, 7.1(iii)"
+
+    def test_the_evidence_row_carries_the_source(self):
+        from dhruva.evidence.schema import build_bundle
+
+        s = _state(wave=0.5, wind=25.0)
+        row = build_bundle(s["observations"], assess(s)).by_key("wind_speed")
+        assert (
+            row is not None and row.threshold_source == "IMD Marine Weather Services SOP, 7.1(ii)"
+        )
+
+    def test_the_sop_copy_matches_its_hash(self):
+        import hashlib
+        from pathlib import Path
+
+        from dhruva.risk.thresholds import SOP_WIND
+
+        pdf = Path(__file__).resolve().parents[2] / SOP_WIND.local_copy
+        assert hashlib.sha256(pdf.read_bytes()).hexdigest() == SOP_WIND.sha256

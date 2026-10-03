@@ -46,6 +46,8 @@ class EvidenceItem(BaseModel):
     is_forecast: bool = False
     threshold: float | None = None
     rule_id: str | None = None
+    # Where the threshold comes from, or None when it is a provisional limit.
+    threshold_source: str | None = None
     # A value averaged over a period rather than read at one instant (query #7's
     # 30-day window and its baseline): the period, and for a baseline the years.
     window_start: dt.date | None = None
@@ -184,6 +186,7 @@ def build_bundle(
             if item is not None and rule.threshold is not None:
                 item.threshold = rule.threshold
                 item.rule_id = rule.rule_id
+                item.threshold_source = getattr(rule, "source", None)
             elif item is None and rule.value is not None:
                 # An override such as cyclone distance has no observation behind
                 # it, but the number is still quoted, so it still needs a row.

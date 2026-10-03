@@ -351,7 +351,7 @@ export function BoatApp() {
                       <p className="text-sm text-ink-soft mt-1">
                         Number check {shown.asked.firewallPassed ? "passed" : "failed, so the plain template was used"}: the
                         answer contains no figure that is not listed here.
-                        {evidence.provisional_thresholds ? " Safety limits are provisional, not yet INCOIS criteria." : ""}
+                        {evidence.provisional_thresholds ? " A limit used here is provisional, not yet an official criterion." : ""}
                       </p>
                     </section>
                   ) : !hasFigures(spokenSlots(shown.capsule, lang)) ? (
