@@ -26,3 +26,8 @@ data/cache/
 .vercel
 # Bhashini speech cache (api/voice.py); regenerated, not committed.
 .voice-cache/
+
+# IMD bulletins fetched at runtime (sources/imd_feed.py); the replay copies stay tracked.
+data/imd/feed.json
+data/imd/feed.tmp
+data/imd/national/

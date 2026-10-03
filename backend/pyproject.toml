@@ -27,6 +27,8 @@ data = [
     "certifi>=2024.8",
     "pyyaml>=6.0",
     "segno>=1.6",
+    # IMD bulletins are PDFs; pure Python, so the Render image needs no poppler.
+    "pypdf>=5.0",
 ]
 geo = [
     "shapely>=2.0",

@@ -214,7 +214,7 @@
       <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19 5a9 9 0 0 1 0 14"/></svg><div><h3>Speaks in the crew's language</h3><p>Bhashini voice clips for every verdict, in Tamil, Malayalam, Odia and Hindi, ship inside the app.</p></div></div>
       <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg><div><h3>Points the way home</h3><p>Distance and direction to the nearest harbour, from the message's own position.</p></div></div>
       <div class="feature"><svg viewBox="0 0 24 24" fill="none" stroke="#0e6178" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg><div><h3>Reopens offline</h3><p>A service worker keeps the app, its fonts and its voice clips on the phone, so it opens with the radio off.</p></div></div>
-      <p class="small soft" style="margin-top:6mm">Shown: a simulated cyclone warning 180 km away, a labelled test input. DHRUVA has no live IMD cyclone feed yet.</p>
+      <p class="small soft" style="margin-top:6mm">Shown: a simulated cyclone warning 180 km away, a labelled test input. Live IMD bulletins apply to every answer on their own.</p>
     </div>
   </div>
   <div class="folio"><span>DHRUVA</span><span>7</span></div>
@@ -258,8 +258,8 @@
     <tr><td>Marine Regions (VLIZ)</td><td>EEZ, territorial sea and boundary lines, in PostGIS</td><td><span class="tag live">Loaded</span></td></tr>
     <tr><td>Bhashini</td><td>Speech recognition, translation and speech in Tamil, Malayalam, Odia and Hindi</td><td><span class="tag live">Live</span></td></tr>
     <tr><td>Gemini</td><td>Understands the question and plans which agents run. A keyword planner takes over when it does not answer</td><td><span class="tag live">Live</span></td></tr>
-    <tr><td>IMD cyclone warnings</td><td>The warning override is built and tested; the live feed is not connected yet, so the demo's cyclone alert is a labelled test input</td><td><span class="tag sim">Test input</span></td></tr>
-    <tr><td>IMD RSMC bulletin, Cyclone Michaung</td><td>Tropical Cyclone Advisory No. 9, issued 0300 UTC 4 Dec 2023: the storm replay measures the boat's distance from the centre IMD published, and the evidence row cites it</td><td><span class="tag live">Past, dated</span></td></tr>
+    <tr><td>IMD cyclone warnings</td><td>IMD's National Bulletins, read from RSMC New Delhi's archive every 30 minutes (no API: read and attributed) and parsed from the PDF: centre, track, category and fishermen warning drive the 300 km override; an unreadable bulletin gives Caution with its link</td><td><span class="tag live">Live (bulletin parser)</span></td></tr>
+    <tr><td>IMD RSMC bulletin, Cyclone Michaung</td><td>National Bulletin No. 19 (BOB/06/2023), issued 0845 IST 4 Dec 2023, read by the same parser: the storm replay measures the boat's distance from the centre IMD published, and the evidence row cites it</td><td><span class="tag live">Past, dated</span></td></tr>
     <tr><td>Nabhmitra / VCSS</td><td>The channel DHRUVA is built for. Its message format is not public, so the one-byte question uses DHRUVA's own code</td><td><span class="tag sim">Simulated</span></td></tr>
     <tr><td>DAT-SG message 41</td><td>The answer's frame, built bit for bit from ISRO's ICD v1.2. Sending it is simulated by a terminal screen and a QR code</td><td><span class="tag sim">Simulated</span></td></tr>
     <tr><td>Safety limits</td><td>Engineering placeholders until replaced with INCOIS Ocean State Forecast criteria</td><td><span class="tag sim">Provisional</span></td></tr>

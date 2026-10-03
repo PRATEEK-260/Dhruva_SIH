@@ -1,17 +1,10 @@
 {
-  "rsmc_michaung_adv9": {
-    "issuer": "IMD, RSMC Tropical Cyclones New Delhi",
-    "title": "Tropical Cyclone Advisory No. 9",
-    "system": "Cyclonic Storm Michaung",
-    "category": "Cyclonic Storm",
-    "issued_at": "2023-12-04T03:00:00Z",
-    "centre_at": "2023-12-04T00:00:00Z",
-    "lat": 13.2,
-    "lon": 81.2,
-    "source_url": "https://rsmcnewdelhi.imd.gov.in/uploads/archive/2/2_7c2908_TROPICAL%20CYCLONE%20ADVISORY%20NO.9_0000UTC_04.12.2023.pdf",
-    "local_copy": "data/imd/rsmc_tc_advisory_09_michaung_2023-12-04T0000Z.pdf",
-    "fetched_at": "2026-09-29T00:10:00Z",
-    "note": "Centre 'near latitude 13.2N and longitude 81.2E' at 0000 UTC of 4 December 2023, as stated in the advisory's first paragraph and its track table. A past bulletin replayed with the storm; not a live feed.",
-    "sha256": "8088126f4b12145efe83bbc5cfff121506b2f5108af35cf180352c4a1d07bbe1"
+  "michaung_nb19": {
+    "listed_title": "National Bulletin based on 00:00:00 UTC of 04-12-2023",
+    "source_url": "https://rsmcnewdelhi.imd.gov.in/uploads/archive/1/1_c7a3c7_19.%20NationalBulletin_19_20231203_0000.pdf",
+    "local_copy": "data/imd/national_bulletin_19_BOB06_2023_michaung.pdf",
+    "sha256": "da5d7e9bc4cf672e424497f49a116fe91537eea5e6e6c21a2c3a8202b4b860f7",
+    "fetched_at": "2026-10-03T10:36:00Z",
+    "note": "IMD National Bulletin No. 19 (BOB/06/2023), Cyclonic Storm MICHAUNG, issued 0845 IST 4 Dec 2023. Every field (centre 13.2N 81.2E at 0530 IST, the forecast track, the fishermen warning) is read from the PDF by sources/imd_parser.py at load, the same parser the live feed uses; nothing here is typed by hand. A past bulletin replayed with the storm."
   }
 }

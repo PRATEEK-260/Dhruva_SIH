@@ -16,7 +16,12 @@ from dhruva.config import database_dsn
 from dhruva.demo import replay
 from dhruva.graph.build import arun
 from dhruva.graph.state import BoatClass, DhruvaState
-from dhruva.sources.imd_bulletin import BulletinError, cyclone_source
+from dhruva.sources.imd_bulletin import (
+    BulletinError,
+    cyclone_source,
+    live_status,
+    overall_status,
+)
 
 router = APIRouter(tags=["advisory"])
 
@@ -39,8 +44,9 @@ class AdvisoryRequest(BaseModel):
     # Shore inspecting a point is not a boat asking; logging it would put a
     # vessel on the request list that never existed.
     log: bool = True
-    # TEST INPUT. No live IMD cyclone feed is wired, so the demo's cyclone alert
-    # is simulated through this, and the evidence row says so.
+    # TEST INPUT: a hand-placed cyclone, for the shore console's drill. Live IMD
+    # bulletins (sources/imd_feed.py) apply on their own; this overrides only
+    # their distance, and the evidence row says it is a test input.
     test_cyclone_km: float | None = None
     # TEST INPUT. Alert types as a warning feed would name them; an unrecognised
     # one forces at least CAUTION (default-deny).
@@ -74,6 +80,10 @@ class AdvisoryResponse(BaseModel):
     # when it was recorded, and why it was used instead of a live run.
     recorded_at: str | None = None
     replay_reason: str | None = None
+    # What IMD's live bulletins say for this boat: status ("active", "none",
+    # "unchecked"), a line for the screen, and each bulletin in force with its
+    # link and fishermen warning. Null for a replayed past storm.
+    imd: dict[str, Any] | None = None
 
 
 async def _connect() -> asyncpg.Connection | None:
@@ -91,11 +101,20 @@ async def _connect() -> asyncpg.Connection | None:
 @router.post("/advisory", response_model=AdvisoryResponse)
 async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
     cyclone = None
+    imd: dict[str, Any] | None = None
+    alerts = list(req.test_alerts)
     if req.bulletin is not None:
         try:
             cyclone = cyclone_source(req.bulletin, req.lat, req.lon, req.when)
         except BulletinError as exc:
             raise HTTPException(422, str(exc)) from exc
+    else:
+        live = live_status(req.lat, req.lon, req.when)
+        if live["status"] != "not_applicable":
+            imd = {k: v for k, v in live.items() if k not in ("cyclone", "alerts")}
+            alerts += live["alerts"]
+            if req.test_cyclone_km is None:
+                cyclone = live["cyclone"]
     rec_key = replay.key(
         req.query,
         req.language,
@@ -125,7 +144,7 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
                     cyclone["distance_km"] if cyclone is not None else req.test_cyclone_km
                 ),
                 cyclone_source=cyclone,
-                alerts=req.test_alerts,
+                alerts=alerts,
             )
         except Exception as exc:
             if recorded is None:
@@ -136,6 +155,7 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
             response = AdvisoryResponse(**{**recorded, "replay_reason": "live sources failed"})
         else:
             response = _from_state(state)
+            response.imd = imd
 
     conn = await _connect() if req.log else None
     if conn is not None:
@@ -196,3 +216,10 @@ async def get_recent_advisories(limit: int = 20) -> list[dict[str, Any]]:
         }
         for row in rows
     ]
+
+
+@router.get("/imd/status")
+async def get_imd_status() -> dict[str, Any]:
+    """IMD National Bulletins in force, from the last check of IMD's archive
+    (sources/imd_feed.py). Read and attributed; IMD offers no feed."""
+    return overall_status()

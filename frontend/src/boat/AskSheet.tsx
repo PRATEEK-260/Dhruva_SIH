@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Loader2, Mic, Satellite, Send, Square, TriangleAlert, X } from "lucide-react";
-import { postAdvisory, type DeclineAnswer, type NearestPfz, type TraceStep } from "../shared/api/client";
+import { postAdvisory, type DeclineAnswer, type ImdStatus, type NearestPfz, type TraceStep } from "../shared/api/client";
 import { decodeCapsule } from "../shared/capsule/decode";
 import type { Capsule } from "../shared/capsule/decode";
 import type { Language } from "../shared/capsule/codebook";
@@ -40,6 +40,7 @@ export async function askAdvisory(
     intent: res.intent ?? "",
     pfz: res.pfz ?? null,
     decline: res.decline ?? null,
+    imd: res.imd ?? null,
     lang,
     recordedAt: res.recorded_at ?? null,
   };
@@ -60,6 +61,8 @@ export interface AskResult {
   pfz: NearestPfz | null;
   /** Query #7's answer, rendered in `lang`; null for other questions. */
   decline: DeclineAnswer | null;
+  /** IMD's live bulletins for this boat, or null for a replayed storm. */
+  imd: ImdStatus | null;
   lang: Language;
   /** When the recorded run this answer replays was made; null for a live answer. */
   recordedAt: string | null;

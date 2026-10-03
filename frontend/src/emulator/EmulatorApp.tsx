@@ -258,7 +258,7 @@ export function EmulatorApp() {
               disabled={busy}
               className="mt-4 w-full min-h-[56px] rounded-xl bg-danger font-bold text-lg flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              <CloudLightning className="w-6 h-6" /> Simulate a cyclone warning, {TEST_CYCLONE_NM} nm
+              <CloudLightning className="w-6 h-6" /> Simulate a cyclone warning, {TEST_CYCLONE_NM} nm (test input)
             </button>
             <button
               onClick={() => void storm()}
@@ -268,8 +268,8 @@ export function EmulatorApp() {
               <History className="w-5 h-5" /> Replay a real storm: {demo.storm.name}
             </button>
             <p className="text-sm text-white/60 mt-2">
-              Real archived waves and wind from that day, and the cyclone's centre from IMD's own
-              bulletin for that hour. Not a test input.
+              Real archived waves and wind from that day, and the cyclone's centre read from IMD's
+              own National Bulletin for that hour. Not a test input.
             </p>
           </div>
           {error && <p className="rounded-xl bg-danger px-4 py-3 font-semibold">{error}</p>}

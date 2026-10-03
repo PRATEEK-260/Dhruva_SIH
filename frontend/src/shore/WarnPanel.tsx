@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CloudLightning, Loader2, MapPin, Send } from "lucide-react";
-import { postAdvisory } from "../shared/api/client";
+import { fetchImdStatus, postAdvisory, type ImdBulletin, type ImdStatus } from "../shared/api/client";
 import { decodeCapsule } from "../shared/capsule/decode";
 import { CAPSULE_BYTES } from "../shared/capsule/fields";
 import { distanceKm, kmToNm } from "../shared/harbour";
@@ -29,6 +29,9 @@ type Result =
  * without it the centre is a hand-placed test input judged on today's sea. */
 export interface Cyclone extends Boat {
   replay?: { when: string; bulletin: string; label: string };
+  /** An IMD bulletin in force now: each boat is judged by the backend's live
+   * bulletin rules, with no test input. */
+  live?: { label: string };
 }
 
 export function boatKey(b: Boat): string {
@@ -41,6 +44,7 @@ export function WarnPanel({
   onVerdict,
   onPlaceDemo,
   onPlaceStorm,
+  onPlaceLive,
 }: {
   centre: Cyclone | null;
   boats: Boat[];
@@ -48,11 +52,20 @@ export function WarnPanel({
   onPlaceDemo: () => void;
   /** Put the cyclone where IMD's bulletin placed Michaung, at that hour. */
   onPlaceStorm: () => void;
+  /** Put the cyclone where a bulletin in force puts it now. */
+  onPlaceLive: (b: ImdBulletin) => void;
   /** Each boat's verdict under this warning, so the map can show it. */
   onVerdict: (boat: Boat, state: VerdictState) => void;
 }) {
   const [results, setResults] = useState<Result[]>([]);
   const [running, setRunning] = useState(false);
+  const [imd, setImd] = useState<ImdStatus | null>(null);
+  useEffect(() => {
+    fetchImdStatus()
+      .then(setImd)
+      .catch(() => setImd(null));
+  }, []);
+  const liveWithCentre = imd?.bulletins.filter((b) => b.centre) ?? [];
 
   async function run() {
     if (!centre) return;
@@ -71,9 +84,12 @@ export function WarnPanel({
           lat: boat.lat,
           lon: boat.lon,
           language: "ta",
+          // Live: no override at all; the backend applies IMD's bulletins in force.
           ...(centre.replay
             ? { when: centre.replay.when, bulletin: centre.replay.bulletin }
-            : { test_cyclone_km: Math.round(km) }),
+            : centre.live
+              ? {}
+              : { test_cyclone_km: Math.round(km) }),
           log: false,
         });
         const state = verdictState(decodeCapsule(res.capsule_base32));
@@ -106,7 +122,22 @@ export function WarnPanel({
         </div>
       </div>
 
-      {centre?.replay ? (
+      {imd && (
+        <p
+          className={`rounded-xl text-sm p-3 leading-snug ${
+            imd.status === "active" ? "bg-danger-light text-ink font-semibold" : "bg-mist text-ink"
+          }`}
+        >
+          {imd.message} Read from IMD RSMC New Delhi's National Bulletin archive every 30 minutes.
+        </p>
+      )}
+
+      {centre?.live ? (
+        <p className="rounded-xl bg-mist text-ink text-sm p-3 leading-snug">
+          {centre.live.label} Each boat is judged by IMD's bulletins in force now: the 300 km override from
+          where IMD's track puts the system, and Caution where its fishermen warning names the boat's coast.
+        </p>
+      ) : centre?.replay ? (
         <p className="rounded-xl bg-mist text-ink text-sm p-3 leading-snug">
           {centre.replay.label} Each boat is judged on that hour's archived sea and its distance from IMD's
           centre. Boats are {boats.filter((b) => b.name).length} labelled demo positions on real fishing
@@ -114,9 +145,9 @@ export function WarnPanel({
         </p>
       ) : (
         <p className="rounded-xl bg-caution-light text-ink text-sm p-3 leading-snug">
-          Test input. No live IMD cyclone feed is connected yet, so the warning is placed by hand. Boats
-          are the positions in the request log and {boats.filter((b) => b.name).length} labelled demo
-          boats on real fishing grounds; the demo boats are not vessels.
+          Test input: a cyclone placed by hand, for a drill. Live IMD bulletins apply to every answer on
+          their own. Boats are the positions in the request log and {boats.filter((b) => b.name).length}{" "}
+          labelled demo boats on real fishing grounds; the demo boats are not vessels.
         </p>
       )}
 
@@ -129,6 +160,15 @@ export function WarnPanel({
             boat goes out.
           </p>
           <div className="mt-3 flex flex-col gap-2">
+            {liveWithCentre.map((b, i) => (
+              <button
+                key={i}
+                onClick={() => onPlaceLive(b)}
+                className="min-h-[48px] px-4 rounded-xl bg-danger text-white font-bold"
+              >
+                Use IMD's bulletin in force: {b.name ? `${b.category} ${b.name}` : b.category} ({b.system_id})
+              </button>
+            ))}
             <button
               onClick={onPlaceStorm}
               className="min-h-[48px] px-4 rounded-xl bg-danger text-white font-bold"
@@ -139,14 +179,14 @@ export function WarnPanel({
               onClick={onPlaceDemo}
               className="min-h-[44px] px-4 rounded-xl border-2 border-danger text-danger font-bold"
             >
-              Use the demo cyclone position (test input)
+              Test input: use the demo cyclone position
             </button>
           </div>
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           <p className="text-ink">
-            {centre.replay ? "Cyclone Michaung" : "Cyclone"} at{" "}
+            {centre.replay ? "Cyclone Michaung" : centre.live ? "IMD's system" : "Test cyclone"} at{" "}
             <strong>{centre.lat.toFixed(2)}° N, {centre.lon.toFixed(2)}° E</strong>
             {centre.replay ? ", 0000 UTC 4 Dec 2023" : ""}.{" "}
             {boats.length} boat{boats.length === 1 ? "" : "s"} known.

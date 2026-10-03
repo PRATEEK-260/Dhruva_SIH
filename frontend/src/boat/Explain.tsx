@@ -58,10 +58,10 @@ export function sourceName(datasetId: string): string {
   if (datasetId === "copernicus_ostia_rep") return "OSTIA satellite sea temperature record (Copernicus)";
   if (datasetId.startsWith("cmems") || datasetId.startsWith("copernicus")) return "Copernicus Marine";
   if (datasetId === "incois_pfz") return "INCOIS fishing-zone advisory";
-  // No live IMD feed is wired. A warning distance is either worked out from a
-  // stored past IMD bulletin (a replayed storm) or a labelled test input.
-  if (datasetId === "imd_rsmc_bulletin") return "IMD cyclone bulletin (past, replayed)";
-  if (datasetId === "risk_engine") return "Simulated cyclone warning (test input)";
+  // A warning distance comes from an IMD National Bulletin read from its PDF,
+  // live or replayed with a past storm, or from a labelled test input.
+  if (datasetId === "imd_rsmc_bulletin") return "IMD National Bulletin, RSMC New Delhi";
+  if (datasetId === "risk_engine") return "Test input: cyclone placed by hand";
   return datasetId;
 }
 

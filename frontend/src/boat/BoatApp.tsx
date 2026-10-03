@@ -7,7 +7,7 @@ import { VerdictSign, SIGN_THEME } from "./VerdictSign";
 import { CapsuleFigures, EvidenceList, TracePanel, advisoryDate, hasFigures, istTime } from "./Explain";
 import type { Capsule } from "../shared/capsule/decode";
 import { compassWord, renderReason, spokenSlots, type Language } from "../shared/capsule/codebook";
-import type { EvidenceItem } from "../shared/api/client";
+import type { EvidenceItem, ImdStatus } from "../shared/api/client";
 import { spokenAnswer, suppressesFishing, verdictLabel, verdictReason, verdictState, type VerdictState } from "../shared/verdict";
 import { kmToNm, wayHome } from "../shared/harbour";
 import { DEPARTURE_LABEL, departureTime, type Departure } from "../shared/questions";
@@ -283,6 +283,8 @@ export function BoatApp() {
                 </p>
               </section>
 
+              {shown.asked?.imd && <ImdCard imd={shown.asked.imd} />}
+
               {shown.asked?.decline && <DeclineCard shown={shown} lang={lang} />}
 
               {!suppressesFishing(state) && (
@@ -513,6 +515,43 @@ function DeclineCard({ shown, lang }: { shown: Shown; lang: Language }) {
         {sameLang ? "" : "Shown in the language it was asked in. "}
         Sources and dates are under Show evidence.
       </p>
+    </section>
+  );
+}
+
+/** What IMD's cyclone bulletins in force say. With one in force: its fishermen
+ * warning in IMD's own words and the link, whatever the verdict. With none:
+ * one plain line with when the list was checked, never "no danger". */
+function ImdCard({ imd }: { imd: ImdStatus }) {
+  if (imd.status !== "active") {
+    return imd.message ? <p className="text-sm text-ink-soft px-1">{imd.message}</p> : null;
+  }
+  return (
+    <section className="rounded-2xl bg-white border-2 border-danger p-4">
+      <div className="flex items-center gap-3">
+        <ShieldAlert className="w-7 h-7 text-danger shrink-0" />
+        <h2 className="text-lg font-extrabold leading-tight">Official warning: read the IMD bulletin</h2>
+      </div>
+      {imd.bulletins.map((b, i) => (
+        <div key={i} className="mt-3">
+          <p className="font-semibold">
+            {b.name ? `${b.category} ${b.name}` : (b.category ?? "Cyclonic disturbance")}
+            {b.system_id ? ` (${b.system_id})` : ""}
+          </p>
+          {b.fishermen_warning ? (
+            <p className="text-base leading-snug mt-1">{b.fishermen_warning}</p>
+          ) : (
+            <p className="text-base leading-snug mt-1">
+              DHRUVA could not read this bulletin, so it is treated as at least Caution. Read it before you go.
+            </p>
+          )}
+          {b.source_url && (
+            <a href={b.source_url} target="_blank" rel="noopener" className="text-sea font-semibold underline text-sm">
+              {b.title}, IMD RSMC New Delhi
+            </a>
+          )}
+        </div>
+      ))}
     </section>
   );
 }

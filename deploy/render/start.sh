@@ -44,6 +44,18 @@ pids+=($!)
 	done
 ) &
 
+# IMD's National Bulletins: no feed exists, so the archive listing is read now
+# and every 30 minutes (dhruva/sources/imd_feed.py). A failed check is recorded
+# and the answer says how old the last good one is. Not in pids: a failed
+# check must not restart the backend.
+(
+	cd /app/backend
+	while true; do
+		/opt/api/bin/python -m dhruva.sources.imd_feed >>/tmp/imd_feed.log 2>&1 || true
+		sleep 1800
+	done
+) &
+
 # If any service dies (the warm-up job is not one), exit so Render restarts the container instead of
 # serving half a backend.
 wait -n "${pids[@]}"

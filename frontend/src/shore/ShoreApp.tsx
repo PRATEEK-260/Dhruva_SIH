@@ -12,7 +12,7 @@ import { BASEMAPS, type BasemapId } from "../shared/map/basemaps";
 import { BOUNDARY_MAGENTA, PFZ_CASING, PFZ_YELLOW } from "../shared/map/colours";
 import {
   fetchDemoBoats, fetchGeoLayer, fetchHealth, fetchRasterLayers, fetchRecentAdvisories, postAdvisory,
-  type AdvisoryLogEntry, type DemoBoat, type GeoFeatureCollection, type RasterLayer,
+  type AdvisoryLogEntry, type DemoBoat, type GeoFeatureCollection, type ImdBulletin, type RasterLayer,
 } from "../shared/api/client";
 import { ZONE_LAT_MAX, ZONE_LAT_MIN, ZONE_LON_MAX, ZONE_LON_MIN } from "../shared/capsule/fields";
 import { circleRing } from "../shared/harbour";
@@ -220,6 +220,17 @@ export function ShoreApp() {
     });
     setWarned({});
     mapRef.current?.flyTo({ center: [80.8, 11.3], zoom: 5.2 });
+  }
+
+  function placeLive(b: ImdBulletin) {
+    if (!b.centre) return;
+    setCyclone({
+      lat: b.centre.lat,
+      lon: b.centre.lon,
+      live: { label: `${b.title}, IMD RSMC New Delhi, issued ${b.issued_at ?? "time not read"}.` },
+    });
+    setWarned({});
+    mapRef.current?.flyTo({ center: [b.centre.lon, b.centre.lat], zoom: 5.2 });
   }
 
   function replayStorm() {
@@ -472,6 +483,7 @@ export function ShoreApp() {
                 boats={boats}
                 onPlaceDemo={placeDemoCyclone}
                 onPlaceStorm={placeStorm}
+                onPlaceLive={placeLive}
                 onVerdict={(b, st) => setWarned((w) => ({ ...w, [boatKey(b)]: st }))}
               />
             )}

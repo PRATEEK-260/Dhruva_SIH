@@ -92,12 +92,31 @@ the last.
   32.8 °C heatwave reading still counts. Default-deny: an unrecognised alert type, or a
   cyclone or lightning alert with no position, fires ALERT-C0 and forces at least
   CAUTION. `POST /advisory` takes `test_alerts` as a labelled test input.
-- **IMD bulletin (29 Sep):** the Cyclone Michaung replay uses RSMC New Delhi's Tropical
-  Cyclone Advisory No. 9 (issued 0300 UTC 4 Dec 2023, centre 13.2N 81.2E at 0000 UTC),
-  stored with its URL, a local PDF copy and its hash in `data/imd/`. `POST /advisory`
-  takes `bulletin`; the cyclone distance is measured from IMD's centre and its evidence row
-  cites the advisory. A bulletin refuses any time more than 6 h from its centre time. Still
-  no live IMD feed: the "Simulate a cyclone warning" button stays a labelled test input.
+- **Live IMD bulletins (3 Oct, 5-day plan upgrade 2):** IMD has no API.
+  `sources/imd_feed.py` reads RSMC New Delhi's National Bulletin archive page
+  (`archive-information.php?internal_menu=MQ==&menu_id=NA==`, newest 30, POST
+  `search_year` for older), downloads new PDFs with their SHA-256 into
+  `data/imd/national/` and records them in `data/imd/feed.json` (both gitignored,
+  runtime) with when the list was checked; Render runs it at boot and every 30 min.
+  `sources/imd_parser.py` (pypdf) reads number, system id, category, name, issue
+  time, centre, forecast track, fishermen warning and next-issue time; tested on 7
+  real bulletins. `imd_bulletin.live_status()` applies the newest bulletin of each
+  system while in force (until the next is due + 3 h): Depression and above in the
+  boat's basin gives the cyclone distance from the track point nearest the hour asked
+  (300 km override); an unreadable bulletin, or a far one whose fishermen warning
+  names the boat's coast, adds an alert that forces CAUTION, with the link. With none
+  in force the answer says "No active IMD cyclone bulletin as of <check time>".
+  `POST /advisory` returns it as `imd`; `GET /imd/status` serves the shore console.
+  On 3 Oct nothing was in force (BOB/07/2026 became a low on 30 Sep).
+  Judgement calls to know: depressions trigger the same 300 km override as cyclones
+  (IMD advises fishermen not to venture for them too), and coast matching is a
+  keyword table in `imd_bulletin._COASTS` that can only add caution.
+  National Bulletin No. 29 (BOB/06/2026) has no extractable body text: that is the
+  real case the unreadable path exists for.
+- **Michaung replay:** now IMD National Bulletin No. 19 (BOB/06/2023, 0845 IST 4 Dec
+  2023), `bulletin: "michaung_nb19"`, read from its PDF by the same parser (centre
+  13.2N 81.2E at 0000 UTC, unchanged). The old RSMC advisory record is gone, so
+  recordings keyed on `rsmc_michaung_adv9` no longer replay: re-record.
 - **Deploy:** backend on Render (one container: Postgres with the boundaries, PFZ lines and
   landing centres baked into the image, Redis, Caddy, TiTiler and the API, warmed and
   log-seeded at boot by `deploy/render/start.sh`); frontend on Vercel, built from git with
@@ -221,9 +240,12 @@ Added 2026-09-28 for the round-2 video. Nothing invents a reading.
 - **Demo boats** (`dhruva/demo/boats.py`, `/demo/boats`): ten named positions on
   real fishing grounds, each checked to lie in India's territorial sea. Labelled
   "demo boat" everywhere; not vessels, not tracks.
-- **Cyclone position:** the Michaung replay takes its centre from IMD's own bulletin
-  (`data/imd/`, above). Anything else is a hand-placed cyclone with no live IMD
-  feed behind it, and is always labelled a test input; so are `test_alerts`.
+- **Cyclone position:** live answers use IMD's bulletins in force; the Michaung
+  replay reads IMD's own bulletin through the parser. A hand-placed cyclone (Warn
+  boats' demo position, the terminal's "Simulate a cyclone warning") is always
+  labelled a test input; so are `test_alerts`. The plan wanted the hand-placed control
+  on the shore console only, but the final video script uses the terminal's button,
+  so it stays there, relabelled.
 - Shared by the screens and the recorder, so they cannot drift:
   `frontend/src/shared/questions.json` and `demo.json`.
 

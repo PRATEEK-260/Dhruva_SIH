@@ -44,6 +44,33 @@ export interface EvidenceItem {
   baseline_years?: number[] | null;
 }
 
+/** An IMD National Bulletin in force, read from its PDF (backend sources/imd_parser.py). */
+export interface ImdBulletin {
+  title: string;
+  system_id: string | null;
+  name: string | null;
+  category: string | null;
+  /** "ok", "partial" or "unreadable": anything but ok means read the bulletin itself. */
+  status: string;
+  issued_at: string | null;
+  valid_until: string | null;
+  source_url: string | null;
+  fishermen_warning: string | null;
+  centre?: { lat: number; lon: number; at: string } | null;
+}
+
+export interface ImdStatus {
+  status: "active" | "none" | "unchecked";
+  checked_at: string | null;
+  message: string | null;
+  bulletins: ImdBulletin[];
+}
+
+export async function fetchImdStatus(): Promise<ImdStatus> {
+  const response = await fetch("/api/imd/status");
+  return parseOrThrow<ImdStatus>(response, "fetchImdStatus");
+}
+
 /** Query #7: the last 30 days against the same weeks in earlier years. */
 export interface DeclineChange {
   variable: string;
@@ -127,6 +154,8 @@ export interface AdvisoryResponse {
   view?: { cards?: string[]; layers?: string[] };
   pfz?: NearestPfz | null;
   decline?: DeclineAnswer | null;
+  /** IMD's live bulletins for this boat; null for a replayed past storm. */
+  imd?: ImdStatus | null;
   /** Set only when this answer is a recorded real run, replayed. */
   recorded_at?: string | null;
   replay_reason?: string | null;
