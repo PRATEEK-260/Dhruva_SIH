@@ -100,6 +100,11 @@ class DhruvaState(TypedDict, total=False):
     # no fresh advisory within reach, which is not the same as "no fish". ---
     pfz: dict[str, Any] | None
 
+    # --- query #7 (node 3, ocean): the last 30 days against the same window in
+    # earlier years. Single writer. Keys: "chlorophyll" and "sst" (a Change or
+    # None for No data) and "box". Absent unless the intent is decline. ---
+    decline: dict[str, Any] | None
+
     # --- risk (node 6): single writer, no reducer ---
     risk_class: RiskClass
     fired_rules: list[str]
@@ -114,6 +119,8 @@ class DhruvaState(TypedDict, total=False):
 
     # --- narration, and what the firewall decided about it ---
     narration: str
+    # Query #7's answer as rendered parts (analytics/decline.py), when asked.
+    decline_answer: dict[str, Any]
     firewall_passed: bool
     firewall_violations: list[str]
 

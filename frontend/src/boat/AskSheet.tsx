@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Loader2, Mic, Satellite, Send, Square, TriangleAlert, X } from "lucide-react";
-import { postAdvisory, type NearestPfz, type TraceStep } from "../shared/api/client";
+import { postAdvisory, type DeclineAnswer, type NearestPfz, type TraceStep } from "../shared/api/client";
 import { decodeCapsule } from "../shared/capsule/decode";
 import type { Capsule } from "../shared/capsule/decode";
 import type { Language } from "../shared/capsule/codebook";
@@ -39,6 +39,8 @@ export async function askAdvisory(
     trace: res.trace ?? [],
     intent: res.intent ?? "",
     pfz: res.pfz ?? null,
+    decline: res.decline ?? null,
+    lang,
     recordedAt: res.recorded_at ?? null,
   };
 }
@@ -56,6 +58,9 @@ export interface AskResult {
   trace: TraceStep[];
   intent: string;
   pfz: NearestPfz | null;
+  /** Query #7's answer, rendered in `lang`; null for other questions. */
+  decline: DeclineAnswer | null;
+  lang: Language;
   /** When the recorded run this answer replays was made; null for a live answer. */
   recordedAt: string | null;
 }
@@ -225,7 +230,7 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
             )}
 
             <div className="px-5 pb-3 flex flex-col gap-2">
-              {QUESTIONS.map((q) => (
+              {QUESTIONS.filter((q) => online || !q.online_only).map((q) => (
                 <button
                   key={q.code}
                   disabled={busy !== "idle"}

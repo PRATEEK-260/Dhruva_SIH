@@ -15,6 +15,13 @@ const NAMES: Record<string, string> = {
   cyclone_distance: "Cyclone distance",
   lightning_distance: "Lightning distance",
   pfz_distance: "Potential fishing zone",
+  chlorophyll_30d: "Chlorophyll, last 30 days",
+  chlorophyll_baseline: "Chlorophyll, usual for these weeks",
+  chlorophyll_change_pct: "Chlorophyll change",
+  baseline_years: "Years compared",
+  sst_30d: "Sea temperature, last 30 days",
+  sst_baseline: "Sea temperature, usual for these weeks",
+  sst_difference: "Sea temperature difference",
 };
 
 const UNITS: Record<string, string> = { degC: "°C", degree: "°", "mg m-3": "mg/m³" };
@@ -45,6 +52,10 @@ export function sourceName(datasetId: string): string {
   if (datasetId === "open_meteo_marine") return "Open-Meteo marine forecast";
   if (datasetId === "open_meteo_forecast") return "Open-Meteo weather forecast";
   if (datasetId === "open_meteo_archive") return "Open-Meteo archive (ERA5)";
+  // Query #7's satellite records (backend analytics/baseline.py).
+  if (datasetId === "copernicus_globcolour_my") return "Copernicus GlobColour satellite chlorophyll";
+  if (datasetId === "copernicus_ostia_nrt") return "OSTIA satellite sea temperature (Copernicus)";
+  if (datasetId === "copernicus_ostia_rep") return "OSTIA satellite sea temperature record (Copernicus)";
   if (datasetId.startsWith("cmems") || datasetId.startsWith("copernicus")) return "Copernicus Marine";
   if (datasetId === "incois_pfz") return "INCOIS fishing-zone advisory";
   // No live IMD feed is wired. A warning distance is either worked out from a
@@ -98,7 +109,11 @@ export function EvidenceList({ items, capsule }: { items: EvidenceItem[]; capsul
                 {sourceName(item.dataset_id)}
                 {item.is_forecast ? ", forecast" : ""}
                 <br />
-                {item.dataset_id === "incois_pfz"
+                {item.baseline_years && item.window_end
+                  ? `same 30 days in ${item.baseline_years.join(", ")}; ${item.cell}`
+                  : item.window_start && item.window_end
+                    ? `mean of ${advisoryDate(item.window_start)} to ${advisoryDate(item.window_end)}; ${item.cell}`
+                    : item.dataset_id === "incois_pfz"
                   ? `issued ${advisoryDate(item.valid_time)}, nearest point of the line`
                   : item.dataset_id === "imd_rsmc_bulletin"
                     ? `${item.upstream_dataset_id ?? ""}; centre ${item.cell} at ${istTime(item.valid_time)}`

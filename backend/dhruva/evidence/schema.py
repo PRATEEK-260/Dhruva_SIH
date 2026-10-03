@@ -46,6 +46,11 @@ class EvidenceItem(BaseModel):
     is_forecast: bool = False
     threshold: float | None = None
     rule_id: str | None = None
+    # A value averaged over a period rather than read at one instant (query #7's
+    # 30-day window and its baseline): the period, and for a baseline the years.
+    window_start: dt.date | None = None
+    window_end: dt.date | None = None
+    baseline_years: list[int] | None = None
 
     @classmethod
     def from_observation(cls, obs: Observation) -> EvidenceItem:

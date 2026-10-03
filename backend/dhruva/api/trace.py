@@ -37,7 +37,7 @@ _VIEWS: dict[Intent, tuple[list[str], list[str]]] = {
     Intent.ROUTE: (["verdict", "sea", "boundary"], ["boundaries"]),
     Intent.BOUNDARY: (["boundary"], ["boundaries", "zones"]),
     Intent.CONDITIONS: (["sea", "ocean"], ["sst", "wave"]),
-    Intent.DECLINE_ATTRIBUTION: (["ocean"], ["sst", "chlorophyll"]),
+    Intent.DECLINE_ATTRIBUTION: (["verdict", "decline", "pfz"], ["chlorophyll", "sst"]),
     Intent.EXPLAIN: (["evidence"], []),
 }
 
@@ -87,6 +87,28 @@ def _readings(state: DhruvaState, variables: set[str]) -> str:
     return "; ".join(parts)
 
 
+def _decline_line(decline: dict[str, Any] | None) -> str:
+    """Agent 4 for query #7: what the window comparison found."""
+    if not decline or decline.get("status") != "ok":
+        return "Too few years of satellite data for this box to compare; answered No data"
+    parts = []
+    for key, name in (("chlorophyll", "chlorophyll"), ("sst", "SST")):
+        c = decline["changes"].get(key)
+        if c is None:
+            continue
+        verdict = {"up": "above usual", "down": "below usual", "usual": "within usual range"}
+        parts.append(
+            f"{name} {_fmt(round(c['current'], 2))} vs usual "
+            f"{_fmt(round(c['baseline_mean'], 2))} {c['unit']} ({verdict[c['direction']]})"
+        )
+    c = decline["changes"]["chlorophyll"]
+    years = c["baseline_years"]
+    return (
+        f"Last 30 days in a 20 km box against the same weeks in "
+        f"{years[0]}-{years[-1]}: " + "; ".join(parts)
+    )
+
+
 def visualization(intent: Intent | None) -> dict[str, list[str]]:
     """Agent 7: which cards and map layers answer this question."""
     cards, layers = _VIEWS.get(intent or Intent.CONDITIONS, (["sea"], []))
@@ -134,6 +156,9 @@ def build_trace(state: DhruvaState) -> list[dict[str, Any]]:
     )
 
     ocean = _readings(state, {"sst", "chlorophyll", "current_speed", "current_direction"})
+    decline = state.get("decline_answer")
+    if intent is Intent.DECLINE_ATTRIBUTION and "ocean" in nodes:
+        ocean = _decline_line(decline)
     add(
         "Ocean analytics",
         "ocean",
@@ -201,11 +226,15 @@ def build_trace(state: DhruvaState) -> list[dict[str, Any]]:
     )
 
     language = state.get("language", "en")
+    name = _LANGUAGE_NAMES.get(language, language)
     add(
         "User interaction",
         "language",
         True,
-        f"Answer in {_LANGUAGE_NAMES.get(language, language)}, from the shipped phrasebook, "
+        f"Answer in {name}, from fixed sentences filled only from evidence rows; this "
+        f"comparison needs the network, the verdict does not"
+        if decline
+        else f"Answer in {name}, from the shipped phrasebook, "
         f"so the phone can say it again with no network",
     )
 

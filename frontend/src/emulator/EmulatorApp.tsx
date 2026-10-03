@@ -7,7 +7,7 @@ import { FIELDS, TOTAL_BITS, CAPSULE_BYTES } from "../shared/capsule/fields";
 import * as datsg from "../shared/channel/datsg";
 import { ANSWER_CHANNEL, QUESTION_CHANNEL, TARGET_CHANNEL } from "../shared/channel";
 import type { Language } from "../shared/capsule/codebook";
-import { QUESTIONS, departureTime, parseUplink, questionText, type Question } from "../shared/questions";
+import { SATELLITE_QUESTIONS as QUESTIONS, departureTime, parseUplink, questionText, type Question } from "../shared/questions";
 import { verdictLabel, verdictState, type VerdictState } from "../shared/verdict";
 import { SIGN_THEME, VerdictSign } from "../boat/VerdictSign";
 import { QrCamera } from "../shared/QrCamera";

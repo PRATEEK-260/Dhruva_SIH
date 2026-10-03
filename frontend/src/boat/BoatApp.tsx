@@ -48,6 +48,17 @@ const VOICE_NOTE: Record<VoiceSource, string> = {
   none: "No voice for this language on this phone",
 };
 
+/** What the voice says. The verdict's action line always comes first, so safety
+ * leads; for query #7 the comparison follows, in the language it was asked in. */
+function spokenText(s: Shown, lang: Language): string {
+  const lines = s.asked?.decline?.lines;
+  if (lines && lines.length > 0 && s.asked?.lang === lang) {
+    const action = verdictLabel(verdictState(s.capsule), lang).line;
+    return [action, ...lines.map((l) => l.text)].join(" ");
+  }
+  return spokenAnswer(s.capsule, lang);
+}
+
 interface Shown {
   capsule: Capsule;
   via: "online" | "satellite";
@@ -87,7 +98,7 @@ export function BoatApp() {
     async (s: Shown, l: Language) => {
       const st = verdictState(s.capsule);
       setVoice("speaking");
-      const text = spokenAnswer(s.capsule, l);
+      const text = spokenText(s, l);
       const source = await speakAdvisory({ text, lang: l, state: st, online: navigator.onLine });
       // null: a newer request took over, and it will set the label itself.
       if (source !== null) setVoice(source);
@@ -272,6 +283,8 @@ export function BoatApp() {
                 </p>
               </section>
 
+              {shown.asked?.decline && <DeclineCard shown={shown} lang={lang} />}
+
               {!suppressesFishing(state) && (
                 <FishingZone shown={shown} lang={lang} />
               )}
@@ -323,7 +336,7 @@ export function BoatApp() {
                   <section className="rounded-2xl bg-white p-4">
                     <h2 className="text-lg font-extrabold">What the voice says</h2>
                     <p lang={lang} className="text-base mt-2 leading-relaxed">
-                      {spokenAnswer(shown.capsule, lang)}
+                      {spokenText(shown, lang)}
                     </p>
                   </section>
                   {shown.asked && evidence?.items && evidence.items.length > 0 ? (
@@ -446,6 +459,60 @@ function FishingZone({ shown, lang }: { shown: Shown; lang: Language }) {
       {pfz && typeof navigator !== "undefined" && navigator.onLine && (
         <PfzMap lat={c.lat} lon={c.lon} pfz={pfz} />
       )}
+    </section>
+  );
+}
+
+const DECLINE_PART: Record<string, string> = {
+  normal: "Normal here",
+  changed: "What changed",
+  reason: "Possible reason",
+  todo: "What to do",
+};
+
+/** Query #7: the last 30 days against the same weeks in earlier years. Online
+ * only: the 145-bit message cannot carry a baseline, so there is no offline
+ * version of this card. Every figure in it is an evidence row. */
+function DeclineCard({ shown, lang }: { shown: Shown; lang: Language }) {
+  const d = shown.asked?.decline;
+  if (!d) return null;
+  const caveat = d.lines.find((l) => l.part === "caveat");
+  const body = d.lines.filter((l) => l.part !== "caveat");
+  const sameLang = shown.asked?.lang === lang;
+  return (
+    <section className="rounded-2xl bg-white p-4">
+      <div className="flex items-center gap-3">
+        <Fish className="w-7 h-7 text-sea shrink-0" />
+        <h2 className="text-lg font-extrabold leading-tight">Why the catch may have changed</h2>
+      </div>
+      {body.length === 0 ? (
+        <p className="text-base mt-3">The comparison could not be checked, so it is not shown.</p>
+      ) : (
+        <dl className="mt-3 flex flex-col gap-3">
+          {body.map((l, i) => (
+            <div key={i}>
+              {(i === 0 || body[i - 1].part !== l.part) && (
+                <dt className="text-sm font-semibold text-ink-soft">{DECLINE_PART[l.part] ?? l.part}</dt>
+              )}
+              <dd lang={shown.asked?.lang} className="text-base leading-snug">
+                {l.text}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+      {caveat && (
+        <p lang={shown.asked?.lang} className="text-sm font-semibold mt-3">
+          {caveat.text}
+        </p>
+      )}
+      <p className="text-sm text-ink-soft mt-2 leading-snug">
+        {d.status === "ok"
+          ? "Satellite data for a 20 km box around you, last 30 days against the same weeks in earlier years. "
+          : ""}
+        {sameLang ? "" : "Shown in the language it was asked in. "}
+        Sources and dates are under Show evidence.
+      </p>
     </section>
   );
 }

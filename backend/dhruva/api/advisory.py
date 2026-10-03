@@ -67,6 +67,9 @@ class AdvisoryResponse(BaseModel):
     boundaries: list[dict[str, Any]] = []
     # Nearest line of the latest fresh INCOIS PFZ advisory, or null.
     pfz: dict[str, Any] | None = None
+    # Query #7's answer: status, the rendered parts and each variable's change.
+    # Online only; the capsule cannot carry a baseline. Null for other questions.
+    decline: dict[str, Any] | None = None
     # Set only when this is a recorded run replayed (dhruva/demo/replay.py):
     # when it was recorded, and why it was used instead of a live run.
     recorded_at: str | None = None
@@ -170,6 +173,7 @@ def _from_state(state: DhruvaState) -> AdvisoryResponse:
         view=visualization(intent),
         boundaries=list(state.get("boundaries", [])),
         pfz=state.get("pfz"),
+        decline=state.get("decline_answer"),
     )
 
 

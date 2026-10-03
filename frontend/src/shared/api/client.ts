@@ -37,6 +37,32 @@ export interface EvidenceItem {
   is_forecast: boolean;
   threshold?: number | null;
   rule_id?: string | null;
+  /** Set on a value averaged over a period (query #7's 30-day window). */
+  window_start?: string | null;
+  window_end?: string | null;
+  /** Set on a baseline row: the earlier years averaged. */
+  baseline_years?: number[] | null;
+}
+
+/** Query #7: the last 30 days against the same weeks in earlier years. */
+export interface DeclineChange {
+  variable: string;
+  unit: string;
+  current: number;
+  baseline_mean: number;
+  baseline_years: number[];
+  change: number;
+  change_pct: number | null;
+  direction: "up" | "down" | "usual";
+  window_start: string;
+  window_end: string;
+}
+
+export interface DeclineAnswer {
+  status: "ok" | "no_data";
+  /** Rendered sentences, in the language asked; empty if the number check failed. */
+  lines: { part: string; text: string }[];
+  changes: Record<string, DeclineChange>;
 }
 
 export interface EvidenceBundle {
@@ -100,6 +126,7 @@ export interface AdvisoryResponse {
   trace?: TraceStep[];
   view?: { cards?: string[]; layers?: string[] };
   pfz?: NearestPfz | null;
+  decline?: DeclineAnswer | null;
   /** Set only when this answer is a recorded real run, replayed. */
   recorded_at?: string | null;
   replay_reason?: string | null;

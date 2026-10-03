@@ -22,13 +22,25 @@ from typing import Any, cast
 
 from langgraph.graph import END, START, StateGraph
 
+from dhruva.analytics.decline import DeclineAnswer
+from dhruva.analytics.decline import answer as decline_answer
+from dhruva.analytics.decline import evidence_items as decline_evidence
+from dhruva.analytics.decline import languages as decline_languages
+from dhruva.analytics.decline import render as render_decline
 from dhruva.codec.codebook import reason_index
 from dhruva.codec.codec import Capsule, encode, to_base32
 from dhruva.config import database_dsn
 from dhruva.evidence.firewall import render_template, validate
 from dhruva.evidence.schema import build_bundle, pfz_item
 from dhruva.graph.planner_model import classify_with_model
-from dhruva.graph.state import BoatClass, DhruvaState, Intent, ToolPlan, observation_for
+from dhruva.graph.state import (
+    BoatClass,
+    DhruvaState,
+    Intent,
+    RiskClass,
+    ToolPlan,
+    observation_for,
+)
 from dhruva.risk.rules import assess
 from dhruva.sources.conditions import DEFAULT_VARIABLES, conditions_at, default_adapters
 from dhruva.sources.imd_bulletin import cyclone_item
@@ -55,7 +67,9 @@ INTENT_VARIABLES: dict[Intent, tuple[Variable, ...]] = {
     Intent.BOUNDARY: (Variable.CURRENT_SPEED, Variable.CURRENT_DIRECTION),
     Intent.HAZARD: (Variable.WAVE_HEIGHT, Variable.WIND_SPEED),
     Intent.CONDITIONS: DEFAULT_VARIABLES,
-    Intent.DECLINE_ATTRIBUTION: (Variable.SST, Variable.CHLOROPHYLL),
+    # The decline comparison fetches its own 30-day windows (analytics/baseline.py);
+    # waves and wind are here so the answer still carries a real safety verdict.
+    Intent.DECLINE_ATTRIBUTION: (Variable.WAVE_HEIGHT, Variable.WIND_SPEED),
     Intent.EXPLAIN: (),
 }
 
@@ -73,7 +87,9 @@ INTENT_NODES: dict[Intent, tuple[str, ...]] = {
     Intent.BOUNDARY: ("geo", "ocean"),
     Intent.HAZARD: ("weather", "geo"),
     Intent.CONDITIONS: ("ocean", "weather"),
-    Intent.DECLINE_ATTRIBUTION: ("ocean",),
+    # ocean compares the windows, geo finds the INCOIS zone for "where to try",
+    # weather keeps the verdict real.
+    Intent.DECLINE_ATTRIBUTION: ("ocean", "weather", "geo"),
     Intent.EXPLAIN: (),
 }
 
@@ -118,6 +134,17 @@ _SIGNALS: dict[Intent, list[tuple[str, float]]] = {
         ("this season", 2),
         ("குறைந்து", 5),
         ("ஏன்", 2),
+        # "fewer fish" in the other pilot languages: Malayalam, Odia, Hindi.
+        # Each outweighs the bare fish noun that FISHING_ZONE scores.
+        ("മീൻ", 1),
+        ("കുറഞ്ഞ", 6),
+        ("എന്തുകൊണ്ട്", 2),
+        ("କମିଗଲା", 6),
+        ("କାହିଁକି", 2),
+        ("कम क्यों", 6),
+        ("मछली कम", 6),
+        ("कम हो गई", 5),
+        ("fewer fish", 6),
     ],
     Intent.BOUNDARY: [
         ("imbl", 8),
@@ -337,7 +364,20 @@ async def _fetch(state: DhruvaState, node: str, wanted: tuple[Variable, ...]) ->
 
 
 async def ocean(state: DhruvaState) -> dict[str, Any]:
-    """Node 3. SST, chlorophyll, currents."""
+    """Node 3. SST, chlorophyll, currents; for query #7, the last 30 days against
+    the same window in earlier years instead."""
+    if state.get("intent") is Intent.DECLINE_ATTRIBUTION and not _unplanned(state, "ocean"):
+        from dhruva.analytics.baseline import decline_changes
+
+        lat, lon = _point(state)
+        decline, errors = await decline_changes(
+            lat,
+            lon,
+            state.get("when") or dt.datetime.now(dt.UTC),
+            username=os.environ.get("COPERNICUSMARINE_SERVICE_USERNAME"),
+            password=os.environ.get("COPERNICUSMARINE_SERVICE_PASSWORD"),
+        )
+        return {"decline": decline, "errors": errors}
     return await _fetch(
         state,
         "ocean",
@@ -429,10 +469,27 @@ def route(state: DhruvaState) -> dict[str, Any]:
     return {"waypoints": [], "fuel_proxy": None}
 
 
+def _decline_answer(state: DhruvaState, a: Any) -> DeclineAnswer | None:
+    """Query #7's answer, or None for any other question. Deterministic, so
+    evidence() and codec() get the same one."""
+    decline = state.get("decline")
+    if state.get("intent") is not Intent.DECLINE_ATTRIBUTION or decline is None:
+        return None
+    return decline_answer(
+        decline.get("chlorophyll"),
+        decline.get("sst"),
+        state.get("pfz"),
+        no_go=a.risk_class is RiskClass.NO_GO,
+    )
+
+
 def _bundle(state: DhruvaState, a: Any) -> Any:
     """One bundle for evidence() and codec() alike, so the capsule's evidence hash
     fingerprints exactly what the evidence card shows."""
     bundle = build_bundle(state.get("observations", []), a)
+    decline = state.get("decline")
+    if decline is not None and (result := _decline_answer(state, a)) is not None:
+        bundle.items.extend(decline_evidence(result, decline["box"]))
     if pfz := state.get("pfz"):
         bundle.items.append(pfz_item(pfz))
     if src := state.get("cyclone_source"):
@@ -455,11 +512,23 @@ def evidence(state: DhruvaState) -> dict[str, Any]:
     # failure mode anyway: the template is built from bundle rows, so it cannot
     # fail its own check.
     narration = render_template(bundle)
-    check = validate(narration, bundle, language=state.get("language", "en"))
+    language = state.get("language", "en")
+    out: dict[str, Any] = {}
+    if (result := _decline_answer(state, a)) is not None:
+        # Query #7 speaks a sentence per part, picked by rule and filled only
+        # from bundle rows; the firewall still checks it, in its own language.
+        lines = render_decline(result, language)
+        narration = " ".join(line["text"] for line in lines)
+        lang_used = language if language in decline_languages() else "en"
+        out["decline_answer"] = {**result.as_dict(), "lines": lines, "language": lang_used}
+    check = validate(narration, bundle, language=language)
     if not check.passed:
         narration = render_template(bundle)
+        if "decline_answer" in out:
+            out["decline_answer"]["lines"] = []
 
     return {
+        **out,
         "evidence": bundle.model_dump(mode="json"),
         "narration": narration,
         "firewall_passed": check.passed,

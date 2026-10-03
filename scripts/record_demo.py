@@ -154,6 +154,13 @@ async def prewarm(entries: dict[str, dict[str, Any]], languages: set[str]) -> No
     texts: set[tuple[str, str]] = set()
     for entry in entries.values():
         capsule = decode(from_base32(entry["capsule_base32"]))
+        # Query #7: the phone says the verdict's action line, then the
+        # comparison, in the language it was asked in (BoatApp spokenText()).
+        decline = entry.get("decline") or {}
+        dlang = decline.get("language")
+        if decline.get("lines") and dlang in LABELS:
+            lines = " ".join(line["text"] for line in decline["lines"])
+            texts.add((dlang, f"{LABELS[dlang][state_of(capsule)]['line']} {lines}"))
         for lang in languages:
             if lang in LABELS:
                 texts.add(

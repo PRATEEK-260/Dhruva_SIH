@@ -12,6 +12,9 @@ export type Departure = "now" | "tomorrow5" | "tomorrow7";
 
 export interface Question {
   code: number;
+  /** Answerable only online: the 145-bit capsule cannot carry the answer (query
+   * #7's baseline comparison), so the terminal and the offline phone never offer it. */
+  online_only?: boolean;
   // No departure here: the question never names a time. The Leaving selector
   // decides when, so a question and the selector cannot disagree.
   text: Partial<Record<Language, string>> & { en: string };
@@ -20,6 +23,8 @@ export interface Question {
 // The list lives in questions.json so scripts/record_demo.py records exactly
 // the questions the phone offers.
 export const QUESTIONS = questionList as Question[];
+/** What the boat terminal can send: questions whose answer fits the capsule. */
+export const SATELLITE_QUESTIONS = QUESTIONS.filter((q) => !q.online_only);
 
 export function questionText(q: Question, lang: Language): string {
   return q.text[lang] ?? q.text.en;
