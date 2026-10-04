@@ -1,15 +1,15 @@
 # Build status
 
-Written 2026-09-13, updated 2026-10-03. Read this plus `CLAUDE.md` before starting work;
+Written 2026-09-13, updated 2026-10-04. Read this plus `CLAUDE.md` before starting work;
 `IMPLEMENTATION.md` holds the phase definitions and gates, and neither it nor
 `dhruva-plan.html` is re-opened mid-build.
 
-**One line:** phases 0–4 complete with their gates passing, phase 5 in progress —
-the planner routes with Gemini, voice in and out runs through Bhashini on the phone,
-the capsule rides a real DAT-SG message 41 frame, and the Render + Vercel deploy is up.
-Outstanding: Dexie offline storage, study routes, the Asterisk IVR, and narration,
-which is still the firewall's template. Gate 5 has the pieces but has not been run and
-recorded as a gate check.
+**One line:** phases 0–4 complete with their gates passing, phase 5 in progress. The
+5-day upgrade plan (`DHRUVA 5-Day Upgrade Plan.pdf`, 30 Sep) is built: all 8 of the
+brief's example queries answer by voice in five languages, IMD cyclone bulletins are
+live, and wind and the 4 m sea limit are cited to IMD. Outstanding: Dexie offline
+storage, study routes, the Asterisk IVR, model narration (still the firewall's
+template), and Gate 5 recorded as a gate check.
 
 ---
 
@@ -25,8 +25,8 @@ recorded as a gate check.
 | 5 — Interfaces | **in progress** | see below |
 | 6 — Evaluation | not started | |
 
-388 backend tests passing (15 skipped: no database, or live-model test not enabled),
-62 frontend tests passing; ruff, pyright and `tsc -b` clean (2026-10-03).
+502 backend tests passing (15 skipped: no database, or live-model test not enabled),
+67 frontend tests passing; ruff, pyright and `tsc -b` clean (2026-10-04).
 Repo: https://github.com/PRATEEK-260/Dhruva_SIH (private; checked with `gh` on
 2026-10-03). Its **default branch on GitHub is `round2-demo`**, which is why the
 scheduled `keep-render-awake` workflow runs from it. Nothing since phase 3 is merged to
@@ -35,6 +35,24 @@ scheduled `keep-render-awake` workflow runs from it. Nothing since phase 3 is me
 the last.
 
 ---
+
+## The 5-day upgrade plan (3–4 Oct)
+
+| Upgrade | Commit | What |
+|---|---|---|
+| 1 Query #7, why fish declined | `efdde20` | last 30 days vs the same weeks in 10 earlier years (GlobColour MY, OSTIA NRT/REP); worked example off Veraval in `demo-assets/decline_example_veraval.txt` (chlorophyll 1.55 vs usual 2.77, flagged down) |
+| 2 Live IMD bulletins | `516bed2`, `7618999` | National Bulletin archive read every 30 min, PDF parser, 300 km override, unreadable → CAUTION with link |
+| 3 Remaining brief queries | `6904594` | zones to avoid, alerts (+ thunderstorm forecast, TSTORM-C1), tides, high-chlorophyll water, straight-line route |
+| 4 Cited limits | `5fda4ae` | IMD Marine Weather Services SOP 7.1: wind 20 / 24.3 kt and the 4.0 m sea for every class; small-boat wave limits provisional |
+| 5 Polish | `bbd9f25` | phone UI in ta/ml/or/hi, no figures in the spoken verdict, Blocked/Unsafe repeat until "I understand", last answer on the home screen |
+
+Every new answer is rule-picked sentences in `data/phrases/*.json` (Bhashini via
+`scripts/phrases.py`), every number an evidence row, firewall-checked in the language
+asked; the firewall now reads a clock time ("06:40") as one number. Machine
+translation errors found and fixed by hand, all listed in each file's `_about`:
+weather "Depression" rendered as the illness in all four languages; Hindi/Odia
+article "एक"/"ଏକ" (also "one") read as a number; dropped negations; "to the east"
+read as a range. **Every Indic line still needs a native speaker's check.**
 
 ## Done in phase 5 so far
 
@@ -253,9 +271,10 @@ Added 2026-09-28 for the round-2 video. Nothing invents a reading.
 
 ## Known gaps, stated rather than buried
 
-- **Risk thresholds are placeholders**, not INCOIS Ocean State Forecast criteria.
-  `PROVISIONAL = True` in code, warned about in `docs/THRESHOLDS.md`. They must
-  be replaced and cited before any public claim.
+- **Risk thresholds are partly cited.** Wind (20 / 24.3 kt) and the 4.0 m sea come
+  from IMD's Marine Weather Services SOP 7.1 (`docs/THRESHOLDS.md`); the stricter
+  small-boat wave limits are provisional, and the evidence card says which a verdict
+  used. The productive-water SST range (26–30 °C) is provisional too.
 - **Keyword routing accuracy is an upper bound.** `classify()`'s weights were tuned
   against the same eval set they are measured on. The Gemini planner was not, and
   routed 57/57 of the queries it answered; 2 of 59 timed out at the 8 s limit
@@ -268,14 +287,21 @@ Added 2026-09-28 for the round-2 video. Nothing invents a reading.
   fallback answers; about 4 s would fit the latency budget better.
 - **Narration is still the template.** No model writes the answer yet. `evidence()` in
   `graph/build.py` is where it goes.
-- **`route` (node 7) is a declared stub.** It needs the A* cost grid. `codec` (node 9)
+- **`route` (node 7) is a straight-line check, not a planner.** Waves at 8 points to
+  the nearest INCOIS zone against the boat's limit; A* over a cost grid is future
+  work. `codec` (node 9)
   builds the capsule with PFZ bearing, distance and freshness from the nearest INCOIS
   line, but leaves boundary distance, type and ETA at their defaults on purpose until
   drift projection exists (see its docstring). `chl_class` also stays at its default:
   no classifier exists.
-- **PS requirements with nothing behind them yet:** tides (no source; INCOIS SAMUDRA
-  shows them), language detection, multi-turn, a lightning feed (the rule exists in
-  `risk/rules.py`, nothing feeds it), proactive alerts, charts.
+- **PS requirements with nothing behind them yet:** language detection, multi-turn,
+  a lightning *observation* feed (thunderstorms are forecast-only, from Open-Meteo
+  weather codes), proactive alerts, charts. Tides come from Open-Meteo's marine
+  model, labelled "not for navigation".
+- **Depressions trigger the 300 km override** like cyclones (IMD SOP 7.1(iv) warns
+  fishermen for them too); the phone's reason line still says "cyclone warning".
+- **IMD warning areas are not mapped.** Coast matching is a keyword table
+  (`imd_bulletin._COASTS`) that can only add CAUTION.
 - **Eval answers have no ground truth.** `eval/queries.jsonl` has
   `expected_answer: null` throughout, because IMPLEMENTATION.md wants answers
   sourced from INCOIS or IMD bulletins and those are not in hand.

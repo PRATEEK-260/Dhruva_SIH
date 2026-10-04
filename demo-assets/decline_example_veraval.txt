@@ -1,0 +1,29 @@
+DHRUVA query #7 worked example, live run 04 Oct 2026 12:51 IST
+Boat off Veraval, Gujarat (20.85N 70.25E). Rule: unusual only beyond the 10-year spread.
+
+--- en: Why are there fewer fish here?
+    verdict safe, number check passed
+    [normal] At this time of year, chlorophyll here is usually about 2.77 milligrams per cubic metre.
+    [changed] This month it is 1.55, clearly lower than the average of the last 10 years.
+    [changed] The sea temperature is close to usual.
+    [reason] A possible reason: less plankton near the surface usually means fewer small fish.
+    [todo] The nearest INCOIS fishing zone is 3 nautical miles to the south.
+    [caveat] This compares the sea, not the catch.
+    evidence:
+      chlorophyll_30d          1.549 mg m-3  copernicus_globcolour_my   2026-08-28..2026-09-26
+      chlorophyll_baseline     2.772 mg m-3  copernicus_globcolour_my   2026-08-28..2026-09-26 years 2016-2025
+      chlorophyll_change_pct   -44.110 %       copernicus_globcolour_my   2026-08-28..2026-09-26 years 2016-2025
+      baseline_years           10.000 years   copernicus_globcolour_my   2026-08-28..2026-09-26 years 2016-2025
+      sst_30d                  27.918 degC    copernicus_ostia_nrt       2026-09-04..2026-10-03
+      sst_baseline             28.242 degC    copernicus_ostia_rep       2026-09-04..2026-10-03 years 2016-2025
+      sst_difference           0.324 degC    copernicus_ostia_nrt       2026-09-04..2026-10-03 years 2016-2025
+
+--- hi: यहाँ मछली कम क्यों हो गई है?
+    verdict safe, number check passed
+    [normal] वर्ष के इस समय, यहाँ क्लोरोफिल आमतौर पर लगभग 2.77 मिलीग्राम प्रति घन मीटर होता है।
+    [changed] इस महीने यह 1.55 है, जो पिछले 10 वर्षों के औसत से स्पष्ट रूप से कम है।
+    [changed] समुद्र का तापमान सामान्य के करीब है।
+    [reason] संभावित कारणः सतह के पास कम प्लैंकटन का मतलब आमतौर पर कम छोटी मछली होती है।
+    [todo] निकटतम INCOIS मछली पकड़ने का क्षेत्र दक्षिण दिशा में 3 समुद्री मील दूर है।
+    [caveat] यह समुद्र की तुलना करता है, पकड़ की नहीं।
+
