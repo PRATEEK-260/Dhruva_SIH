@@ -4,6 +4,7 @@ building and graph invocation are dhruva.graph.build.arun's job already."""
 from __future__ import annotations
 
 import datetime as dt
+import logging
 from typing import Any
 
 import asyncpg
@@ -181,6 +182,22 @@ async def post_advisory(req: AdvisoryRequest) -> AdvisoryResponse:
     return response
 
 
+_log = logging.getLogger("dhruva.sources")
+
+
+def _public_errors(state: DhruvaState) -> list[str]:
+    """Which sources failed, by dataset and error type only. The full message
+    can carry internal paths, URLs or account details, so it goes to the server
+    log, not to whoever called the API."""
+    out = []
+    for e in state.get("errors", []):
+        _log.warning("source failed: %s %s: %s", e.dataset_id, e.variable or "", e.error)
+        kind = e.error.split(":", 1)[0].strip()
+        kind = kind if kind.replace("_", "").isalnum() and len(kind) <= 40 else "failed"
+        out.append(f"{e.dataset_id}: {kind}")
+    return out
+
+
 def _from_state(state: DhruvaState) -> AdvisoryResponse:
     risk_class = state.get("risk_class")
     evidence = state.get("evidence", {})
@@ -202,10 +219,7 @@ def _from_state(state: DhruvaState) -> AdvisoryResponse:
         pfz=state.get("pfz"),
         decline=state.get("decline_answer"),
         answer=state.get("answer"),
-        source_errors=[
-            f"{e.dataset_id}{'/' + str(e.variable) if e.variable else ''}: {e.error}"[:300]
-            for e in state.get("errors", [])
-        ],
+        source_errors=_public_errors(state),
     )
 
 
