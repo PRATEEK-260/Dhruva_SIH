@@ -1,21 +1,33 @@
 name: keep-render-awake
 
 # Render's free web service sleeps after 15 minutes without traffic, and a
-# cold start takes about a minute. Scheduled runs are often a few minutes
-# late, so ping every 10 minutes rather than 15. 750 free instance hours a
-# month cover one service running around the clock.
+# cold start takes about a minute. GitHub starts scheduled runs hours apart
+# when it is busy, so one ping per run left the backend asleep most of the
+# day. Each run now stays up for close to six hours (the job limit) and pings
+# every 5 minutes; the concurrency group queues the next run behind it. The
+# repository is public, so Actions minutes are free. 750 free Render instance
+# hours a month cover one service running around the clock.
 # Scheduled workflows only run from the default branch.
 on:
   schedule:
-    - cron: "*/10 * * * *"
+    - cron: "7 * * * *"
   workflow_dispatch:
+
+concurrency:
+  group: keep-render-awake
+  cancel-in-progress: false
 
 jobs:
   ping:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 355
     steps:
-      - name: Ping the backend
+      - name: Ping the backend every 5 minutes
         env:
           RENDER_URL: https://dhruva-api.onrender.com
-        run: curl -fsS -m 120 --retry 3 --retry-delay 15 "$RENDER_URL/api/health"
+        run: |
+          end=$(( $(date +%s) + 345 * 60 ))
+          while [ "$(date +%s)" -lt "$end" ]; do
+            curl -sS -m 120 -o /dev/null -w "%{http_code} in %{time_total}s\n" "$RENDER_URL/api/health" || echo "ping failed"
+            sleep 300
+          done
