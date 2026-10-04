@@ -50,8 +50,8 @@ api=$!
 		# INCOIS fishing-zone lines: the image's snapshot goes stale in 3 days
 		# (an older advisory is not shown), so read INCOIS's map service again.
 		# A failed read keeps the last lines; they still expire by their date.
-		/opt/api/bin/python -m dhruva.sources.pfz_wfs >>/tmp/pfz_wfs.log 2>&1 || true
-		/opt/api/bin/python -m dhruva.sources.imd_feed >>/tmp/imd_feed.log 2>&1 || true
+		nice -n 19 /opt/api/bin/python -m dhruva.sources.pfz_wfs >>/tmp/pfz_wfs.log 2>&1 || true
+		nice -n 19 /opt/api/bin/python -m dhruva.sources.imd_feed >>/tmp/imd_feed.log 2>&1 || true
 		# Warm the Copernicus answers for the demo places. On 0.1 CPU a first
 		# fetch takes over two minutes, past Vercel's limit for a proxied
 		# request; results are cached per place and day, so a later ask there

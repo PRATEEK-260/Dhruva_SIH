@@ -191,3 +191,22 @@ def test_copernicus_off_fails_the_fetch_without_importing(monkeypatch):
     monkeypatch.setenv("DHRUVA_COPERNICUS", "off")
     with pytest.raises(RuntimeError, match="off on this server"):
         fetch_grid("x", ["CHL"], lat_min=0, lat_max=1, lon_min=0, lon_max=1, start=None, end=None)  # type: ignore[arg-type]
+
+
+def test_point_copernicus_can_be_skipped_on_a_slow_host(monkeypatch):
+    import asyncio
+    import datetime as dt
+
+    from dhruva.sources.copernicus import CopernicusAdapter
+    from dhruva.sources.registry import Registry, Variable
+
+    monkeypatch.setenv("DHRUVA_COPERNICUS_POINT", "off")
+    entry = next(
+        e for e in Registry.load("data/registry.yaml").datasets if e.id == "copernicus_wav"
+    )
+    out = asyncio.run(
+        CopernicusAdapter().fetch(
+            entry, [Variable.WAVE_HEIGHT], 11.05, 79.95, dt.datetime.now(dt.UTC)
+        )
+    )
+    assert out.observations == [] and out.errors[0].error == "skipped on this server"

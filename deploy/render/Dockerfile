@@ -45,11 +45,13 @@ RUN initdb -U dhruva --auth=trust -D "$PGDATA" >/dev/null \
 		-f /app/boundaries.sql -f /app/pfz.sql >/dev/null \
 	&& pg_ctl -D "$PGDATA" -w stop
 
+# DHRUVA_COPERNICUS_POINT=off: point readings come from Open-Meteo only here;
+# on 0.1 CPU a Copernicus point fetch made every question time out.
 # DHRUVA_COPERNICUS_SUBPROCESS=1: each Copernicus fetch runs in a process that
 # exits when done. In process, every new place asked left 60-140 MB behind and
 # the 512 MB instance died after a few; a child gives it all back.
 ENV DHRUVA_DATA_DIR=/data DHRUVA_REGISTRY=/data/registry.yaml ENV=prod PORT=10000 \
 	DHRUVA_REQUIRED_EXTENSIONS=postgis DHRUVA_COPERNICUS_SUBPROCESS=1 \
-	INCOIS_CA_BUNDLE=/data/ca/incois-bundle.pem
+	INCOIS_CA_BUNDLE=/data/ca/incois-bundle.pem DHRUVA_COPERNICUS_POINT=off
 EXPOSE 10000
 CMD ["/app/start.sh"]

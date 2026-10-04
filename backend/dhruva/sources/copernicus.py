@@ -158,6 +158,16 @@ class CopernicusAdapter:
         lon: float,
         when: dt.datetime,
     ) -> FetchOutcome:
+        # Point readings (the weather and ocean agents, where Copernicus is one
+        # of two providers) can be switched off on a slow host. On Render's 0.1
+        # CPU each one started a fetch process taking over a minute and queued
+        # behind the 10-year fetches, so every question timed out. Off there,
+        # Open-Meteo answers alone, as before 4 Oct; the analyses that need
+        # Copernicus (query #7, productive water) still use it.
+        if os.environ.get("DHRUVA_COPERNICUS_POINT", "on").lower() == "off":
+            return FetchOutcome(
+                errors=[FetchError(dataset_id=entry.id, error="skipped on this server")]
+            )
         wanted = [v for v in variables if v in entry.variables]
         if not wanted:
             return FetchOutcome()
@@ -402,7 +412,17 @@ def _open_in_subprocess(
             env["COPERNICUSMARINE_SERVICE_USERNAME"] = username
             env["COPERNICUSMARINE_SERVICE_PASSWORD"] = password or ""
         done = subprocess.run(
-            [sys.executable, "-m", "dhruva.sources.copernicus", json.dumps(job)],
+            # Lowest CPU priority: on a shared 0.1 CPU a fetch must never starve
+            # the API answering a fisherman.
+            [
+                "nice",
+                "-n",
+                "19",
+                sys.executable,
+                "-m",
+                "dhruva.sources.copernicus",
+                json.dumps(job),
+            ],
             env=env,
             capture_output=True,
             text=True,
