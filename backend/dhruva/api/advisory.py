@@ -79,6 +79,9 @@ class AdvisoryResponse(BaseModel):
     # The spoken answer for the brief's other example queries (answers/):
     # kind ("avoid", "thunder", "tide", "productive", "route"), status, lines.
     answer: dict[str, Any] | None = None
+    # Sources that were asked and did not answer, with why. A missing figure is
+    # never guessed, so the reason it is missing is worth showing.
+    source_errors: list[str] = []
     # Set only when this is a recorded run replayed (dhruva/demo/replay.py):
     # when it was recorded, and why it was used instead of a live run.
     recorded_at: str | None = None
@@ -199,6 +202,10 @@ def _from_state(state: DhruvaState) -> AdvisoryResponse:
         pfz=state.get("pfz"),
         decline=state.get("decline_answer"),
         answer=state.get("answer"),
+        source_errors=[
+            f"{e.dataset_id}{'/' + str(e.variable) if e.variable else ''}: {e.error}"[:300]
+            for e in state.get("errors", [])
+        ],
     )
 
 
