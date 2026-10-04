@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DHRUVA Deck and Video Changes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column; slide and scene changes as old → new rows, priority marked by a signal stripe like the app's own verdict colours. */
+:root {
+  --paper: #f5f8f9;
+  --surface: #ffffff;
+  --ink: #12242f;
+  --ink-soft: #4d6270;
+  --rule: #d6e1e6;
+  --sea: #0e6178;
+  --sea-soft: #e3f0f3;
+  --must: #b4231c;
+  --must-soft: #fbe9e7;
+  --should: #a86a00;
+  --should-soft: #fbf1dc;
+  --nice: #1d7a4a;
+  --nice-soft: #e4f3ea;
+  --old: #8a5a57;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d1820; --surface: #13222c; --ink: #e5eef2; --ink-soft: #9fb3bf; --rule: #24384473;
+    --sea: #5fb8cf; --sea-soft: #15313b; --must: #ff8a80; --must-soft: #3a1b1a; --should: #f2b84b;
+    --should-soft: #352a12; --nice: #6ed39b; --nice-soft: #15301f; --old: #d6a29e; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d1820; --surface: #13222c; --ink: #e5eef2; --ink-soft: #9fb3bf; --rule: #24384473;
+  --sea: #5fb8cf; --sea-soft: #15313b; --must: #ff8a80; --must-soft: #3a1b1a; --should: #f2b84b;
+  --should-soft: #352a12; --nice: #6ed39b; --nice-soft: #15301f; --old: #d6a29e; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.55 var(--body); }
+.wrap { max-width: 980px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 64px; }
+h1, h2, h3 { font-family: var(--display); letter-spacing: .01em; text-wrap: balance; margin: 0; line-height: 1.1; }
+h1 { font-size: clamp(2.1rem, 5vw, 3rem); }
+h2 { font-size: 1.75rem; margin-top: 48px; padding-top: 18px; border-top: 2px solid var(--ink); }
+h3 { font-size: 1.3rem; }
+p { margin: 0; max-width: 68ch; }
+.lede { color: var(--ink-soft); margin-top: 10px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.chip { font: 600 .75rem/1 var(--mono); padding: 6px 9px; border-radius: 4px; background: var(--sea-soft); color: var(--sea); }
+.key { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 14px; font-size: .9rem; color: var(--ink-soft); }
+.key span { display: inline-flex; align-items: center; gap: 6px; }
+.dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.must .dot, .dot.must { background: var(--must); }
+.dot.should { background: var(--should); }
+.dot.nice { background: var(--nice); }
+.section-note { margin-top: 10px; color: var(--ink-soft); }
+
+/* top list */
+ol.top { list-style: none; counter-reset: n; padding: 0; margin: 18px 0 0; display: grid; gap: 10px; }
+ol.top li { counter-increment: n; display: grid; grid-template-columns: 2.2rem 1fr; gap: 12px; align-items: start;
+  background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--must); border-radius: 4px; padding: 12px 14px; }
+ol.top li::before { content: counter(n); font: 700 1.4rem/1 var(--display); color: var(--must); }
+ol.top li div { min-width: 0; }
+ol.top b { display: block; }
+
+/* change rows */
+.slide { margin-top: 26px; }
+.slide-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 10px; }
+.slide-head .num { font: 700 .8rem/1 var(--mono); color: var(--sea); background: var(--sea-soft); padding: 5px 7px; border-radius: 3px; }
+.changes { margin-top: 10px; display: grid; gap: 8px; }
+.change { background: var(--surface); border: 1px solid var(--rule); border-left: 5px solid var(--nice); border-radius: 4px;
+  padding: 12px 14px; display: grid; gap: 8px; min-width: 0; }
+.change.must { border-left-color: var(--must); }
+.change.should { border-left-color: var(--should); }
+.where { font: 600 .78rem/1.3 var(--mono); color: var(--ink-soft); text-transform: uppercase; letter-spacing: .04em; }
+.oldnew { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+@media (max-width: 640px) { .oldnew { grid-template-columns: 1fr; } }
+.oldnew > div { min-width: 0; padding: 8px 10px; border-radius: 3px; }
+.was { background: var(--must-soft); color: var(--old); }
+.now { background: var(--nice-soft); }
+.oldnew .lab { display: block; font: 600 .7rem/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 4px; opacity: .8; }
+.was s { text-decoration-thickness: 1px; }
+.why { color: var(--ink-soft); font-size: .92rem; }
+
+/* scenes */
+.scene { margin-top: 22px; }
+.scene .time { font: 600 .8rem/1 var(--mono); color: var(--ink-soft); }
+blockquote { margin: 0; padding: 8px 12px; border-left: 3px solid var(--sea); background: var(--sea-soft); max-width: 72ch; }
+.ok { color: var(--nice); font-weight: 700; }
+
+/* tables */
+.tbl { overflow-x: auto; margin-top: 12px; border: 1px solid var(--rule); border-radius: 4px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: .94rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 .75rem/1.2 var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--ink-soft); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px; }
+@media (max-width: 640px) { .cols { grid-template-columns: 1fr; } }
+.box { background: var(--surface); border: 1px solid var(--rule); border-radius: 4px; padding: 14px 16px; min-width: 0; }
+.box h3 { margin-bottom: 8px; }
+.box.say { border-top: 4px solid var(--nice); }
+.box.dont { border-top: 4px solid var(--must); }
+ul { margin: 0; padding-left: 1.1rem; display: grid; gap: 6px; }
+code, .mono { font-family: var(--mono); font-size: .88em; }
+.check li { list-style: none; position: relative; padding-left: 1.6rem; }
+.check { padding-left: 0; }
+.check li::before { content: ""; position: absolute; left: 0; top: .25em; width: 1em; height: 1em; border: 2px solid var(--sea); border-radius: 3px; }
+.pending { background: var(--should-soft); border: 1px solid var(--should); border-radius: 4px; padding: 12px 14px; margin-top: 14px; }
+.pending b { color: var(--should); }
+a { color: var(--sea); }
+a:focus-visible { outline: 2px solid var(--sea); outline-offset: 2px; }
+footer { margin-top: 48px; color: var(--ink-soft); font-size: .9rem; }
+</style>
+
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>DHRUVA Deck and Video Changes</h1>
+    <p class="lede">What has to change in the Idea deck (DHRUVA_SIH26176_Idea.pdf, 6 slides) and the 3-minute video script after the 3–4 October build. Each change shows the current text and the replacement, with the reason.</p>
+    <div class="meta">
+      <span class="chip">SIH26176 · Team SMZA</span>
+      <span class="chip">Build up to commit 5009994</span>
+      <span class="chip">Prepared 4 Oct 2026</span>
+    </div>
+    <div class="key">
+      <span><i class="dot must"></i>Must fix: now wrong or misleading</span>
+      <span><i class="dot should"></i>Should: shows new work</span>
+      <span><i class="dot nice"></i>Nice to have</span>
+    </div>
+  </header>
+
+  <h2>Fix these first</h2>
+  <p class="section-note">These eight items are wrong after this week's changes. A judge who opens the live site will see the difference.</p>
+  <ol class="top">
+    <li><div><b>Slide 6 · "Git repository" links to the shore console</b>The link is <span class="mono">dhruva-tau.vercel.app/shore</span>, not a repository. The repo on GitHub is private. Either make it public and link <span class="mono">github.com/PRATEEK-260/Dhruva_SIH</span>, or rename the heading to "Shore console".</div></li>
+    <li><div><b>Slide 5 · the map screenshot says "No live IMD cyclone feed is connected yet"</b>IMD bulletins are now live. Retake the Warn boats screenshot.</div></li>
+    <li><div><b>Slide 4 · "412 automated tests"</b>Now 569: 502 backend and 67 frontend, all passing on 4 Oct.</div></li>
+    <li><div><b>Slide 4 · Safety limits risk says "not yet official"</b>Wind limits and the 4 m sea are now cited to IMD's own fishermen-warning criteria.</div></li>
+    <li><div><b>Slide 3 · the diagram marks the IMD bulletin "STORED"</b>It is now read live from IMD's archive every 30 minutes.</div></li>
+    <li><div><b>Slide 2 · "Answers the brief's questions" lists five</b>All eight example queries now have a spoken answer.</div></li>
+    <li><div><b>Video scene 9 · "Next: live IMD feeds"</b>That is built. Move it to "built" and name a different next step.</div></li>
+    <li><div><b>Video scene 3 · "Use the demo cyclone position"</b>That button is now labelled a test input. Use "Use Cyclone Michaung, 4 Dec 2023 (IMD)", which takes IMD's real bulletin.</div></li>
+  </ol>
+
+  <h2>Deck, slide by slide</h2>
+
+  <section class="slide">
+    <div class="slide-head"><span class="num">SLIDE 1</span><h3>Title</h3></div>
+    <div class="changes">
+      <div class="change"><span class="where">No change needed</span><p>Problem statement, theme, team ID and tagline are all still correct.</p></div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide-head"><span class="num">SLIDE 2</span><h3>DHRUVA: An Answer for Every Boat</h3></div>
+    <div class="changes">
+      <div class="change must">
+        <span class="where">How it addresses the problem · second bullet</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span><s>Answers the brief's questions: safe to venture, nearest fishing zone, cyclone alerts, sea state, way home.</s></div>
+          <div class="now"><span class="lab">Change to</span>Answers all eight of the brief's example questions by voice: safe to venture, nearest fishing zone, tides and sea state, cyclone and thunderstorm alerts, high-chlorophyll water, safest route, why the catch fell, and zones to avoid.</div>
+        </div>
+      </div>
+      <div class="change should">
+        <span class="where">TRUST card</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>A rule engine decides, not a language model. Every number shows its source and time.</div>
+          <div class="now"><span class="lab">Change to</span>A rule engine decides, using IMD's own limits for warning fishermen. Every number shows its source and time.</div>
+        </div>
+      </div>
+      <div class="change should">
+        <span class="where">Both phone screenshots</span>
+        <p>Retake both. The phone is now in Tamil throughout (buttons, labels, "Leaving" times). The Blocked screen has an "I understand" button and keeps speaking until it is tapped. The Safe screen shows "No active IMD cyclone bulletin. Last checked …".</p>
+        <p class="why">Take them at 412 px width so they match the current layout.</p>
+      </div>
+      <div class="change">
+        <span class="where">Innovation · second bullet</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>Readable without reading: colour + shape + word, and the warning speaks by itself.</div>
+          <div class="now"><span class="lab">Change to</span>Readable without reading: colour + shape + word. A Blocked warning speaks by itself and repeats until the crew taps "I understand".</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide-head"><span class="num">SLIDE 3</span><h3>Technical approach</h3></div>
+    <div class="changes">
+      <div class="change must">
+        <span class="where">Architecture diagram · Outside data column</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>IMD bulletin · stored PDF + hash · STORED</div>
+          <div class="now"><span class="lab">Change to</span>IMD National Bulletins · read every 30 min, parsed from PDF · LIVE</div>
+        </div>
+        <p class="why">The backend reads RSMC New Delhi's National Bulletin archive, keeps each PDF with its hash, and parses centre, track, category and fishermen warning.</p>
+      </div>
+      <div class="change should">
+        <span class="where">Architecture diagram · Copernicus box</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>Copernicus Marine · SST · chlorophyll · currents · LIVE</div>
+          <div class="now"><span class="lab">Change to</span>Copernicus Marine · SST · chlorophyll · currents · 10-year satellite record · LIVE</div>
+        </div>
+      </div>
+      <div class="change should">
+        <span class="where">Architecture diagram · Open-Meteo box</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>marine · wind · ERA5</div>
+          <div class="now"><span class="lab">Change to</span>marine · wind · ERA5 · tides · thunderstorm forecast</div>
+        </div>
+      </div>
+      <div class="change should">
+        <span class="where">Methodology · step 3</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>Decide: rule table per boat class; any cyclone warning = No-go.</div>
+          <div class="now"><span class="lab">Change to</span>Decide: rule table per boat class, wind and sea limits from IMD's fishermen-warning criteria; any cyclone warning = No-go.</div>
+        </div>
+      </div>
+      <div class="change">
+        <span class="where">Technologies · Data line</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>Data: INCOIS PFZ, IMD, Open-Meteo, Copernicus Marine</div>
+          <div class="now"><span class="lab">Change to</span>Data: INCOIS PFZ, IMD National Bulletins (live), Open-Meteo, Copernicus Marine (GlobColour, OSTIA)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide-head"><span class="num">SLIDE 4</span><h3>Feasibility and viability</h3></div>
+    <div class="changes">
+      <div class="change must">
+        <span class="where">Stat tile</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>412 · automated tests</div>
+          <div class="now"><span class="lab">Change to</span>569 · automated tests</div>
+        </div>
+      </div>
+      <div class="change must">
+        <span class="where">Risk row · Safety limits</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>Wave and wind limits not yet official · Med · Marked provisional; replace with INCOIS Ocean State Forecast criteria…</div>
+          <div class="now"><span class="lab">Change to</span>Small-boat wave limits not yet official · Low · Wind and the 4 m sea limit are IMD's own fishermen-warning criteria (Marine SOP §7.1), cited on every answer; small-boat wave limits are labelled provisional.</div>
+        </div>
+      </div>
+      <div class="change must">
+        <span class="where">Caption under the boat-terminal screenshot</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>…and the cyclone position from IMD's own advisory.</div>
+          <div class="now"><span class="lab">Change to</span>…and the cyclone position from IMD's National Bulletin No. 19, read from the PDF by DHRUVA's bulletin parser.</div>
+        </div>
+      </div>
+      <div class="change should">
+        <span class="where">Risk row · Data access, strategy column</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>Source and time on every value; INCOIS zones read from its public map service; MOSDAC registration…</div>
+          <div class="now"><span class="lab">Change to</span>Source and time on every value; INCOIS zones from its public map service; IMD bulletins read live from its archive, and one that cannot be read gives Caution with its link.</div>
+        </div>
+      </div>
+      <div class="change should">
+        <span class="where">Risk row · Language, strategy column</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>A fixed phrasebook reviewed by native speakers…</div>
+          <div class="now"><span class="lab">Change to</span>Fixed sentences, checked by tests and by native speakers. Machine translation turned the weather word "Depression" into the illness in all four languages; we caught and fixed it.</div>
+        </div>
+        <p class="why">Say "reviewed by native speakers" only once the review has actually happened.</p>
+      </div>
+      <div class="change">
+        <span class="where">Boat-terminal screenshot</span>
+        <p>Optional retake. The cyclone button now reads "Simulate a cyclone warning, 97 nm (test input)".</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide-head"><span class="num">SLIDE 5</span><h3>Impact and benefits</h3></div>
+    <div class="changes">
+      <div class="change must">
+        <span class="where">Map screenshot</span>
+        <p>Retake it. The yellow box in the current shot says "Test input. No live IMD cyclone feed is connected yet", which is no longer true. Use <b>Use Cyclone Michaung, 4 Dec 2023 (IMD)</b> so the ring sits on IMD's real centre, then run "Work out each boat's message".</p>
+        <p class="why">The wind limit changed (no-go is now 24.3 kt for every boat), so count the Blocked and Safe boats again from the new screen. Don't reuse the old numbers.</p>
+      </div>
+      <div class="change should">
+        <span class="where">Potential impact · "Before leaving" bullet</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>Before leaving: one spoken question gives go or no-go and the nearest fishing zone.</div>
+          <div class="now"><span class="lab">Change to</span>Before leaving: one spoken question gives go or no-go, the nearest fishing zone, the tides, and whether the sea explains a poor catch.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="slide-head"><span class="num">SLIDE 6</span><h3>Research and references</h3></div>
+    <div class="changes">
+      <div class="change must">
+        <span class="where">Our working prototype · Git repository</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>Git repository · https://dhruva-tau.vercel.app/shore</div>
+          <div class="now"><span class="lab">Change to</span>Shore console · dhruva-tau.vercel.app/shore. Add a repository link only if the repo is made public.</div>
+        </div>
+      </div>
+      <div class="change must">
+        <span class="where">Data and language · IMD line</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>IMD RSMC advisory, Cyclone Michaung, 4 Dec 2023.</div>
+          <div class="now"><span class="lab">Change to</span>IMD RSMC New Delhi, National Bulletin No. 19 (BOB/06/2023), Cyclone Michaung, 4 Dec 2023. rsmcnewdelhi.imd.gov.in</div>
+        </div>
+      </div>
+      <div class="change should">
+        <span class="where">Data and language · add three lines</span>
+        <ul>
+          <li>IMD, Marine Weather Services SOP, §7.1 Criteria for fishermen warnings. rsmcnewdelhi.imd.gov.in</li>
+          <li>Copernicus GlobColour L4 multi-year chlorophyll and OSTIA sea temperature. marine.copernicus.eu</li>
+          <li>IMD RSMC New Delhi, National Bulletin archive (read live). rsmcnewdelhi.imd.gov.in</li>
+        </ul>
+      </div>
+      <div class="change">
+        <span class="where">Explanation video link</span>
+        <p>Replace <span class="mono">youtu.be/oudzi-lq6Fk</span> once the new video is uploaded.</p>
+      </div>
+    </div>
+  </section>
+
+  <h2>Video, scene by scene</h2>
+  <p class="section-note">Timings stay within 3:00. Scenes not listed here need no change.</p>
+
+  <section class="scene">
+    <span class="time">0:00–0:14</span>
+    <h3>Scene 1 · Cold open</h3>
+    <div class="changes">
+      <div class="change should">
+        <span class="where">What to show</span>
+        <p>The button now reads "Simulate a cyclone warning, 97 nm (test input)". Keep it, since the scene has no voiceover. After the phone speaks, let it repeat once, then tap <b>I understand</b> on camera. That shows the new behaviour in two seconds.</p>
+        <p class="why">The spoken warning is now the action and one reason, with no figures. It is shorter and clearer for the cold open.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene">
+    <span class="time">0:30–1:02</span>
+    <h3>Scene 3 · Real storm, a message for each boat</h3>
+    <div class="changes">
+      <div class="change must">
+        <span class="where">What to show</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>"Warn boats" → "Use the demo cyclone position" → red danger ring…</div>
+          <div class="now"><span class="lab">Change to</span>"Warn boats" → "Use Cyclone Michaung, 4 Dec 2023 (IMD)" → red ring on IMD's centre → "Work out each boat's message"</div>
+        </div>
+      </div>
+      <div class="change should">
+        <span class="where">Voiceover · add one sentence after "against fixed safety rules."</span>
+        <blockquote>"The cyclone's position comes straight from IMD's own bulletin for that hour, read by DHRUVA."</blockquote>
+        <p class="why">This is now true, so the checklist rule "do not say a real IMD bulletin was used unless it is shown" is met. Show the bulletin row under Show evidence for one second.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene">
+    <span class="time">1:02–1:38</span>
+    <h3>Scene 4 · The fisherman asks</h3>
+    <div class="changes">
+      <div class="change should">
+        <span class="where">What to show</span>
+        <p>Unchanged flow. The whole screen is now in Tamil, including "Tomorrow 5 AM". Under Show evidence, hold on the wind row: it now reads "Limit from IMD Marine Weather Services SOP, 7.1(i)" instead of a rule code.</p>
+      </div>
+      <div class="change should">
+        <span class="where">Voiceover · last sentence</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>"Every number can be traced to its source, time and the safety rule checked."</div>
+          <div class="now"><span class="lab">Change to</span>"Every number can be traced to its source and time, and the safety limits come from IMD's own rules for warning fishermen."</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene">
+    <span class="time">1:38–1:43</span>
+    <h3>Scene 5 · Languages</h3>
+    <div class="changes">
+      <div class="change">
+        <span class="where">What to show</span>
+        <p>Switching language now changes every label on the screen, not only the verdict. It reads better on video; no script change is needed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene">
+    <span class="time">2:38–2:50</span>
+    <h3>Scene 8 · Coverage of the brief</h3>
+    <div class="changes">
+      <div class="change must">
+        <span class="where">Slide shown</span>
+        <p>Rebuild the coverage slide: 9 of 9 agents, 8 of 8 example queries answered. Mark these as built: safe to venture, nearest fishing zone, tides and sea state, cyclone and thunderstorm alerts, high-chlorophyll water, why the catch fell, zones to avoid. Mark this one as partly built: safest route, a straight-line check against wave limits and storms, not navigation.</p>
+      </div>
+      <div class="change should">
+        <span class="where">Add a 4-second insert</span>
+        <p>Show the Query #7 worked example as a still: off Veraval, Gujarat, on 4 Oct, chlorophyll was 1.55 against a usual 2.77 for the same weeks in 2016–2025. DHRUVA says it is "clearly lower than the average of the last 10 years", gives the possible reason (less plankton near the surface), and points to the INCOIS zone 3 nm south. The text is in <span class="mono">demo-assets/decline_example_veraval.txt</span>.</p>
+        <p class="why">The phone's demo position is off Karaikal, where chlorophyll is currently high, so the drop cannot be shown live from the phone. Use the saved run.</p>
+      </div>
+      <div class="change">
+        <span class="where">Voiceover</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span>"The SIH brief asks for nine agents and eight kinds of questions. Here is what we have built — and what comes next."</div>
+          <div class="now"><span class="lab">Change to</span>"The SIH brief asks for nine agents and eight kinds of questions. DHRUVA answers all eight, including why the catch has fallen, from ten years of satellite data."</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="scene">
+    <span class="time">2:50–2:57</span>
+    <h3>Scene 9 · Deployment</h3>
+    <div class="changes">
+      <div class="change must">
+        <span class="where">Voiceover · last sentence</span>
+        <div class="oldnew">
+          <div class="was"><span class="lab">Now</span><s>"Next: live IMD feeds, deeper Nabhmitra integration, more queries and more languages."</s></div>
+          <div class="now"><span class="lab">Change to</span>"IMD's cyclone bulletins already feed it live. Next: Nabhmitra integration, lightning observations and more languages."</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <h2>Numbers to quote</h2>
+  <p class="section-note">Each one can be checked against the code or a saved run. Don't round them differently in the deck and the video.</p>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Claim</th><th>Value</th><th>Source</th></tr></thead>
+      <tbody>
+        <tr><td>Automated tests</td><td class="num">569</td><td>502 backend + 67 frontend, all passing, 4 Oct</td></tr>
+        <tr><td>Example queries answered</td><td class="num">8 of 8</td><td>The brief's list; route is a straight-line check</td></tr>
+        <tr><td>Whole answer in one message</td><td class="num">145 bits</td><td>Unchanged</td></tr>
+        <tr><td>Languages on the phone</td><td class="num">5</td><td>Tamil, Malayalam, Odia, Hindi, English</td></tr>
+        <tr><td>Wind caution limit</td><td class="num">20 kt</td><td>IMD Marine Weather Services SOP §7.1(i)</td></tr>
+        <tr><td>Wind no-go limit</td><td class="num">45 kmph (24.3 kt)</td><td>IMD Marine Weather Services SOP §7.1(ii)</td></tr>
+        <tr><td>Sea no-go limit, all boats</td><td class="num">4.0 m</td><td>IMD Marine Weather Services SOP §7.1(iii)</td></tr>
+        <tr><td>Michaung centre, 0530 IST 4 Dec 2023</td><td class="num">13.2 N, 81.2 E</td><td>IMD National Bulletin No. 19 (BOB/06/2023)</td></tr>
+        <tr><td>Veraval chlorophyll, last 30 days</td><td class="num">1.55 vs 2.77</td><td>Copernicus GlobColour, same weeks 2016–2025</td></tr>
+        <tr><td>Satellite baseline</td><td class="num">10 years</td><td>2016–2025</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2>Say and don't say</h2>
+  <div class="cols">
+    <div class="box say">
+      <h3>Say</h3>
+      <ul>
+        <li>IMD's cyclone bulletins are read live from its own archive.</li>
+        <li>Wind and sea limits come from IMD's criteria for warning fishermen.</li>
+        <li>Thunderstorms are a forecast, and DHRUVA says so.</li>
+        <li>Tide times are a model estimate, not for navigation.</li>
+        <li>The route is a straight-line check against wave limits and storms.</li>
+        <li>The fish-decline answer compares the sea, not the catch.</li>
+      </ul>
+    </div>
+    <div class="box dont">
+      <h3>Don't say</h3>
+      <ul>
+        <li>"DHRUVA detects lightning". There is no lightning observation feed.</li>
+        <li>"Safest route navigation". It is a reference line, not a route planner.</li>
+        <li>"All safety limits are official". Small-boat wave limits are still provisional.</li>
+        <li>"Fish declined because of…". The answer only says "a possible reason".</li>
+        <li>"Reviewed by native speakers", until the review is done.</li>
+        <li>"Connected to Nabhmitra". It is still simulated.</li>
+      </ul>
+    </div>
+  </div>
+
+  <h2>Before recording</h2>
+  <div class="pending">
+    <p><b>Production now runs live Copernicus data (fixed 4 Oct).</b> The free server is slow for the first satellite answer at a new place each day (over two minutes), longer than the public site waits, so that first ask can show an error page; asking again works. The demo point and Veraval are pre-loaded every 30 minutes, so they answer in seconds. Film the fish-decline and chlorophyll answers at those places, or from the local app.</p>
+  </div>
+  <ul class="check" style="margin-top:14px">
+    <li>Open <span class="mono">dhruva-api.onrender.com/api/health</span> 2 minutes before recording. The free server sleeps, and its first satellite answer takes up to a minute.</li>
+    <li>Refresh the INCOIS fishing zones on the day of filming. An advisory older than 3 days is not shown.</li>
+    <li>Recorded runs were re-made on 4 Oct. Re-record on the filming day if the "Leaving tomorrow" answers matter.</li>
+    <li>Take every screenshot at 100% zoom, phone width 412 px, after this week's changes.</li>
+    <li>Have a Tamil speaker check the Tamil you show on screen, especially new labels and the thunderstorm line.</li>
+    <li>Keep the narrator silent whenever the phone speaks.</li>
+  </ul>
+
+  <footer>
+    <p>Prepared from the code at commit 5009994 on branch round2-demo, the Idea deck PDF and DHRUVA_3_Minute_FINAL_Edited_Script. Advisory only: follow official INCOIS and IMD warnings.</p>
+  </footer>
+</div>
+
+</body>
+</html>
