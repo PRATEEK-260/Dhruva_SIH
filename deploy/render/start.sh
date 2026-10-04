@@ -44,8 +44,20 @@ api=$!
 # check must not restart the backend.
 (
 	cd /app/backend
+	until curl -sf -o /dev/null "$API/health"; do sleep 2; done
 	while true; do
 		/opt/api/bin/python -m dhruva.sources.imd_feed >>/tmp/imd_feed.log 2>&1 || true
+		# Warm the Copernicus answers for the demo places. On 0.1 CPU a first
+		# fetch takes over two minutes, past Vercel's limit for a proxied
+		# request; results are cached per place and day, so a later ask there
+		# answers in seconds. Cheap when already warm; refetches on a new day.
+		for spot in "11.05 79.95" "20.85 70.25"; do
+			set -- $spot
+			for q in "Why are there fewer fish here?" "Where is the water with high chlorophyll and good temperature?"; do
+				curl -s -o /dev/null -m 600 -X POST "$API/advisory" -H 'content-type: application/json' \
+					-d "{\"query\":\"$q\",\"lat\":$1,\"lon\":$2,\"language\":\"en\",\"log\":false}" || true
+			done
+		done
 		sleep 1800
 	done
 ) &
