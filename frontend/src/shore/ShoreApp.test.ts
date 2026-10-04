@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { tilejsonUrl } from "./ShoreApp";
+import { imageCorners } from "./ShoreApp";
+import rasterManifest from "../../public/rasters/manifest.json";
 import { ageLabel, displayStatus, filterRequests, inCapsuleGrid } from "./status";
 import { asBundle, utcStamp } from "./InspectPanel";
 import type { AdvisoryLogEntry, RasterLayer } from "../shared/api/client";
@@ -12,6 +13,8 @@ const layer = (name: string, file: string): RasterLayer => ({
   unit: "",
   valid_time: null,
   generated_at: "2026-09-14T00:00:00Z",
+  image: `/rasters/${name}.png`,
+  bounds: [66, 6, 94, 24],
 });
 
 const entry = (id: number, risk_class: string): AdvisoryLogEntry => ({
@@ -31,27 +34,24 @@ describe("displayStatus", () => {
   });
 });
 
-describe("tilejsonUrl", () => {
-  it("builds the SST layer URL with its rescale and colormap", () => {
-    const url = tilejsonUrl(layer("sst", "sst.tif"));
-    expect(url).toContain("/tiles/cog/WebMercatorQuad/tilejson.json");
-    expect(url).toContain("url=file%3A%2F%2F%2Fdata%2Fcogs%2Fsst.tif");
-    expect(url).toContain("rescale=18%2C33");
-    expect(url).toContain("colormap_name=thermal");
+describe("imageCorners", () => {
+  it("pins the image top-left, top-right, bottom-right, bottom-left", () => {
+    expect(imageCorners(layer("sst", "sst.tif"))).toEqual([
+      [66, 24],
+      [94, 24],
+      [94, 6],
+      [66, 6],
+    ]);
   });
 
-  it("builds the chlorophyll layer URL with its own rescale and colormap", () => {
-    const url = tilejsonUrl(layer("chlorophyll", "chlorophyll.tif"));
-    expect(url).toContain("url=file%3A%2F%2F%2Fdata%2Fcogs%2Fchlorophyll.tif");
-    expect(url).toContain("rescale=0%2C5");
-    expect(url).toContain("colormap_name=algae");
-  });
-
-  it("builds the wave-height layer URL with its own rescale and colormap", () => {
-    const url = tilejsonUrl(layer("wave_height", "wave_height.tif"));
-    expect(url).toContain("url=file%3A%2F%2F%2Fdata%2Fcogs%2Fwave_height.tif");
-    expect(url).toContain("rescale=0%2C8");
-    expect(url).toContain("colormap_name=blues");
+  it("ships an image and bounds for every layer the console styles", () => {
+    for (const key of ["sst", "chlorophyll", "wave_height"]) {
+      const entry = (rasterManifest as Record<string, { image: string; bounds: number[] }>)[key];
+      expect(entry.image).toBe(`/rasters/${key}.png`);
+      expect(entry.bounds).toHaveLength(4);
+      const [w, s, e, n] = entry.bounds;
+      expect(w < e && s < n).toBe(true);
+    }
   });
 });
 

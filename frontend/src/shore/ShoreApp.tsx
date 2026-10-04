@@ -29,17 +29,17 @@ export const RASTER_STYLE: Record<string, { rescale: [number, number]; colormap:
   wave_height: { rescale: [0, 8], colormap: "blues", gradient: "linear-gradient(90deg,#f7fbff,#9ecae1,#4292c6,#08306b)" },
 };
 
-/** TiTiler's tilejson endpoint for one COG. MapLibre reads bounds and zoom
- * range from the response, which is less to get wrong than a hand-built
- * {z}/{x}/{y} template. */
-export function tilejsonUrl(layer: RasterLayer): string {
-  const style = RASTER_STYLE[layer.layer];
-  const params = new URLSearchParams({
-    url: `file:///data/cogs/${layer.file}`,
-    rescale: style.rescale.join(","),
-    colormap_name: style.colormap,
-  });
-  return `/tiles/cog/WebMercatorQuad/tilejson.json?${params.toString()}`;
+/** The four corners MapLibre pins an image source to: top-left, top-right,
+ * bottom-right, bottom-left. The PNG was rendered in Web Mercator, so pinning
+ * its corners places every pixel where the map draws that cell. */
+export function imageCorners(layer: RasterLayer): [[number, number], [number, number], [number, number], [number, number]] {
+  const [w, s, e, n] = layer.bounds;
+  return [
+    [w, n],
+    [e, n],
+    [e, s],
+    [w, s],
+  ];
 }
 
 type Load<T> = { state: "loading" } | { state: "ok"; data: T } | { state: "error"; message: string };
@@ -167,7 +167,7 @@ export function ShoreApp() {
   function handleMapError(e: { error?: Error; sourceId?: string }) {
     if (e.sourceId && e.sourceId.startsWith("raster-")) {
       const layer = e.sourceId.slice("raster-".length);
-      setRasterErrors((prev) => (prev[layer] ? prev : { ...prev, [layer]: e.error?.message ?? "tile server error" }));
+      setRasterErrors((prev) => (prev[layer] ? prev : { ...prev, [layer]: e.error?.message ?? "layer image failed to load" }));
       return;
     }
     console.error("map error", e.error ?? e);
@@ -290,7 +290,7 @@ export function ShoreApp() {
             <ScaleControl position="bottom-right" unit="nautical" />
 
             {active && !rasterErrors[active.layer] && (
-              <Source key={active.layer} id={`raster-${active.layer}`} type="raster" url={tilejsonUrl(active)} tileSize={512}>
+              <Source key={active.layer} id={`raster-${active.layer}`} type="image" url={active.image} coordinates={imageCorners(active)}>
                 <Layer id={`raster-${active.layer}-layer`} type="raster" paint={{ "raster-opacity": 0.75 }} />
               </Source>
             )}

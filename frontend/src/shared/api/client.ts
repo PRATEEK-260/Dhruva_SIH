@@ -121,6 +121,10 @@ export interface RasterLayer {
   unit: string;
   valid_time: string | null;
   generated_at: string;
+  /** The layer rendered once to a PNG in Web Mercator (scripts/render_rasters.py). */
+  image: string;
+  /** [west, south, east, north] in degrees. */
+  bounds: [number, number, number, number];
 }
 
 /** One of the problem statement's nine agents, as it ran for one question. */
@@ -231,8 +235,13 @@ export async function fetchGeoLayer(
 }
 
 export async function fetchRasterLayers(): Promise<RasterLayer[]> {
-  const response = await fetch("/api/geo/rasters");
-  return parseOrThrow<RasterLayer[]>(response, "fetchRasterLayers");
+  // Static, served with the app: the layers are fixed renders of the 28 Sep
+  // COGs, so no tile server is needed (it cost the backend ~145 MB on Render).
+  const response = await fetch("/rasters/manifest.json");
+  const manifest = await parseOrThrow<Record<string, Omit<RasterLayer, "layer">>>(response, "fetchRasterLayers");
+  return Object.entries(manifest)
+    .map(([layer, entry]) => ({ layer, ...entry }))
+    .sort((a, b) => a.layer.localeCompare(b.layer));
 }
 
 export async function fetchHealth(): Promise<{ status: string }> {

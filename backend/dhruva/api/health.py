@@ -5,8 +5,9 @@ actually do work, and returns 503 when it cannot — a readiness probe that alwa
 returns 200 is a readiness probe that never tells you anything.
 """
 
+import os
+
 import asyncpg
-import redis.asyncio as aioredis
 from fastapi import APIRouter, Response
 
 from dhruva.config import settings
@@ -15,7 +16,11 @@ router = APIRouter(tags=["health"])
 
 # The plan puts geofencing, advisory RAG and vessel tracks in one engine.
 # If any of these is missing the engine cannot do the job it was chosen for.
-REQUIRED_EXTENSIONS = ("postgis", "vector", "timescaledb")
+# Render's 512 MB image runs PostGIS only (DHRUVA_REQUIRED_EXTENSIONS=postgis):
+# no feature uses the other two yet, and their memory went to Copernicus.
+REQUIRED_EXTENSIONS = tuple(
+    os.environ.get("DHRUVA_REQUIRED_EXTENSIONS", "postgis,vector,timescaledb").split(",")
+)
 
 
 @router.get("/health")
@@ -45,6 +50,15 @@ async def ready(response: Response) -> dict[str, object]:
     except Exception as exc:
         checks["postgres"] = {"ok": False, "error": f"{type(exc).__name__}: {exc}"}
         ok = False
+
+    # Only the health check uses Redis; a deployment without it says so
+    # (REDIS_URL=none) rather than failing readiness over an unused service.
+    if settings.redis_url.lower() == "none":
+        checks["redis"] = {"ok": True, "skipped": "not deployed"}
+        if not ok:
+            response.status_code = 503
+        return {"ready": ok, "checks": checks}
+    import redis.asyncio as aioredis
 
     try:
         r = aioredis.from_url(settings.redis_url, socket_connect_timeout=5)

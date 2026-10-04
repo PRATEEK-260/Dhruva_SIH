@@ -1,0 +1,47 @@
+{
+  "sst": {
+    "image": "/rasters/sst.png",
+    "bounds": [
+      65.95833333333333,
+      5.958333333333336,
+      94.04166666666666,
+      24.041666666666668
+    ],
+    "file": "sst.tif",
+    "dataset_id": "cmems_mod_glo_phy_anfc_0.083deg_PT1H-m",
+    "variable": "thetao",
+    "unit": "degrees_C",
+    "valid_time": "2026-09-29T00:00:00+00:00",
+    "generated_at": "2026-09-28T08:57:50.386212+00:00"
+  },
+  "chlorophyll": {
+    "image": "/rasters/chlorophyll.png",
+    "bounds": [
+      65.875,
+      5.875,
+      94.125,
+      24.125
+    ],
+    "file": "chlorophyll.tif",
+    "dataset_id": "cmems_mod_glo_bgc-pft_anfc_0.25deg_P1D-m",
+    "variable": "chl",
+    "unit": "mg m-3",
+    "valid_time": "2026-09-29T00:00:00+00:00",
+    "generated_at": "2026-09-28T09:00:29.965617+00:00"
+  },
+  "wave_height": {
+    "image": "/rasters/wave_height.png",
+    "bounds": [
+      65.95833333333333,
+      5.958333333333336,
+      94.04166666666666,
+      24.041666666666668
+    ],
+    "file": "wave_height.tif",
+    "dataset_id": "cmems_mod_glo_wav_anfc_0.083deg_PT3H-i",
+    "variable": "VHM0",
+    "unit": "m",
+    "valid_time": "2026-09-29T00:00:00+00:00",
+    "generated_at": "2026-09-28T08:57:58.492322+00:00"
+  }
+}

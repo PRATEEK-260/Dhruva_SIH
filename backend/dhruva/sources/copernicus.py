@@ -15,6 +15,7 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import os
+import threading
 from typing import TYPE_CHECKING
 
 from dhruva.sources.base import (
@@ -65,6 +66,55 @@ def fetch_grid(
     # says No data or plays a labelled recording; it never guesses.
     if os.environ.get("DHRUVA_COPERNICUS", "on").lower() == "off":
         raise RuntimeError("Copernicus is off on this server (DHRUVA_COPERNICUS=off)")
+    # One fetch at a time: each holds ~100 MB while it loads, and on a 512 MB
+    # host two in parallel (query #7 asks chlorophyll and SST together) is the
+    # difference between fitting and being killed.
+    with _ONE_AT_A_TIME:
+        if os.environ.get("DHRUVA_COPERNICUS_SUBPROCESS") == "1":
+            return _open_in_subprocess(
+                dataset_id,
+                native_vars,
+                lat_min,
+                lat_max,
+                lon_min,
+                lon_max,
+                start,
+                end,
+                username,
+                password,
+                extra,
+            )
+        return _open(
+            dataset_id,
+            native_vars,
+            lat_min,
+            lat_max,
+            lon_min,
+            lon_max,
+            start,
+            end,
+            username,
+            password,
+            extra,
+        )
+
+
+_ONE_AT_A_TIME = threading.Lock()
+
+
+def _open(
+    dataset_id: str,
+    native_vars: list[str],
+    lat_min: float,
+    lat_max: float,
+    lon_min: float,
+    lon_max: float,
+    start: dt.datetime,
+    end: dt.datetime,
+    username: str | None,
+    password: str | None,
+    extra: dict[str, float],
+) -> xr.Dataset:
     import copernicusmarine as cm
 
     kwargs: dict[str, object] = dict(
@@ -306,3 +356,88 @@ def _valid_time(point: xr.Dataset, fallback: dt.datetime) -> dt.datetime:
     # straight to a datetime constructor is neither type-safe nor unit-stable.
     iso = str(np.datetime_as_string(point["time"].values, unit="s"))
     return dt.datetime.fromisoformat(iso).replace(tzinfo=dt.UTC)
+
+
+def _open_in_subprocess(
+    dataset_id: str,
+    native_vars: list[str],
+    lat_min: float,
+    lat_max: float,
+    lon_min: float,
+    lon_max: float,
+    start: dt.datetime,
+    end: dt.datetime,
+    username: str | None,
+    password: str | None,
+    extra: dict[str, float],
+) -> xr.Dataset:
+    """The same fetch in a process that exits when it is done.
+
+    In process, every new Copernicus fetch left 60-140 MB behind (the toolbox,
+    its catalogue, xarray's caches), so a 512 MB host died after a few new
+    places. A child process gives all of it back to the operating system; the
+    result, a few small arrays, comes back as a NetCDF file. Credentials go
+    through the environment, never the command line.
+    """
+    import json
+    import subprocess
+    import sys
+    import tempfile
+
+    import xarray as xr
+
+    with tempfile.TemporaryDirectory() as tmp:
+        out = os.path.join(tmp, "fetch.nc")
+        job = {
+            "dataset_id": dataset_id,
+            "native_vars": native_vars,
+            "box": [lat_min, lat_max, lon_min, lon_max],
+            "start": start.isoformat(),
+            "end": end.isoformat(),
+            "extra": extra,
+            "out": out,
+        }
+        env = {**os.environ, "DHRUVA_COPERNICUS_SUBPROCESS": "0"}
+        if username:
+            env["COPERNICUSMARINE_SERVICE_USERNAME"] = username
+            env["COPERNICUSMARINE_SERVICE_PASSWORD"] = password or ""
+        done = subprocess.run(
+            [sys.executable, "-m", "dhruva.sources.copernicus", json.dumps(job)],
+            env=env,
+            capture_output=True,
+            text=True,
+            timeout=600,
+        )
+        if done.returncode != 0:
+            last = (done.stderr.strip().splitlines() or ["no output"])[-1]
+            raise RuntimeError(f"copernicus fetch process failed: {last[:200]}")
+        with xr.open_dataset(out) as ds:
+            return ds.load()
+
+
+def _child(job_json: str) -> None:
+    """Entry point of the fetch process (see _open_in_subprocess)."""
+    import json
+
+    job = json.loads(job_json)
+    lat_min, lat_max, lon_min, lon_max = job["box"]
+    ds = _open(
+        job["dataset_id"],
+        job["native_vars"],
+        lat_min,
+        lat_max,
+        lon_min,
+        lon_max,
+        dt.datetime.fromisoformat(job["start"]),
+        dt.datetime.fromisoformat(job["end"]),
+        os.environ.get("COPERNICUSMARINE_SERVICE_USERNAME"),
+        os.environ.get("COPERNICUSMARINE_SERVICE_PASSWORD"),
+        job["extra"],
+    )
+    ds.to_netcdf(job["out"])
+
+
+if __name__ == "__main__":
+    import sys
+
+    _child(sys.argv[1])
