@@ -27,6 +27,9 @@ data = [
     "certifi>=2024.8",
     "pyyaml>=6.0",
     "segno>=1.6",
+    # Copernicus Marine: SST, chlorophyll, currents, waves and the 10-year
+    # satellite baseline. Missing here, every Copernicus source failed on Render.
+    "copernicusmarine>=2.4",
     # IMD bulletins are PDFs; pure Python, so the Render image needs no poppler.
     "pypdf>=5.0",
 ]
