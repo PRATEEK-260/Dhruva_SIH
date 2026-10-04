@@ -1,0 +1,185 @@
+==================================================================
+IDEA TITLE
+(paste into "Idea Title", max 100 characters: this is 90)
+==================================================================
+
+DHRUVA: Multilingual Multi-Agent Sea-Safety Advisory for Fishers, Even Beyond Mobile Range
+
+
+==================================================================
+ABSTRACT / SUMMARY
+(paste into "Abstract/Summary")
+==================================================================
+
+DHRUVA is a multilingual, multi-agent marine advisory system for India's coastal fishers, built for Smart India Hackathon 2026 problem statement SIH26176 (ORCA: Marine EcOsystem Reasoning with Collaborative Agents, Indian Space Research Organisation, theme Disaster Management).
+
+ISRO and INCOIS already push alerts and advisories to boats at sea through NavIC messaging, GEMINI and Nabhmitra. None of these lets a fisher ask their own question and get an answer worked out for their boat, position and departure hour, in their language, beyond mobile range. DHRUVA fills that gap.
+
+A fisher asks by voice in Tamil, Malayalam, Odia or Hindi, for example "Can I go to sea tomorrow at 5 AM?", and gets one checked, spoken answer for their boat: whether it is safe to go at that hour and why, any active cyclone warning, the nearest Potential Fishing Zone (PFZ), and the distance and direction to the nearest harbour.
+
+Nine collaborating agents from the problem statement (Planning, Marine Data Discovery, Weather Intelligence, Ocean Analytics, Geospatial Reasoning, Risk Assessment, Visualization, Reporting and User Interaction) read INCOIS fishing-zone advisories, IMD cyclone advisories, Open-Meteo marine forecasts, ERA5 archives and Copernicus Marine satellite data. A deterministic rule engine, not a language model, decides the verdict for each boat class, and an official cyclone, lightning or tsunami warning always forces No-go. Every number in the answer must match a sourced reading and its time, or it is not said.
+
+DHRUVA is built to reach boats beyond mobile range. The whole answer fits in 145 bits, one DAT-SG message in the format ISRO publishes for its NavIC messaging service. With no network, the phone rebuilds the full answer, shows it in the crew's language and speaks the verdict aloud. It is built for the two-way link of Nabhmitra (Vessel Communication and Support System, VCSS), demonstrated against ISRO's published DAT-SG format, and needs no new hardware on the boat.
+
+Proactive alerts turn one cyclone warning into a different message for every boat: Blocked inside the danger zone, the sea's own verdict outside it. Each verdict is shown by colour, shape and a word, with automatic voice for danger, so it can be understood without reading.
+
+A working prototype is live (phone app, shore console and boat terminal) with 450 automated tests, and it replays Cyclone Michaung (4 December 2023) from real archived data and IMD's own advisory. Safety limits are provisional until replaced with INCOIS Ocean State Forecast criteria, and the satellite link is simulated because no team may transmit on ISRO systems. DHRUVA supports UN Sustainable Development Goals 13.1, 14.b, 8.8, 1.5, 10.2 and 9.c.
+
+
+==================================================================
+IDEA DESCRIPTION
+(paste into "Idea Description", max 50000 characters: this is 12012)
+==================================================================
+
+1. PROBLEM
+
+Coastal fishers in India decide every day whether to go to sea. The information they need is spread across INCOIS, IMD and ISRO portals: weather forecasts, ocean state forecasts and Potential Fishing Zone (PFZ) advisories, each written for a long stretch of coast rather than for one boat. During Cyclone Ockhi in 2017, warnings were issued but could not reach boats that were already at sea.
+
+Since then ISRO and INCOIS have built satellite links to boats: NavIC messaging, the DAT-SG distress terminal, GEMINI over GAGAN, and Nabhmitra on the VCSS transponders now being fitted to 1 lakh fishing vessels. These links push alerts and advisories from shore. None of them lets a fisher ask their own question and get an answer reasoned for their boat, position and departure hour, in their language, when there is no mobile signal.
+
+
+2. PROPOSED SOLUTION: DHRUVA (built on the ORCA multi-agent engine)
+
+DHRUVA answers a fisher's question about the sea for their own boat and departure hour, in their language, and is built to deliver that answer by satellite when the boat is out of mobile range. It works in three steps.
+
+Ask: the fisher speaks a question in Tamil, Malayalam, Odia or Hindi, and Bhashini speech recognition turns it into text. Typical questions are "Can I go to sea tomorrow at 5 AM?", "Is there a cyclone warning?", "Where should I fish?" and "How is the sea?"
+
+Check: nine agents gather the sea conditions for that boat and hour, and a deterministic rule engine, not a language model, decides the verdict. Every number in the answer, including numbers written in Tamil digits, must match a sourced reading. If any number does not, the system gives a plain template answer instead.
+
+Deliver: the whole answer is packed into 145 bits, which fits in one DAT-SG message in the format ISRO publishes for its NavIC messaging service. With no mobile network, the phone rebuilds the full answer from those bits, shows it in the crew's language and speaks the verdict using Bhashini voice clips shipped with the app.
+
+
+3. PRIMARY FEATURES
+
+- Voice questions and answers in regional languages, using Bhashini for speech recognition, translation and speech.
+- A safety verdict for each boat class and departure hour: Safe, Caution, Unsafe, Blocked (by an official warning) or No data.
+- Proactive alerts: one cyclone warning produces a different message for each boat. Boats inside the danger radius are Blocked, and boats outside it get the verdict their own sea conditions give.
+- Offline satellite delivery: the 145-bit answer travels in one DAT-SG message, and the question goes up over Nabhmitra as a 1-byte code. The phone shows the answer and speaks its verdict in airplane mode.
+- The nearest PFZ from the latest INCOIS advisory, with distance, direction and date. Fishing advice is hidden while any hazard is active.
+- The way home: distance and direction to the nearest harbour, worked out on the phone from the position in the message.
+- A design for fishers who may not read: short text that leads with the action, a colour, shape and word for every verdict, automatic spoken warnings, large buttons, and contrast that stays readable in sun glare.
+
+
+4. ADDITIONAL FEATURES
+
+- Departure-time comparison between now, tomorrow at 5 AM and tomorrow at 7 AM, showing whether the verdict changes.
+- Evidence view: wave height, wind and sea temperature, each with its source, valid time, distance to the grid cell that supplied it, and the rule it was checked against.
+- Agent trace: one line for each of the nine agents. Agents a question does not need are marked as skipped.
+- Shore console for fisheries officers and coastal authorities. An officer can check any point on the map, see what a boat there would be told, send warnings to boats and replay a past storm.
+- Map layers: INCOIS fishing zones; sea surface temperature, chlorophyll and wave height from Copernicus Marine; EEZ and maritime boundaries from Marine Regions (VLIZ); sea-floor relief; satellite and dark base maps.
+- Geofencing against maritime boundaries, which are always marked as indicative, not legal.
+- Replay of Cyclone Michaung (4 December 2023, off Chennai) from archived wave and wind data, with the cyclone position taken from IMD RSMC New Delhi Tropical Cyclone Advisory No. 9.
+- Offline app: a service worker keeps the app, fonts and voice clips on the phone.
+
+
+5. HOW IT MEETS THE PROBLEM STATEMENT
+
+All nine agents named in the problem statement are implemented, and each appears in the trace of every answer.
+- Planning reads the question and decides which agents run (Gemini, with a keyword fallback).
+- Marine Data Discovery finds the datasets that can answer for this place and time.
+- Weather Intelligence gets wind and waves at the boat's position for the chosen hour.
+- Ocean Analytics covers sea temperature, chlorophyll and currents.
+- Geospatial Reasoning handles boundaries, maritime zones and the nearest INCOIS fishing zone, using PostGIS.
+- Risk Assessment gives the deterministic verdict for each boat class, with warning overrides.
+- Visualization picks the cards and map layers that answer the question.
+- Reporting builds the evidence bundle, runs the number check and packs the 145-bit message.
+- User Interaction delivers the answer in the crew's language, by voice, online or offline.
+
+Example queries covered: whether it is safe to go out tomorrow morning, the nearest PFZ today, cyclone and hazard alerts, sea conditions near a location, zones to avoid, and proactive alert and geofence notifications.
+
+
+6. TECHNICAL APPROACH
+
+- Agents: LangGraph on FastAPI, in Python.
+- AI: a Gemini planner with a keyword fallback, a rule-based risk engine, and a number check on every answer.
+- Voice and language: Bhashini speech recognition, translation and text to speech.
+- Data: INCOIS PFZ advisories, IMD cyclone advisories, Open-Meteo marine and weather forecasts, the ERA5 archive and Copernicus Marine.
+- Storage and GIS: PostgreSQL with PostGIS, Cloud-Optimised GeoTIFF rasters served by TiTiler, and MapLibre maps.
+- Apps: React and TypeScript, as an offline Progressive Web App with a service worker.
+- Satellite: NavIC messaging in ISRO's DAT-SG format (ICD v1.2), with Nabhmitra (VCSS) as the target two-way channel.
+- Deployment: Vercel, Render and Docker.
+
+How a question moves through the system:
+(1) The fisher asks by voice.
+(2) The planner runs only the agents the question needs.
+(3) The weather, ocean and geospatial agents fetch data in parallel.
+(4) The rule engine sets the verdict for the boat class.
+(5) Every number is traced to a source, or dropped.
+(6) The answer is spoken online, or sent offshore as one 145-bit satellite message.
+
+
+7. TRUST AND SAFETY
+
+- A language model never decides whether a boat goes to sea.
+- An official cyclone, lightning or tsunami warning always means No-go.
+- Missing wave or wind data gives No data, never Safe.
+- Physically impossible readings are dropped before any rule runs.
+- An alert type the system does not recognise gives at least Caution.
+- Fishing-zone advisories more than three days old are not offered.
+- Anything simulated or provisional is labelled as such on screen.
+- Every answer is advisory only and defers to official INCOIS and IMD warnings.
+
+
+8. FEASIBILITY AND CURRENT STATUS
+
+- A working prototype is deployed: the fisher's phone app, the shore console and a boat terminal.
+- 450 automated tests, including checks that a fabricated number fails the number check, that missing data is never read as safe, that a stale fishing zone is never offered, and that fishing advice never appears above an active hazard.
+- Live data in use: Open-Meteo marine and weather forecasts, the ERA5 archive, Copernicus Marine, INCOIS fishing zones, Marine Regions boundaries, Bhashini and Gemini.
+- Not yet real, and labelled so in the app: the live IMD cyclone feed is not connected (the warning override is built and tested with test input); the satellite and Bluetooth links are simulated, because no team may transmit on ISRO systems; safety limits are provisional until they are replaced with INCOIS Ocean State Forecast criteria; and the regional-language wording still needs review by native speakers.
+- Built with no spending, on open data, free service tiers and ISRO's existing channel. No new hardware is needed on the boat.
+
+
+9. RISKS AND MITIGATION
+
+- Data access. INCOIS, IMD and MOSDAC have no open API. Mitigation: every value carries its source and time; MOSDAC registration; data sharing through the ISRO sponsor.
+- Integration. Teams cannot transmit on ISRO's uplink. Mitigation: the message is built to ISRO's DAT-SG format with an adapter for Nabhmitra, and a pilot with INCOIS and INMCC can follow once access is granted.
+- AI safety. A model could invent a number or soften a warning. Mitigation: rules decide the verdict, and any figure not in the evidence is rejected.
+- Adoption. Low literacy and distrust of a new app. Mitigation: colour, shape, word and automatic voice for every verdict, and co-design with fishing cooperatives and fisheries officers.
+- Data quality. Readings can be missing, stale or impossible. Mitigation: a No data state, plausibility bounds and freshness limits.
+- Official limits. The safety limits are not yet official. Mitigation: they are marked provisional and will be replaced with INCOIS criteria for each region and boat class.
+- Language. Machine translation can be wrong. Mitigation: a fixed phrasebook, to be reviewed by native speakers.
+- Operations. Free-tier API limits and outages. Mitigation: a keyword fallback for the planner, and the last known data shown with its time.
+
+
+10. IMPACT AND BENEFITS
+
+Target users are artisanal and small-craft fishers first (FRP and country craft under 12 m), then mechanised boats, starting with a pilot in Tamil Nadu, Kerala and Odisha. Fisheries officers and coastal authorities use the shore console.
+
+- Social: safer trips, with danger explained for each boat and spoken in the fisher's language, so reading is not required.
+- Economic: less fuel and time spent searching for fish, and fewer lost boats, nets and fishing days.
+- Environmental: guiding trips to INCOIS fishing zones cuts blind searching and fuel use.
+- Institutional: ISRO's existing Nabhmitra and DAT-SG channels can carry specific, explained, spoken answers without new hardware.
+
+UN Sustainable Development Goals: 13.1 Climate Action (resilience to climate hazards), 14.b Life Below Water (small-scale artisanal fishers), 8.8 Decent Work (safe working environments), 1.5 No Poverty (resilience to extreme events), 10.2 Reduced Inequalities (inclusion through regional languages and voice), 9.c Industry, Innovation and Infrastructure (access to ICT).
+
+
+11. INNOVATION AND UNIQUENESS
+
+- DHRUVA answers the fisher's own question, reasoned for their boat class, position and departure hour, over the satellite channel ISRO already runs.
+- The exchange at sea is two-way: a 1-byte question goes up and a 145-bit answer comes back.
+- A number check blocks any figure that is not backed by evidence, in every supported language.
+- DHRUVA works alongside Nabhmitra, DAT-SG, GEMINI, INCOIS and IMD rather than replacing any of them. It gives the channel ISRO already runs a specific answer to send to each boat.
+
+
+12. REFERENCES
+
+- ISRO, ICD for DAT-SG Emergency Messaging via NavIC Messaging Service, v1.2.
+- ISRO, NavIC and GAGAN System Update, UN ICG-16 (2022).
+- PIB, Nabhmitra application and transponders during Cyclone DANA (2024).
+- Vessel Communication and Support System (VCSS) national rollout to 1 lakh fishing vessels (2026).
+- IMD RSMC New Delhi, Tropical Cyclone Advisory No. 9, Cyclone Michaung, 4 December 2023.
+- INCOIS Potential Fishing Zone advisories; Open-Meteo; ERA5; Copernicus Marine Service; Marine Regions (VLIZ); Bhashini, MeitY.
+- Jal Anveshak (arXiv:2411.10050), prior art.
+- Reporting on Cyclone Ockhi (The Wire, VillageSquare).
+- UN Sustainable Development Goals, sdgs.un.org/goals.
+
+Prototype: https://dhruva-tau.vercel.app
+
+
+==================================================================
+OTHER FIELDS
+==================================================================
+
+Idea Template: the deck on SIH's own template (use "Download Template" on the form), exported to PDF, under 10 MB.
+Technology Bucket: choose the AI / machine learning option if the list has one; otherwise the one closest to Disaster Management.
+YouTube Link (optional): the 3-minute demo, uploaded as Unlisted. Leave it blank rather than add an unfinished video.
