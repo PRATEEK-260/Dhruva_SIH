@@ -248,8 +248,46 @@ async def decline_changes(
     sources: tuple[BaselineSource, ...] | None = None,
 ) -> tuple[dict[str, Any], list[FetchError]]:
     """Chlorophyll and SST windows, fetched in parallel. The result is what the
-    graph's `decline` key holds: a Change or None per variable, and the box."""
-    chosen = SOURCES if sources is None else sources
+    graph's `decline` key holds: a Change or None per variable, and the box.
+
+    On a slow host (DHRUVA_SATELLITE_BACKGROUND=1) a place not yet fetched today
+    is fetched in the background and the result comes back at once marked
+    pending, so the question answers now and says the data is still loading.
+    """
+    import os
+
+    if os.environ.get("DHRUVA_SATELLITE_BACKGROUND") == "1" and sources is None:
+        key = (round(lat, 2), round(lon, 2), when.astimezone(dt.UTC).date())
+        if key in _DONE:
+            return _DONE[key]
+        if key not in _RUNNING:
+
+            async def fill() -> None:
+                try:
+                    _DONE[key] = await _changes(lat, lon, when, username, password, SOURCES)
+                finally:
+                    _RUNNING.pop(key, None)
+
+            _RUNNING[key] = asyncio.get_running_loop().create_task(fill())
+        pending = {"chlorophyll": None, "sst": None, "box": box_around(lat, lon), "pending": True}
+        return pending, [FetchError(dataset_id="copernicus_globcolour_my", error="still loading")]
+    return await _changes(
+        lat, lon, when, username, password, SOURCES if sources is None else sources
+    )
+
+
+_DONE: dict[tuple[Any, ...], tuple[dict[str, Any], list[FetchError]]] = {}
+_RUNNING: dict[tuple[Any, ...], Any] = {}
+
+
+async def _changes(
+    lat: float,
+    lon: float,
+    when: dt.datetime,
+    username: str | None,
+    password: str | None,
+    chosen: tuple[BaselineSource, ...],
+) -> tuple[dict[str, Any], list[FetchError]]:
     results = await asyncio.gather(
         *(source_change(s, lat, lon, when, username=username, password=password) for s in chosen)
     )

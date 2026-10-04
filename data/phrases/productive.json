@@ -1,5 +1,5 @@
 {
-  "_about": "Query #5, high chlorophyll and favourable sea temperature (backend/dhruva/answers/productive.py). 'High' is the top quarter of the area today; the temperature range is PROVISIONAL, not an INCOIS criterion. Indic lines are machine translations and need a native speaker's check.",
+  "_about": "Query #5, high chlorophyll and favourable sea temperature (backend/dhruva/answers/productive.py). 'High' is the top quarter of the area today; the temperature range is PROVISIONAL, not an INCOIS criterion. Indic lines are machine translations and need a native speaker's check. Hand-written 2026-10-04: ml.productive_loading (machine translation garbled it).",
   "en": {
     "productive_at": "The nearest water with high chlorophyll and a favourable temperature is {distance} nautical miles away, in the {bearing} direction: chlorophyll {chl}, sea {sst} degrees Celsius.",
     "productive_here": "You are in water with high chlorophyll and a favourable temperature: chlorophyll {chl}, sea {sst} degrees Celsius.",
@@ -8,7 +8,8 @@
     "productive_no_go": "It is not safe to go to sea now, so no fishing water is suggested.",
     "compare_pfz": "For comparison, the official INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction.",
     "compare_no_pfz": "There is no fresh INCOIS fishing zone near you to compare with.",
-    "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion."
+    "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion.",
+    "productive_loading": "Today's satellite chlorophyll and temperature are still loading. Ask again in a few minutes."
   },
   "ta": {
     "_en": {
@@ -19,7 +20,8 @@
       "productive_no_go": "It is not safe to go to sea now, so no fishing water is suggested.",
       "compare_pfz": "For comparison, the official INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction.",
       "compare_no_pfz": "There is no fresh INCOIS fishing zone near you to compare with.",
-      "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion."
+      "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion.",
+      "productive_loading": "Today's satellite chlorophyll and temperature are still loading. Ask again in a few minutes."
     },
     "productive_at": "அதிக குளோரோ:பில் மற்றும் சாதகமான வெப்பநிலையுடன் அருகிலுள்ள நீர் {distance} கடல் மைல் தொலைவில், {bearing} திசையில் உள்ளது: குளோரோ:பில் {chl}, கடல் {sst} டிகிரி செல்சியஸ்.",
     "productive_here": "நீங்கள் அதிக குளோரோ:பில் மற்றும் சாதகமான வெப்பநிலையுடன் நீரில் இருக்கிறீர்கள்: குளோரோ:பில் {chl}, கடல் {sst} டிகிரி செல்சியஸ்.",
@@ -28,7 +30,8 @@
     "productive_no_go": "இப்போது கடலுக்குச் செல்வது பாதுகாப்பானது அல்ல, எனவே மீன்பிடி நீர் பரிந்துரைக்கப்படவில்லை.",
     "compare_pfz": "ஒப்பிடுகையில், அதிகாரப்பூர்வ ஐஎன்சிஓஐஎஸ் மீன்பிடி மண்டலம் {bearing} திசையில் {distance} கடல் மைல் தொலைவில் உள்ளது.",
     "compare_no_pfz": "ஒப்பிடுவதற்கு உங்களுக்கு அருகில் புதிய ஐஎன்சிஓஐஎஸ் மீன்பிடி மண்டலம் எதுவும் இல்லை.",
-    "caveat": "உயர் என்பது இன்று இந்த பகுதியின் மேல் காலாண்டைக் குறிக்கிறது. வெப்பநிலை வரம்பு தற்காலிகமானது, ஒரு ஐஎன்சிஓஐஎஸ் அளவுகோல் அல்ல."
+    "caveat": "உயர் என்பது இன்று இந்த பகுதியின் மேல் காலாண்டைக் குறிக்கிறது. வெப்பநிலை வரம்பு தற்காலிகமானது, ஒரு ஐஎன்சிஓஐஎஸ் அளவுகோல் அல்ல.",
+    "productive_loading": "இன்றைய செயற்கைக்கோள் குளோரோஃபில் மற்றும் வெப்பநிலை இன்னும் ஏற்றப்பட்டு வருகின்றன. சில நிமிடங்களில் மீண்டும் கேளுங்கள்."
   },
   "ml": {
     "_en": {
@@ -39,7 +42,8 @@
       "productive_no_go": "It is not safe to go to sea now, so no fishing water is suggested.",
       "compare_pfz": "For comparison, the official INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction.",
       "compare_no_pfz": "There is no fresh INCOIS fishing zone near you to compare with.",
-      "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion."
+      "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion.",
+      "productive_loading": "Today's satellite chlorophyll and temperature are still loading. Ask again in a few minutes."
     },
     "productive_at": "ഉയർന്ന ക്ലോറോഫില്ലും അനുകൂലമായ താപനിലയും ഉള്ള ഏറ്റവും അടുത്തുള്ള ജലം {distance} നോട്ടിക്കൽ മൈൽ അകലെയാണ്, {bearing} ദിശയിൽഃ ക്ലോറോഫിൽ {chl}, കടൽ {sst} ഡിഗ്രി സെൽഷ്യസ്.",
     "productive_here": "നിങ്ങൾ ഉയർന്ന ക്ലോറോഫില്ലും അനുകൂലമായ താപനിലയും ഉള്ള വെള്ളത്തിലാണ്ഃ ക്ലോറോഫിൽ {chl}, കടൽ {sst} ഡിഗ്രി സെൽഷ്യസ്.",
@@ -48,7 +52,8 @@
     "productive_no_go": "ഇപ്പോൾ കടലിൽ പോകുന്നത് സുരക്ഷിതമല്ലാത്തതിനാൽ മത്സ്യബന്ധനത്തിന് വെള്ളം നൽകരുതെന്ന് നിർദ്ദേശിക്കുന്നു.",
     "compare_pfz": "താരതമ്യത്തിനായി, ഔദ്യോഗിക ഐഎൻസിഒഐഎസ് മത്സ്യബന്ധന മേഖല {bearing} ദിശയിൽ {distance} നോട്ടിക്കൽ മൈൽ അകലെയാണ്.",
     "compare_no_pfz": "താരതമ്യം ചെയ്യാൻ നിങ്ങൾക്ക് സമീപം പുതിയ ഐഎൻസിഒഐഎസ് മത്സ്യബന്ധന മേഖലയില്ല.",
-    "caveat": "ഉയർന്ന എന്നാൽ ഇന്ന് ഈ പ്രദേശത്തിന്റെ ഏറ്റവും ഉയർന്ന ഭാഗം എന്നാണ് അർത്ഥമാക്കുന്നത്. താപനില പരിധി താൽക്കാലികമാണ്, ഒരു ഐ. എൻ. സി. ഒ. ഐ. എസ് മാനദണ്ഡമല്ല."
+    "caveat": "ഉയർന്ന എന്നാൽ ഇന്ന് ഈ പ്രദേശത്തിന്റെ ഏറ്റവും ഉയർന്ന ഭാഗം എന്നാണ് അർത്ഥമാക്കുന്നത്. താപനില പരിധി താൽക്കാലികമാണ്, ഒരു ഐ. എൻ. സി. ഒ. ഐ. എസ് മാനദണ്ഡമല്ല.",
+    "productive_loading": "ഇന്നത്തെ സാറ്റലൈറ്റ് ക്ലോറോഫിൽ, താപനില വിവരങ്ങൾ ഇപ്പോഴും ലോഡ് ചെയ്യുന്നുണ്ട്. കുറച്ച് മിനിറ്റുകൾക്കുള്ളിൽ വീണ്ടും ചോദിക്കുക."
   },
   "or": {
     "_en": {
@@ -59,7 +64,8 @@
       "productive_no_go": "It is not safe to go to sea now, so no fishing water is suggested.",
       "compare_pfz": "For comparison, the official INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction.",
       "compare_no_pfz": "There is no fresh INCOIS fishing zone near you to compare with.",
-      "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion."
+      "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion.",
+      "productive_loading": "Today's satellite chlorophyll and temperature are still loading. Ask again in a few minutes."
     },
     "productive_at": "ଉଚ୍ଚ କ୍ଲୋରୋଫିଲ୍ ଏବଂ ଅନୁକୂଳ ତାପମାତ୍ରା ସହିତ ନିକଟତମ ଜଳ {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ: କ୍ଲୋରୋଫିଲ୍ {chl}, ସମୁଦ୍ର {sst} ଡିଗ୍ରୀ ସେଲସିୟସ୍ |",
     "productive_here": "ଆପଣ ଉଚ୍ଚ କ୍ଲୋରୋଫିଲ୍ ଏବଂ ଅନୁକୂଳ ତାପମାତ୍ରା ଥିବା ପାଣିରେ ଅଛନ୍ତି: କ୍ଲୋରୋଫିଲ୍ {chl}, ସମୁଦ୍ର {sst} ଡିଗ୍ରୀ ସେଲସିୟସ୍।",
@@ -68,7 +74,8 @@
     "productive_no_go": "ବର୍ତ୍ତମାନ ସମୁଦ୍ରକୁ ଯିବା ନିରାପଦ ନୁହେଁ, ତେଣୁ କୌଣସି ମାଛଧରା ପାଣିର ପରାମର୍ଶ ନାହିଁ |",
     "compare_pfz": "ତୁଳନାତ୍ମକ ଭାବେ, ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ର ସରକାରୀ ମତ୍ସ୍ୟଚାଷ କ୍ଷେତ୍ର {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ, {bearing} ଦିଗରେ ରହିଛି।",
     "compare_no_pfz": "ତୁଳନା କରିବା ପାଇଁ ଆପଣଙ୍କ ନିକଟରେ କୌଣସି ନୂତନ ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ମାଛଧରା ଅଞ୍ଚଳ ନାହିଁ।",
-    "caveat": "ଉଚ୍ଚର ଅର୍ଥ ଆଜି ଏହି କ୍ଷେତ୍ରର ଶୀର୍ଷ ଚତୁର୍ଥାଂଶ। ତାପମାତ୍ରାର ପରିସର ଅସ୍ଥାୟୀ, ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ମାନଦଣ୍ଡ ନୁହେଁ।"
+    "caveat": "ଉଚ୍ଚର ଅର୍ଥ ଆଜି ଏହି କ୍ଷେତ୍ରର ଶୀର୍ଷ ଚତୁର୍ଥାଂଶ। ତାପମାତ୍ରାର ପରିସର ଅସ୍ଥାୟୀ, ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ମାନଦଣ୍ଡ ନୁହେଁ।",
+    "productive_loading": "ଆଜିର ଉପଗ୍ରହ କ୍ଲୋରୋଫିଲ୍ ଏବଂ ତାପମାତ୍ରା ଏବେ ବି ଲୋଡ ହେଉଛି। କିଛି ମିନିଟ୍ ପରେ ପୁଣିଥରେ ପଚାରନ୍ତୁ।"
   },
   "hi": {
     "_en": {
@@ -79,7 +86,8 @@
       "productive_no_go": "It is not safe to go to sea now, so no fishing water is suggested.",
       "compare_pfz": "For comparison, the official INCOIS fishing zone is {distance} nautical miles away, in the {bearing} direction.",
       "compare_no_pfz": "There is no fresh INCOIS fishing zone near you to compare with.",
-      "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion."
+      "caveat": "High means the top quarter of this area today. The temperature range is provisional, not an INCOIS criterion.",
+      "productive_loading": "Today's satellite chlorophyll and temperature are still loading. Ask again in a few minutes."
     },
     "productive_at": "उच्च क्लोरोफिल और अनुकूल तापमान वाला निकटतम पानी {bearing} दिशा में {distance} समुद्री मील दूर हैः क्लोरोफिल {chl}, समुद्र {sst} डिग्री सेल्सियस।",
     "productive_here": "आप उच्च क्लोरोफिल और अनुकूल तापमान वाले पानी में हैंः क्लोरोफिल {chl}, समुद्र {sst} डिग्री सेल्सियस।",
@@ -88,6 +96,7 @@
     "productive_no_go": "अब समुद्र में जाना सुरक्षित नहीं है, इसलिए मछली पकड़ने का पानी न लेने का सुझाव दिया जाता है।",
     "compare_pfz": "तुलना के लिए, आधिकारिक आई. एन. सी. ओ. आई. एस. मछली पकड़ने का क्षेत्र {bearing} दिशा में {distance} समुद्री मील दूर है।",
     "compare_no_pfz": "तुलना करने के लिए आपके पास कोई नया आई. एन. सी. ओ. आई. एस. मछली पकड़ने का क्षेत्र नहीं है।",
-    "caveat": "उच्च का अर्थ है आज इस क्षेत्र का शीर्ष चौथाई। तापमान सीमा अस्थायी है, आई. एन. सी. ओ. आई. एस. मानदंड नहीं।"
+    "caveat": "उच्च का अर्थ है आज इस क्षेत्र का शीर्ष चौथाई। तापमान सीमा अस्थायी है, आई. एन. सी. ओ. आई. एस. मानदंड नहीं।",
+    "productive_loading": "आज के उपग्रह क्लोरोफिल और तापमान अभी भी लोड हो रहे हैं। कुछ मिनटों में फिर से पूछें।"
   }
 }

@@ -344,3 +344,67 @@ def test_no_fixed_sentence_carries_a_number_of_its_own():
                 if found:
                     bad.append(f"{path.stem}.{lang}.{key}: {[t for t, _ in found]}")
     assert not bad, "\n".join(bad)
+
+
+class TestSatelliteInBackground:
+    """On a slow host the question answers at once while today's satellite
+    data loads; the next ask gets the real answer."""
+
+    def test_productive_answers_now_and_fills_the_cache(self, monkeypatch):
+        import asyncio
+
+        monkeypatch.setenv("DHRUVA_SATELLITE_BACKGROUND", "1")
+        monkeypatch.setattr(productive, "_CACHE", {})
+        monkeypatch.setattr(productive, "_PENDING", {})
+
+        async def slow(key, *args):
+            await asyncio.sleep(0.05)
+            productive._CACHE[key] = PRODUCTIVE
+            return PRODUCTIVE
+
+        monkeypatch.setattr(productive, "_fetch_now", slow)
+
+        async def run():
+            first = await productive.fetch(11.05, 79.95, NOW, username=None, password=None)
+            assert first == {"pending": True}
+            await asyncio.gather(*productive._PENDING.values())
+            return await productive.fetch(11.05, 79.95, NOW, username=None, password=None)
+
+        assert asyncio.run(run()) == PRODUCTIVE
+        a = productive.compose({**BOAT, "productive": {"pending": True}}, False)
+        assert a.status == "no_data" and "still loading" in _texts(a)
+
+    def test_decline_answers_now_and_fills_the_cache(self, monkeypatch):
+        import asyncio
+
+        from dhruva.analytics import baseline
+
+        monkeypatch.setenv("DHRUVA_SATELLITE_BACKGROUND", "1")
+        monkeypatch.setattr(baseline, "_DONE", {})
+        monkeypatch.setattr(baseline, "_RUNNING", {})
+        done = ({"chlorophyll": "c", "sst": "s", "box": (0, 0, 0, 0)}, [])
+
+        async def slow(*args):
+            await asyncio.sleep(0.05)
+            return done
+
+        monkeypatch.setattr(baseline, "_changes", slow)
+
+        async def run():
+            first, errors = await baseline.decline_changes(
+                11.05, 79.95, NOW, username=None, password=None
+            )
+            assert first["pending"] and errors[0].error == "still loading"
+            await asyncio.gather(*baseline._RUNNING.values())
+            return await baseline.decline_changes(11.05, 79.95, NOW, username=None, password=None)
+
+        assert asyncio.run(run()) == done
+
+    def test_pending_decline_says_still_loading_in_every_language(self):
+        from dhruva.analytics.decline import DeclineAnswer
+        from dhruva.analytics.decline import render as render_decline
+
+        a = DeclineAnswer(status="no_data", parts=[("normal", "loading", {})])
+        for lang in ("en", "ta", "ml", "or", "hi"):
+            lines = render_decline(a, lang)
+            assert lines[0]["text"] and lines[-1]["part"] == "caveat"

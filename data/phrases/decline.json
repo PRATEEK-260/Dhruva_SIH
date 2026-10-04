@@ -16,7 +16,8 @@
     "todo_pfz": "The nearest INCOIS fishing zone is {distance} nautical miles to the {bearing}.",
     "todo_no_pfz": "There is no fresh INCOIS fishing zone near you.",
     "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested.",
-    "caveat": "This compares the sea, not the catch."
+    "caveat": "This compares the sea, not the catch.",
+    "loading": "Today's satellite data for your area is still loading. Ask again in a few minutes."
   },
   "ta": {
     "_en": {
@@ -35,7 +36,8 @@
       "todo_pfz": "The nearest INCOIS fishing zone is {distance} nautical miles to the {bearing}.",
       "todo_no_pfz": "There is no fresh INCOIS fishing zone near you.",
       "caveat": "This compares the sea, not the catch.",
-      "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested."
+      "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested.",
+      "loading": "Today's satellite data for your area is still loading. Ask again in a few minutes."
     },
     "no_data": "முந்தைய ஆண்டுகளுடன் இந்த பருவத்தை ஒப்பிடுவதற்கு உங்கள் பகுதிக்கு போதுமான செயற்கைக்கோள் தரவு இல்லை.",
     "normal_chl": "ஆண்டின் இந்த நேரத்தில், இங்கு குளோரோஃபில் பொதுவாக ஒரு கன மீட்டருக்கு {usual} மில்லிகிராம் ஆகும்.",
@@ -52,7 +54,8 @@
     "todo_pfz": "அருகிலுள்ள ஐஎன்சிஓஐஎஸ் மீன்பிடி மண்டலம் {bearing} க்கு {distance} கடல் மைல் தொலைவில் உள்ளது.",
     "todo_no_pfz": "உங்களுக்கு அருகில் புதிய ஐஎன்சிஓஐஎஸ் மீன்பிடி மண்டலம் எதுவும் இல்லை.",
     "caveat": "இது கடலை ஒப்பிடுகிறது, பிடிப்பை அல்ல.",
-    "todo_no_go": "இப்போது கடலுக்குச் செல்வது பாதுகாப்பானது அல்ல, எனவே மீன்பிடி மண்டலம் எதுவும் பரிந்துரைக்கப்படவில்லை."
+    "todo_no_go": "இப்போது கடலுக்குச் செல்வது பாதுகாப்பானது அல்ல, எனவே மீன்பிடி மண்டலம் எதுவும் பரிந்துரைக்கப்படவில்லை.",
+    "loading": "உங்கள் பகுதிக்கான இன்றைய செயற்கைக்கோள் தரவு இன்னும் ஏற்றப்படுகிறது. சில நிமிடங்களில் மீண்டும் கேளுங்கள்."
   },
   "ml": {
     "_en": {
@@ -71,7 +74,8 @@
       "todo_pfz": "The nearest INCOIS fishing zone is {distance} nautical miles to the {bearing}.",
       "todo_no_pfz": "There is no fresh INCOIS fishing zone near you.",
       "caveat": "This compares the sea, not the catch.",
-      "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested."
+      "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested.",
+      "loading": "Today's satellite data for your area is still loading. Ask again in a few minutes."
     },
     "no_data": "മുൻ വർഷങ്ങളുമായി ഈ സീസണിനെ താരതമ്യം ചെയ്യാൻ നിങ്ങളുടെ പ്രദേശത്തിന് മതിയായ സാറ്റലൈറ്റ് ഡാറ്റ ഇല്ല.",
     "normal_chl": "വർഷത്തിലെ ഈ സമയത്ത്, ഇവിടെ ക്ലോറോഫിൽ സാധാരണയായി ഒരു ക്യുബിക് മീറ്ററിന് {usual} മില്ലിഗ്രാം ആണ്.",
@@ -88,7 +92,8 @@
     "todo_pfz": "{bearing} ലേക്ക് {distance} നോട്ടിക്കൽ മൈലാണ് ഏറ്റവും അടുത്തുള്ള ഐഎൻസിഒഐഎസ് മത്സ്യബന്ധന മേഖല.",
     "todo_no_pfz": "നിങ്ങൾക്ക് സമീപം പുതിയ ഐഎൻസിഒഐഎസ് മത്സ്യബന്ധന മേഖലയില്ല.",
     "caveat": "ഇത് കടലിനെയാണ് താരതമ്യം ചെയ്യുന്നത്, മീൻപിടുത്തത്തെയല്ല.",
-    "todo_no_go": "ഇപ്പോൾ കടലിൽ പോകുന്നത് സുരക്ഷിതമല്ലാത്തതിനാൽ മത്സ്യബന്ധന മേഖല നിർദ്ദേശിച്ചിട്ടില്ല."
+    "todo_no_go": "ഇപ്പോൾ കടലിൽ പോകുന്നത് സുരക്ഷിതമല്ലാത്തതിനാൽ മത്സ്യബന്ധന മേഖല നിർദ്ദേശിച്ചിട്ടില്ല.",
+    "loading": "നിങ്ങളുടെ പ്രദേശത്തെ ഇന്നത്തെ സാറ്റലൈറ്റ് ഡാറ്റ ഇപ്പോഴും ലോഡ് ചെയ്യുന്നുണ്ട്. കുറച്ച് മിനിറ്റുകൾക്കുള്ളിൽ വീണ്ടും ചോദിക്കുക."
   },
   "or": {
     "_en": {
@@ -107,7 +112,8 @@
       "todo_pfz": "The nearest INCOIS fishing zone is {distance} nautical miles to the {bearing}.",
       "todo_no_pfz": "There is no fresh INCOIS fishing zone near you.",
       "caveat": "This compares the sea, not the catch.",
-      "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested."
+      "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested.",
+      "loading": "Today's satellite data for your area is still loading. Ask again in a few minutes."
     },
     "no_data": "ପୂର୍ବ ବର୍ଷଗୁଡ଼ିକ ସହିତ ଏହି ଋତୁକୁ ତୁଳନା କରିବା ପାଇଁ ଆପଣଙ୍କ ଅଞ୍ଚଳ ପାଇଁ ପର୍ଯ୍ୟାପ୍ତ ଉପଗ୍ରହ ତଥ୍ୟ ନାହିଁ।",
     "normal_chl": "ବର୍ଷର ଏହି ସମୟରେ, ଏଠାରେ କ୍ଲୋରୋଫିଲ୍ ସାଧାରଣତଃ ପ୍ରତି ଘନ ମିଟରରେ ପ୍ରାୟ {usual} ମିଲିଗ୍ରାମ ହୋଇଥାଏ।",
@@ -124,7 +130,8 @@
     "todo_pfz": "ନିକଟତମ INCOIS ମାଛଧରା ଅଞ୍ଚଳ {bearing} ଦିଗରେ {distance} ନଟିକାଲ ମାଇଲ ଦୂରରେ ଅଛି।",
     "todo_no_pfz": "ଆପଣଙ୍କ ନିକଟରେ କୌଣସି ନୂଆ ଆଇ. ଏନ୍. ସି. ଓ. ଆଇ. ଏସ୍. ମାଛଧରା ଅଞ୍ଚଳ ନାହିଁ।",
     "caveat": "ଏହା ସମୁଦ୍ରକୁ ତୁଳନା କରେ, ମାଛକୁ ନୁହେଁ।",
-    "todo_no_go": "ବର୍ତ୍ତମାନ ସମୁଦ୍ରକୁ ଯିବା ନିରାପଦ ନୁହେଁ, ତେଣୁ କୌଣସି ମାଛଧରା ଅଞ୍ଚଳ ପରାମର୍ଶ ଦିଆଯାଉନାହିଁ।"
+    "todo_no_go": "ବର୍ତ୍ତମାନ ସମୁଦ୍ରକୁ ଯିବା ନିରାପଦ ନୁହେଁ, ତେଣୁ କୌଣସି ମାଛଧରା ଅଞ୍ଚଳ ପରାମର୍ଶ ଦିଆଯାଉନାହିଁ।",
+    "loading": "ଆପଣଙ୍କ ଅଞ୍ଚଳ ପାଇଁ ଆଜିର ଉପଗ୍ରହ ତଥ୍ୟ ଏବେ ବି ଲୋଡ ହେଉଛି। କିଛି ମିନିଟ୍ ପରେ ପୁଣିଥରେ ପଚାରନ୍ତୁ।"
   },
   "hi": {
     "_en": {
@@ -143,7 +150,8 @@
       "todo_pfz": "The nearest INCOIS fishing zone is {distance} nautical miles to the {bearing}.",
       "todo_no_pfz": "There is no fresh INCOIS fishing zone near you.",
       "caveat": "This compares the sea, not the catch.",
-      "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested."
+      "todo_no_go": "It is not safe to go to sea now, so no fishing zone is suggested.",
+      "loading": "Today's satellite data for your area is still loading. Ask again in a few minutes."
     },
     "no_data": "पिछले वर्षों के साथ इस मौसम की तुलना करने के लिए आपके क्षेत्र के लिए पर्याप्त उपग्रह डेटा नहीं है।",
     "normal_chl": "वर्ष के इस समय, यहाँ क्लोरोफिल आमतौर पर लगभग {usual} मिलीग्राम प्रति घन मीटर होता है।",
@@ -160,6 +168,7 @@
     "todo_pfz": "निकटतम INCOIS मछली पकड़ने का क्षेत्र {bearing} दिशा में {distance} समुद्री मील दूर है।",
     "todo_no_pfz": "आपके पास कोई नया आई. एन. सी. ओ. आई. एस. मछली पकड़ने का क्षेत्र नहीं है।",
     "caveat": "यह समुद्र की तुलना करता है, पकड़ की नहीं।",
-    "todo_no_go": "अब समुद्र में जाना सुरक्षित नहीं है, इसलिए कोई मछली पकड़ने का क्षेत्र नहीं सुझाया गया है।"
+    "todo_no_go": "अब समुद्र में जाना सुरक्षित नहीं है, इसलिए कोई मछली पकड़ने का क्षेत्र नहीं सुझाया गया है।",
+    "loading": "आपके क्षेत्र के लिए आज का उपग्रह डेटा अभी भी लोड हो रहा है। कुछ मिनटों में फिर से पूछें।"
   }
 }

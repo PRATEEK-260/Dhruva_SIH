@@ -52,6 +52,7 @@ RUN initdb -U dhruva --auth=trust -D "$PGDATA" >/dev/null \
 # the 512 MB instance died after a few; a child gives it all back.
 ENV DHRUVA_DATA_DIR=/data DHRUVA_REGISTRY=/data/registry.yaml ENV=prod PORT=10000 \
 	DHRUVA_REQUIRED_EXTENSIONS=postgis DHRUVA_COPERNICUS_SUBPROCESS=1 \
-	INCOIS_CA_BUNDLE=/data/ca/incois-bundle.pem DHRUVA_COPERNICUS_POINT=off
+	INCOIS_CA_BUNDLE=/data/ca/incois-bundle.pem DHRUVA_COPERNICUS_POINT=off \
+	DHRUVA_SATELLITE_BACKGROUND=1
 EXPOSE 10000
 CMD ["/app/start.sh"]

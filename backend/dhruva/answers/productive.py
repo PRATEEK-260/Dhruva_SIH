@@ -38,6 +38,10 @@ def compose(state: dict[str, Any], no_go: bool) -> Answer:
         a = Answer(kind=KIND, status="no_data")
         a.add("productive", "productive_no_data")
         return a
+    if p.get("pending"):
+        a = Answer(kind=KIND, status="no_data")
+        a.add("productive", "productive_loading")
+        return a
     a = Answer(kind=KIND, status="ok")
     cell = p.get("cell")
     if cell is None:
@@ -200,13 +204,41 @@ def _fetch_sync(lat: float, lon: float, day: Any, username: Any, password: Any) 
     }
 
 
+_PENDING: dict[tuple[Any, ...], Any] = {}
+
+
 async def fetch(lat: float, lon: float, when: Any, *, username: Any, password: Any) -> Any:
-    """None when the satellite fetch failed or the box had no clear water."""
+    """None when the satellite fetch failed or the box had no clear water.
+
+    On a slow host (DHRUVA_SATELLITE_BACKGROUND=1) an uncached fetch is started
+    in the background and {"pending": True} comes back at once: the fishing-zone
+    answer's core (INCOIS zone, verdict) must not wait minutes for an extra.
+    """
     import asyncio
+    import os
 
     key = (round(lat, 2), round(lon, 2), when.date())
     if key in _CACHE:
         return _CACHE[key]
+    if os.environ.get("DHRUVA_SATELLITE_BACKGROUND") == "1":
+        if key not in _PENDING:
+
+            async def fill() -> None:
+                try:
+                    await _fetch_now(key, lat, lon, when, username, password)
+                finally:
+                    _PENDING.pop(key, None)
+
+            _PENDING[key] = asyncio.get_running_loop().create_task(fill())
+        return {"pending": True}
+    return await _fetch_now(key, lat, lon, when, username, password)
+
+
+async def _fetch_now(
+    key: Any, lat: float, lon: float, when: Any, username: Any, password: Any
+) -> Any:
+    import asyncio
+
     try:
         got = await asyncio.to_thread(_fetch_sync, lat, lon, when.date(), username, password)
     except Exception:

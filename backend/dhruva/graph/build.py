@@ -580,6 +580,8 @@ def _decline_answer(state: DhruvaState, a: Any) -> DeclineAnswer | None:
     decline = state.get("decline")
     if state.get("intent") is not Intent.DECLINE_ATTRIBUTION or decline is None:
         return None
+    if decline.get("pending"):
+        return DeclineAnswer(status="no_data", parts=[("normal", "loading", {})])
     return decline_answer(
         decline.get("chlorophyll"),
         decline.get("sst"),
