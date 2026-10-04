@@ -2,6 +2,15 @@ import { CircleDot, CircleSlash } from "lucide-react";
 import type { EvidenceItem, TraceStep } from "../shared/api/client";
 import type { Capsule } from "../shared/capsule/decode";
 import { kmToNm } from "../shared/harbour";
+import type { Language } from "../shared/capsule/codebook";
+import { t, type UiKey } from "../shared/i18n";
+import uiStrings from "../shared/ui-strings.json";
+
+/** A row's name in the language when the screen text has it, else English. */
+function rowName(key: string, lang: Language): string {
+  const k = `ev_${key}` as UiKey;
+  return k in uiStrings.en ? t(k, lang) : (NAMES[key] ?? key);
+}
 
 const NAMES: Record<string, string> = {
   wave_height: "Wave height",
@@ -114,7 +123,15 @@ function fmt(v: number): string {
   return Number.isInteger(v) ? String(v) : String(Math.round(v * 100) / 100);
 }
 
-export function EvidenceList({ items, capsule }: { items: EvidenceItem[]; capsule: Capsule }) {
+export function EvidenceList({
+  items,
+  capsule,
+  lang = "en",
+}: {
+  items: EvidenceItem[];
+  capsule: Capsule;
+  lang?: Language;
+}) {
   return (
     <ul className="divide-y divide-rule">
       {items.map((item) => {
@@ -129,7 +146,7 @@ export function EvidenceList({ items, capsule }: { items: EvidenceItem[]; capsul
         return (
           <li key={item.key} className="py-3 flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="font-semibold text-ink">{NAMES[item.key] ?? item.key}</p>
+              <p className="font-semibold text-ink">{rowName(item.key, lang)}</p>
               <p className="text-sm text-ink-soft leading-snug">
                 {sourceName(item.dataset_id)}
                 {item.is_forecast ? ", forecast" : ""}

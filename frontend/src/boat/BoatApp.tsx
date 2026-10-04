@@ -10,8 +10,9 @@ import { compassWord, renderReason, spokenSlots, type Language } from "../shared
 import type { EvidenceItem, ImdStatus } from "../shared/api/client";
 import { spokenAnswer, suppressesFishing, verdictLabel, verdictReason, verdictState, type VerdictState } from "../shared/verdict";
 import { kmToNm, wayHome } from "../shared/harbour";
-import { DEPARTURE_LABEL, departureTime, type Departure } from "../shared/questions";
+import { DEPARTURE_KEY, DEPARTURE_LABEL, departureTime, type Departure } from "../shared/questions";
 import { speakAdvisory, type VoiceSource } from "../shared/voice";
+import { t, type UiKey } from "../shared/i18n";
 
 /** Which verdict banner a decoded capsule should show.
  *
@@ -40,12 +41,12 @@ const LANG_OPTIONS: { code: Language; name: string }[] = [
   { code: "en", name: "English" },
 ];
 
-const VOICE_NOTE: Record<VoiceSource, string> = {
-  bhashini: "Spoken by Bhashini",
-  saved: "Bhashini voice, saved on this phone",
-  shipped: "Bhashini voice, shipped with the app",
-  phone: "Spoken by the phone's own voice",
-  none: "No voice for this language on this phone",
+const VOICE_NOTE: Record<VoiceSource, UiKey> = {
+  bhashini: "voice_bhashini",
+  saved: "voice_saved",
+  shipped: "voice_shipped",
+  phone: "voice_phone",
+  none: "voice_none",
 };
 
 /** What the voice says. The verdict's action line always comes first, so safety
@@ -89,6 +90,9 @@ export function BoatApp() {
   const [voice, setVoice] = useState<VoiceSource | "speaking" | null>(null);
   const [evidenceOpen, setEvidenceOpen] = useState(false);
   const [compare, setCompare] = useState<{ d: Departure; state: VerdictState } | "loading" | null>(null);
+  // Blocked and Unsafe repeat until the crew taps "I understand" (5-day plan).
+  const [acknowledged, setAcknowledged] = useState(true);
+  const [last, setLast] = useState<LastAnswer | null>(() => readLast());
 
   const state = shown ? verdictState(shown.capsule) : null;
   const sentence = useMemo(() => (shown ? renderReason(shown.capsule, lang) : null), [shown, lang]);
@@ -111,8 +115,21 @@ export function BoatApp() {
     setSheet("none");
     setCompare(null);
     setEvidenceOpen(false);
+    const st = verdictState(s.capsule);
+    setAcknowledged(!(st === "blocked" || st === "unsafe"));
+    const entry: LastAnswer = { capsule: s.capsule, via: s.via, at: s.at.toISOString() };
+    writeLast(entry);
+    setLast(entry);
     void say(s, lang);
   };
+
+  // Repeat a Blocked or Unsafe answer every 30 s until acknowledged, so a crew
+  // that missed it the first time still hears it. Stops on a new answer.
+  useEffect(() => {
+    if (!shown || acknowledged) return;
+    const id = window.setInterval(() => void say(shown, lang), REPEAT_MS);
+    return () => window.clearInterval(id);
+  }, [shown, acknowledged, lang, say]);
 
   const handleAnswer = (res: AskResult) => show({ capsule: res.capsule, via: "online", at: new Date(), asked: res });
   const handleScan = useCallback(
@@ -156,7 +173,7 @@ export function BoatApp() {
       <header className="bg-ink text-white px-4 pt-3 pb-3 flex items-center justify-between gap-3 shrink-0">
         <div>
           <p className="text-2xl font-extrabold tracking-wide leading-none">DHRUVA</p>
-          <p className="text-xs text-white/70 mt-1">Sea advice for your boat</p>
+          <p className="text-xs text-white/70 mt-1">{t("tagline", lang)}</p>
         </div>
         <div className="flex items-center gap-2">
           <label className="sr-only" htmlFor="lang">
@@ -181,7 +198,7 @@ export function BoatApp() {
             role="status"
           >
             {online ? <Wifi className="w-4 h-4" /> : <WifiOff className="w-4 h-4" />}
-            {online ? "Online" : "No signal"}
+            {online ? t("online", lang) : t("no_signal", lang)}
           </span>
         </div>
       </header>
@@ -190,14 +207,10 @@ export function BoatApp() {
         {!shown || !state || !label || !theme || !sentence || !home ? (
           <section className="px-6 pt-16 text-center">
             <Anchor className="w-16 h-16 mx-auto text-sea" />
-            <h1 className="text-3xl font-extrabold mt-5 leading-tight">Ask before you go</h1>
-            <p className="text-lg text-ink-soft mt-3 leading-snug">
-              Speak your question in your language. DHRUVA checks the sea for your boat and tells you
-              why.
-            </p>
-            <p className="text-base text-ink-soft mt-4 leading-snug">
-              Out of mobile range, answers still reach you through the boat's satellite terminal.
-            </p>
+            <h1 className="text-3xl font-extrabold mt-5 leading-tight">{t("ask_before", lang)}</h1>
+            <p className="text-lg text-ink-soft mt-3 leading-snug">{t("home_body", lang)}</p>
+            <p className="text-base text-ink-soft mt-4 leading-snug">{t("home_offline", lang)}</p>
+            {last && <LastAnswerCard last={last} lang={lang} onOpen={(s) => setShown(s)} />}
           </section>
         ) : (
           <>
@@ -229,13 +242,21 @@ export function BoatApp() {
                   }`}
                 >
                   {voice === "speaking" ? <Loader2 className="w-6 h-6 animate-spin" /> : <Volume2 className="w-6 h-6" />}
-                  Listen again
+                  {t("listen_again", lang)}
                 </button>
-                {voice && voice !== "speaking" && <p className={`text-sm ${theme.soft}`}>{VOICE_NOTE[voice]}</p>}
+                {voice && voice !== "speaking" && <p className={`text-sm ${theme.soft}`}>{t(VOICE_NOTE[voice], lang)}</p>}
               </div>
+              {!acknowledged && (
+                <button
+                  onClick={() => setAcknowledged(true)}
+                  className="mt-3 w-full min-h-[56px] rounded-xl bg-white text-ink font-extrabold text-lg"
+                >
+                  {t("understood", lang)}
+                </button>
+              )}
 
               <p className={`text-sm mt-4 ${theme.soft}`}>
-                {shown.via === "satellite" ? "Arrived by satellite message" : "Answered online"} at{" "}
+                {shown.via === "satellite" ? t("arrived_satellite", lang) : t("answered_online", lang)}{" "}
                 {shown.at.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })}
                 {askedWhen ? `, for leaving ${istTime(askedWhen)}` : ""}
                 {shown.via === "satellite" ? ". Link simulated for this demo." : ""}
@@ -251,9 +272,7 @@ export function BoatApp() {
               {suppressesFishing(state) && (
                 <div className="flex items-start gap-3 rounded-2xl bg-white border-2 border-danger p-4">
                   <ShieldAlert className="w-6 h-6 text-danger shrink-0" />
-                  <p className="text-base font-semibold leading-snug">
-                    Fishing-zone advice is hidden while this warning stands. Safety comes first.
-                  </p>
+                  <p className="text-base font-semibold leading-snug">{t("fishing_hidden", lang)}</p>
                 </div>
               )}
 
@@ -267,7 +286,7 @@ export function BoatApp() {
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm text-ink-soft">
-                      {state === "unsafe" || state === "blocked" ? "Head back to" : "Nearest harbour"}
+                      {state === "unsafe" || state === "blocked" ? t("head_back", lang) : t("nearest_harbour", lang)}
                     </p>
                     <p className="text-xl font-extrabold leading-tight">{home.harbour.name}</p>
                     <p className="text-lg font-semibold">
@@ -277,17 +296,17 @@ export function BoatApp() {
                 </div>
                 <p className="text-sm text-ink-soft mt-3">
                   {shown.via === "satellite"
-                    ? "Worked out on this phone from the message's position and the harbour list, with no network. "
+                    ? `${t("worked_offline", lang)} `
                     : ""}
-                  Straight-line distance, not a route.
+                  {t("straight_line", lang)}
                 </p>
               </section>
 
-              {shown.asked?.imd && <ImdCard imd={shown.asked.imd} />}
+              {shown.asked?.imd && <ImdCard imd={shown.asked.imd} lang={lang} />}
 
               {shown.asked?.decline && <DeclineCard shown={shown} lang={lang} />}
 
-              {shown.asked?.answer && <AnswerCard shown={shown} />}
+              {shown.asked?.answer && <AnswerCard shown={shown} lang={lang} />}
 
               {!suppressesFishing(state) && (
                 <FishingZone shown={shown} lang={lang} />
@@ -295,7 +314,7 @@ export function BoatApp() {
 
               {shown.asked && online && currentDeparture && (shown.asked.intent === "go_no_go" || shown.asked.intent === "hazard") && (
                 <section className="rounded-2xl bg-white p-4">
-                  <h2 className="text-lg font-extrabold">What if you leave at another time?</h2>
+                  <h2 className="text-lg font-extrabold">{t("other_time", lang)}</h2>
                   <div className="grid grid-cols-3 gap-2 mt-3">
                     {(Object.keys(DEPARTURE_LABEL) as Departure[]).map((d) => (
                       <button
@@ -306,7 +325,7 @@ export function BoatApp() {
                           d === currentDeparture ? "border-ink bg-ink text-white" : "border-rule text-ink"
                         }`}
                       >
-                        {DEPARTURE_LABEL[d]}
+                        {t(DEPARTURE_KEY[d], lang)}
                       </button>
                     ))}
                   </div>
@@ -317,8 +336,8 @@ export function BoatApp() {
                         <VerdictSign state={compare.state} size={36} />
                       </div>
                       <p className="text-base font-semibold">
-                        {DEPARTURE_LABEL[compare.d]}: {verdictLabel(compare.state, lang).word}
-                        {compare.state === state ? ", same as now" : `, instead of ${label.word}`}
+                        {t(DEPARTURE_KEY[compare.d], lang)}: {verdictLabel(compare.state, lang).word}
+                        {compare.state === state ? `, ${t("same_as_now", lang)}` : ""}
                       </p>
                     </div>
                   )}
@@ -333,21 +352,21 @@ export function BoatApp() {
                 className="min-h-[56px] rounded-2xl border-2 border-ink bg-white text-ink font-extrabold text-lg flex items-center justify-center gap-2"
               >
                 {evidenceOpen ? <ChevronUp className="w-6 h-6" /> : <ChevronDown className="w-6 h-6" />}
-                {evidenceOpen ? "Hide evidence" : "Show evidence"}
+                {evidenceOpen ? t("hide_evidence", lang) : t("show_evidence", lang)}
               </button>
               {evidenceOpen && (
                 <div id="evidence" className="flex flex-col gap-4">
                   <section className="rounded-2xl bg-white p-4">
-                    <h2 className="text-lg font-extrabold">What the voice says</h2>
+                    <h2 className="text-lg font-extrabold">{t("voice_says", lang)}</h2>
                     <p lang={lang} className="text-base mt-2 leading-relaxed">
                       {spokenText(shown, lang)}
                     </p>
                   </section>
                   {shown.asked && evidence?.items && evidence.items.length > 0 ? (
                     <section className="rounded-2xl bg-white p-4">
-                      <h2 className="text-lg font-extrabold">The numbers behind this</h2>
+                      <h2 className="text-lg font-extrabold">{t("numbers_behind", lang)}</h2>
                       <p className="text-sm text-ink-soft">Every figure, with where and when it came from.</p>
-                      <EvidenceList items={evidence.items} capsule={shown.capsule} />
+                      <EvidenceList items={evidence.items} capsule={shown.capsule} lang={lang} />
                       <p className="text-sm text-ink-soft mt-1">
                         Number check {shown.asked.firewallPassed ? "passed" : "failed, so the plain template was used"}: the
                         answer contains no figure that is not listed here.
@@ -372,7 +391,7 @@ export function BoatApp() {
 
                   {shown.asked && shown.asked.trace.length > 0 && (
                     <section className="rounded-2xl bg-white p-4">
-                      <h2 className="text-lg font-extrabold">How DHRUVA worked this out</h2>
+                      <h2 className="text-lg font-extrabold">{t("how_worked", lang)}</h2>
                       <p className="text-sm text-ink-soft mb-2">
                         The problem statement's nine agents. Grey ones were not needed for this question.
                       </p>
@@ -382,9 +401,7 @@ export function BoatApp() {
                 </div>
               )}
 
-              <p className="text-sm text-ink-soft px-1 pb-2">
-                Advisory only. Follow official INCOIS and IMD warnings.
-              </p>
+              <p className="text-sm text-ink-soft px-1 pb-2">{t("advisory_only", lang)}</p>
             </div>
           </>
         )}
@@ -396,14 +413,14 @@ export function BoatApp() {
           className="min-h-[64px] rounded-2xl bg-sea text-white flex items-center justify-center gap-2 text-lg font-extrabold"
         >
           <MessageCircleQuestion className="w-7 h-7" />
-          Ask
+          {t("ask", lang)}
         </button>
         <button
           onClick={() => setSheet("scan")}
           className="min-h-[64px] rounded-2xl bg-ink text-white flex items-center justify-center gap-2 text-lg font-extrabold"
         >
           <Satellite className="w-7 h-7" />
-          Receive
+          {t("receive", lang)}
         </button>
       </nav>
     </div>
@@ -428,7 +445,7 @@ function FishingZone({ shown, lang }: { shown: Shown; lang: Language }) {
       <section className="rounded-2xl bg-white p-4 flex gap-4 items-start">
         <Fish className="w-8 h-8 text-ink-soft shrink-0" />
         <p className="text-base text-ink leading-snug">
-          No fresh INCOIS potential-fishing-zone advisory lies within 60 nautical miles of you.
+          {t("no_pfz", lang)}
         </p>
       </section>
     );
@@ -441,13 +458,13 @@ function FishingZone({ shown, lang }: { shown: Shown; lang: Language }) {
           <Navigation2 className="w-8 h-8" style={{ transform: `rotate(${bearing}deg)` }} fill="currentColor" />
         </div>
         <div className="min-w-0">
-          <p className="text-sm text-ink-soft">Nearest potential fishing zone</p>
+          <p className="text-sm text-ink-soft">{t("nearest_pfz", lang)}</p>
           <p className="text-xl font-extrabold leading-tight">
             {c.pfz_dist_nm} nm, {compassWord(c.pfz_bearing_deg, lang)}
           </p>
           {pfz ? (
             <p className="text-sm text-ink-soft">
-              INCOIS advisory of {advisoryDate(pfz.issued_for)}
+              {t("incois_advisory", lang)} {advisoryDate(pfz.issued_for)}
               {pfz.basis ? `, from ${pfz.basis}` : ""}
             </p>
           ) : (
@@ -467,11 +484,11 @@ function FishingZone({ shown, lang }: { shown: Shown; lang: Language }) {
   );
 }
 
-const DECLINE_PART: Record<string, string> = {
-  normal: "Normal here",
-  changed: "What changed",
-  reason: "Possible reason",
-  todo: "What to do",
+const DECLINE_PART: Record<string, UiKey> = {
+  normal: "normal_here",
+  changed: "what_changed",
+  reason: "possible_reason",
+  todo: "what_to_do",
 };
 
 /** Query #7: the last 30 days against the same weeks in earlier years. Online
@@ -487,7 +504,7 @@ function DeclineCard({ shown, lang }: { shown: Shown; lang: Language }) {
     <section className="rounded-2xl bg-white p-4">
       <div className="flex items-center gap-3">
         <Fish className="w-7 h-7 text-sea shrink-0" />
-        <h2 className="text-lg font-extrabold leading-tight">Why the catch may have changed</h2>
+        <h2 className="text-lg font-extrabold leading-tight">{t("decline_title", lang)}</h2>
       </div>
       {body.length === 0 ? (
         <p className="text-base mt-3">The comparison could not be checked, so it is not shown.</p>
@@ -496,7 +513,7 @@ function DeclineCard({ shown, lang }: { shown: Shown; lang: Language }) {
           {body.map((l, i) => (
             <div key={i}>
               {(i === 0 || body[i - 1].part !== l.part) && (
-                <dt className="text-sm font-semibold text-ink-soft">{DECLINE_PART[l.part] ?? l.part}</dt>
+                <dt className="text-sm font-semibold text-ink-soft">{DECLINE_PART[l.part] ? t(DECLINE_PART[l.part], lang) : l.part}</dt>
               )}
               <dd lang={shown.asked?.lang} className="text-base leading-snug">
                 {l.text}
@@ -536,15 +553,25 @@ function isImdLink(url: string | null): url is string {
 /** What IMD's cyclone bulletins in force say. With one in force: its fishermen
  * warning in IMD's own words and the link, whatever the verdict. With none:
  * one plain line with when the list was checked, never "no danger". */
-function ImdCard({ imd }: { imd: ImdStatus }) {
+function ImdCard({ imd, lang }: { imd: ImdStatus; lang: Language }) {
   if (imd.status !== "active") {
-    return imd.message ? <p className="text-sm text-ink-soft px-1">{imd.message}</p> : null;
+    // Built here from the check time, so it reads in the crew's language.
+    if (imd.status === "unchecked" || !imd.checked_at) {
+      return <p className="text-sm text-ink-soft px-1">{t("imd_unchecked", lang)}</p>;
+    }
+    const checked = new Date(imd.checked_at);
+    const stale = Date.now() - checked.getTime() > 2 * 3600_000;
+    return (
+      <p className="text-sm text-ink-soft px-1">
+        {t("no_imd_as_of", lang)}: {istTime(imd.checked_at)}.{stale ? ` ${t("imd_stale", lang)}` : ""}
+      </p>
+    );
   }
   return (
     <section className="rounded-2xl bg-white border-2 border-danger p-4">
       <div className="flex items-center gap-3">
         <ShieldAlert className="w-7 h-7 text-danger shrink-0" />
-        <h2 className="text-lg font-extrabold leading-tight">Official warning: read the IMD bulletin</h2>
+        <h2 className="text-lg font-extrabold leading-tight">{t("official_warning", lang)}</h2>
       </div>
       {imd.bulletins.map((b, i) => (
         <div key={i} className="mt-3">
@@ -570,24 +597,24 @@ function ImdCard({ imd }: { imd: ImdStatus }) {
   );
 }
 
-const ANSWER_TITLE: Record<string, string> = {
-  avoid: "Zones to avoid",
-  thunder: "Cyclone and thunderstorm alerts",
-  tide: "Tides",
-  productive: "High chlorophyll, favourable temperature",
-  route: "Straight line to the fishing zone",
+const ANSWER_TITLE: Record<string, UiKey> = {
+  avoid: "title_avoid",
+  thunder: "title_thunder",
+  tide: "title_tide",
+  productive: "title_productive",
+  route: "title_route",
 };
 
 /** The answer to the brief's other example queries. Sentences picked by rule,
  * every figure an evidence row; online only, like query #7. */
-function AnswerCard({ shown }: { shown: Shown }) {
+function AnswerCard({ shown, lang }: { shown: Shown; lang: Language }) {
   const a = shown.asked?.answer;
   if (!a) return null;
   const caveat = a.lines.find((l) => l.part === "caveat");
   const body = a.lines.filter((l) => l.part !== "caveat");
   return (
     <section className="rounded-2xl bg-white p-4">
-      <h2 className="text-lg font-extrabold leading-tight">{ANSWER_TITLE[a.kind] ?? "Answer"}</h2>
+      <h2 className="text-lg font-extrabold leading-tight">{ANSWER_TITLE[a.kind] ? t(ANSWER_TITLE[a.kind], lang) : a.kind}</h2>
       {body.length === 0 ? (
         <p className="text-base mt-3">This answer could not be checked, so it is not shown.</p>
       ) : (
@@ -609,5 +636,65 @@ function AnswerCard({ shown }: { shown: Shown }) {
         Sources and times are under Show evidence.
       </p>
     </section>
+  );
+}
+
+const REPEAT_MS = 30_000;
+const LAST_KEY = "dhruva-last-answer";
+
+/** The last answer this phone received, as its decoded 145-bit message: enough
+ * to show the verdict again, offline, with no server. Kept in this phone's
+ * storage only. */
+interface LastAnswer {
+  capsule: Capsule;
+  via: "online" | "satellite";
+  at: string;
+}
+
+function readLast(): LastAnswer | null {
+  try {
+    const raw = localStorage.getItem(LAST_KEY);
+    return raw ? (JSON.parse(raw) as LastAnswer) : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeLast(entry: LastAnswer): void {
+  try {
+    localStorage.setItem(LAST_KEY, JSON.stringify(entry));
+  } catch {
+    // Storage blocked (private window): the home screen just has no last answer.
+  }
+}
+
+function LastAnswerCard({
+  last,
+  lang,
+  onOpen,
+}: {
+  last: LastAnswer;
+  lang: Language;
+  onOpen: (s: Shown) => void;
+}) {
+  const capsule = last.capsule;
+  if (!capsule?.risk_class) return null;
+  const st = verdictState(capsule);
+  const theme = SIGN_THEME[st];
+  const at = new Date(last.at);
+  return (
+    <button
+      onClick={() => onOpen({ capsule, via: last.via, at })}
+      className={`mt-8 w-full rounded-2xl ${theme.bg} ${theme.fg} p-4 flex items-center gap-4 text-left`}
+    >
+      <VerdictSign state={st} size={56} />
+      <span className="min-w-0">
+        <span className={`block text-sm ${theme.soft}`}>{t("last_answer", lang)}</span>
+        <span className="block text-2xl font-extrabold leading-tight">{verdictLabel(st, lang).word}</span>
+        <span className={`block text-sm ${theme.soft}`}>
+          {at.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+        </span>
+      </span>
+    </button>
   );
 }

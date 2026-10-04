@@ -37,7 +37,6 @@ from fastapi.testclient import TestClient
 
 from dhruva.api.voice import cache_path
 from dhruva.app import app
-from dhruva.codec.codebook import render
 from dhruva.codec.codec import decode, from_base32
 from dhruva.demo import replay
 from dhruva.demo.boats import DEMO_BOATS
@@ -138,6 +137,34 @@ def requests(now: dt.datetime) -> list[dict[str, Any]]:
     return out
 
 
+REASONS = json.loads((SHARED / "verdict-reasons.json").read_text(encoding="utf-8"))
+
+
+def reason_key(capsule: Any) -> str:
+    """Mirror of verdict.ts reasonKey()."""
+    h, state = set(capsule.hazards), state_of(capsule)
+    if state == "safe":
+        return "safe"
+    if state == "caution":
+        if "wave" in h:
+            return "caution_wave"
+        if "wind" in h:
+            return "caution_wind"
+        return "caution_thunder" if "squall" in h else "caution_alert"
+    if state == "unsafe":
+        return "unsafe_wind" if "wind" in h and "wave" not in h else "unsafe_wave"
+    if state == "blocked":
+        if "tsunami" in h:
+            return "blocked_tsunami"
+        return "blocked_cyclone" if "cyclone" in h else "blocked_lightning"
+    return "unavailable"
+
+
+def spoken(capsule: Any, lang: str) -> str:
+    """Mirror of verdict.ts spokenAnswer(): the action, then one plain reason."""
+    return f"{LABELS[lang][state_of(capsule)]['line']} {REASONS[lang][reason_key(capsule)]}"
+
+
 def state_of(capsule: Any) -> str:
     """Mirror of verdict.ts verdictState()."""
     if capsule.risk_class == "no_go":
@@ -168,7 +195,7 @@ async def prewarm(entries: dict[str, dict[str, Any]], languages: set[str]) -> No
                 texts.add(
                     (
                         lang,
-                        f"{LABELS[lang][state_of(capsule)]['word']}. {render(capsule, lang)}",
+                        spoken(capsule, lang),
                     )
                 )
     made = 0

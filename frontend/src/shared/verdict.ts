@@ -7,7 +7,7 @@
 // as BLOCKED; any other no-go is UNSAFE, a threshold the sea itself crossed.
 
 import type { Capsule } from "./capsule/decode";
-import { renderReason, type Language } from "./capsule/codebook";
+import type { Language } from "./capsule/codebook";
 // Machine-translated from EN_LABELS by scripts/verdict_labels.py (Bhashini
 // IndicTrans2). Needs a native speaker's check before any public claim.
 import translated from "./verdict-labels.json";
@@ -61,8 +61,8 @@ export function verdictLabel(state: VerdictState, lang: Language): Label {
 }
 
 // ---------------------------------------------------------------- reasons ----
-// One short reason, with no numbers. The figures are spoken, and shown only
-// under "Show evidence". Worked out from the capsule's own hazard flags, so a
+// One short reason, with no numbers. The figures are shown only under
+// "Show evidence"; the spoken verdict is the action and this reason. Worked out from the capsule's own hazard flags, so a
 // satellite message gets the same reason as an online answer.
 
 export type ReasonKey =
@@ -70,6 +70,7 @@ export type ReasonKey =
   | "caution_wave"
   | "caution_wind"
   | "caution_alert"
+  | "caution_thunder"
   | "unsafe_wave"
   | "unsafe_wind"
   | "blocked_cyclone"
@@ -82,6 +83,7 @@ export const EN_REASONS: Record<ReasonKey, string> = {
   caution_wave: "The waves are near your boat's limit.",
   caution_wind: "The wind is near your boat's limit.",
   caution_alert: "A warning is out that could not be checked.",
+  caution_thunder: "Thunderstorms are forecast near you.",
   unsafe_wave: "The waves are too high for your boat.",
   unsafe_wind: "The wind is too strong for your boat.",
   blocked_cyclone: "A cyclone warning is active near you.",
@@ -96,7 +98,15 @@ export function reasonKey(capsule: Pick<Capsule, "risk_class" | "hazards">): Rea
     case "safe":
       return "safe";
     case "caution":
-      return h.has("wave") ? "caution_wave" : h.has("wind") ? "caution_wind" : "caution_alert";
+      // A forecast thunderstorm (TSTORM-C1) sets the squall flag; it is a
+      // forecast with its own reason, not an unchecked warning.
+      return h.has("wave")
+        ? "caution_wave"
+        : h.has("wind")
+          ? "caution_wind"
+          : h.has("squall")
+            ? "caution_thunder"
+            : "caution_alert";
     case "unsafe":
       return h.has("wind") && !h.has("wave") ? "unsafe_wind" : "unsafe_wave";
     case "blocked":
@@ -113,9 +123,12 @@ export function verdictReason(capsule: Pick<Capsule, "risk_class" | "hazards">, 
   return REASONS[lang]?.[k] ?? EN_REASONS[k];
 }
 
-/** What the boat hears: the headline's action line first, then the phrasebook
- * sentence. Voice, the phone's "What the voice says" and the shore's "What the
- * boat will hear" all use this, so none of them opens with the technical part. */
+/** What the boat hears: the action, then one plain reason, and no figures.
+ * Raw numbers belong in the evidence view, not the spoken verdict (5-day plan,
+ * polish): "wave height 1.25 metres" in the middle of a warning is noise to a
+ * crew deciding whether to go. The phrasebook sentence with its figures stays
+ * under Show evidence. Voice, "What the voice says" and the shore's "What the
+ * boat will hear" all use this. */
 export function spokenAnswer(capsule: Capsule, lang: Language): string {
-  return `${verdictLabel(verdictState(capsule), lang).line} ${renderReason(capsule, lang).text}`;
+  return `${verdictLabel(verdictState(capsule), lang).line} ${verdictReason(capsule, lang)}`;
 }

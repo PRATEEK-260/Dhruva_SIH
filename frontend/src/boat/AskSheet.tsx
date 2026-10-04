@@ -6,6 +6,7 @@ import { decodeCapsule } from "../shared/capsule/decode";
 import type { Capsule } from "../shared/capsule/decode";
 import type { Language } from "../shared/capsule/codebook";
 import {
+  DEPARTURE_KEY,
   DEPARTURE_LABEL,
   QUESTIONS,
   departureTime,
@@ -15,6 +16,7 @@ import {
 } from "../shared/questions";
 import { QUESTION_CHANNEL } from "../shared/channel";
 import { startRecording, transcribe, type Recorder } from "../shared/voice";
+import { t } from "../shared/i18n";
 
 /** The network half of Ask, kept out of the component so it is testable. */
 export async function askAdvisory(
@@ -126,7 +128,7 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
       recorder.current = await startRecording();
       setBusy("listening");
     } catch {
-      setError("The microphone is not available. Allow it, or tap a question below.");
+      setError(t("no_mic", lang));
     }
   }
 
@@ -148,7 +150,7 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
       <section className="bg-white rounded-t-3xl shadow-2xl max-h-[88%] flex flex-col">
         <header className="flex items-center justify-between px-5 pt-4 pb-1 shrink-0">
           <h2 className="text-2xl font-extrabold text-ink">
-            {online ? "Ask about the sea" : "Ask by satellite"}
+            {online ? t("ask_title", lang) : t("ask_satellite", lang)}
           </h2>
           <button onClick={onClose} aria-label="Close" className="w-12 h-12 -mr-2 flex items-center justify-center text-ink-soft">
             <X className="w-7 h-7" />
@@ -198,14 +200,14 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
                 </button>
                 <p className="mt-3 text-base font-semibold text-ink" aria-live="polite">
                   {busy === "listening"
-                    ? "Listening. Tap to send"
+                    ? t("listening", lang)
                     : busy === "hearing"
-                      ? "Understanding your question"
+                      ? t("understanding", lang)
                       : busy === "asking"
-                        ? "Checking the sea for your boat"
-                        : "Tap and speak your question"}
+                        ? t("checking", lang)
+                        : t("tap_speak", lang)}
                 </p>
-                {heard && <p className="mt-1 text-sm text-ink-soft">Heard: “{heard}”</p>}
+                {heard && <p className="mt-1 text-sm text-ink-soft">{t("heard", lang)}: “{heard}”</p>}
               </div>
             ) : (
               <p className="px-5 pb-3 text-base text-ink leading-snug">
@@ -216,7 +218,7 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
 
             {online && (
               <div className="px-5 pb-3">
-                <p className="text-sm font-semibold text-ink-soft mb-2">Leaving</p>
+                <p className="text-sm font-semibold text-ink-soft mb-2">{t("leaving", lang)}</p>
                 <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Departure time">
                   {(Object.keys(DEPARTURE_LABEL) as Departure[]).map((d) => (
                     <button
@@ -228,7 +230,7 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
                         departure === d ? "border-sea bg-sea text-white" : "border-rule text-ink"
                       }`}
                     >
-                      {DEPARTURE_LABEL[d]}
+                      {t(DEPARTURE_KEY[d], lang)}
                     </button>
                   ))}
                 </div>
@@ -261,7 +263,7 @@ export function AskSheet({ lat, lon, lang, online, onAnswer, onClose }: Props) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   disabled={busy !== "idle"}
-                  placeholder="Or type a question"
+                  placeholder={t("type_question", lang)}
                   aria-label="Your question"
                   className="flex-1 min-h-[56px] px-4 rounded-xl border-2 border-rule text-base text-ink placeholder:text-ink-soft focus:outline-none focus:border-sea disabled:bg-mist"
                 />

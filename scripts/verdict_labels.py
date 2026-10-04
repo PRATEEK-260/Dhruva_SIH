@@ -42,6 +42,10 @@ EN_REASONS = {
     "caution_wave": "The waves are near your boat's limit.",
     "caution_wind": "The wind is near your boat's limit.",
     "caution_alert": "A warning is out that could not be checked.",
+    # Written by hand on 2026-10-04 (no network), from Bhashini's own wording for
+    # thunderstorms elsewhere; kept on re-runs because _en_ matches. Needs a
+    # native speaker's check.
+    "caution_thunder": "Thunderstorms are forecast near you.",
     "unsafe_wave": "The waves are too high for your boat.",
     "unsafe_wind": "The wind is too strong for your boat.",
     "blocked_cyclone": "A cyclone warning is active near you.",

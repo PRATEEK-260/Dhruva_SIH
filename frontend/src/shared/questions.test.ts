@@ -17,6 +17,9 @@ describe("questions", () => {
   it("keeps question codes unique and one digit, as the uplink carries them", () => {
     const codes = QUESTIONS.map((q) => q.code);
     expect(new Set(codes).size).toBe(codes.length);
-    for (const c of codes) expect(c).toBeGreaterThanOrEqual(0), expect(c).toBeLessThanOrEqual(9);
+    for (const c of codes) {
+      expect(c).toBeGreaterThanOrEqual(0);
+      expect(c).toBeLessThanOrEqual(9);
+    }
   });
 });

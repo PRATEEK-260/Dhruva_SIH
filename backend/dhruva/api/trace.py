@@ -130,7 +130,14 @@ def build_trace(state: DhruvaState) -> list[dict[str, Any]]:
         how = "Gemini read the question as"
     else:
         cause = reason.split("(", 1)[1].rstrip(")") if "(" in reason else "no model"
-        how = f"Keyword match ({cause}) read the question as"
+        # Plain words for the common causes; the raw cause stays in the plan.
+        plain = {
+            "gemini answered 429": "Gemini's free limit of 15 questions a minute was reached",
+            "no GEMINI_API_KEY": "no model key on this server",
+        }
+        if cause.startswith("gemini unreachable"):
+            cause = "Gemini could not be reached"
+        how = f"Keyword planner ({plain.get(cause, cause)}) read the question as"
     add("Planning", "planner", True, f"{how}: {asked}. Only the agents it needs will run.")
 
     datasets: dict[str, list[str]] = {}

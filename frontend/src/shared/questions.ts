@@ -44,6 +44,13 @@ export function departureTime(d: Departure, from: Date = new Date()): string | u
   return new Date(utc).toISOString();
 }
 
+/** The screen-text key for each departure (shared/i18n.ts). */
+export const DEPARTURE_KEY: Record<Departure, "now" | "tomorrow5" | "tomorrow7"> = {
+  now: "now",
+  tomorrow5: "tomorrow5",
+  tomorrow7: "tomorrow7",
+};
+
 export const DEPARTURE_LABEL: Record<Departure, string> = {
   now: "Now",
   tomorrow5: "Tomorrow 5 AM",

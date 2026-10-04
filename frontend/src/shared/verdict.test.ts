@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EN_LABELS, EN_REASONS, reasonKey, spokenAnswer, suppressesFishing, verdictLabel, verdictState } from "./verdict";
 import { bearingDeg, distanceKm, wayHome } from "./harbour";
 import { departureTime, parseUplink, uplinkPayload } from "./questions";
+import type { Capsule } from "./capsule/decode";
 
 describe("verdictState", () => {
   it("maps the four wire classes and splits no-go by cause", () => {
@@ -95,5 +96,32 @@ describe("spoken answer", () => {
         expect(spokenAnswer(capsule, lang).startsWith(verdictLabel(verdictState(capsule), lang).line)).toBe(true);
       }
     }
+  });
+});
+
+
+describe("spoken verdict", () => {
+  it("speaks no figures in any language: numbers belong under Show evidence", () => {
+    const states = [
+      { risk_class: "safe", hazards: [] },
+      { risk_class: "caution", hazards: ["wave"] },
+      { risk_class: "no_go", hazards: ["wave"] },
+      { risk_class: "no_go", hazards: ["cyclone"] },
+    ] as const;
+    for (const lang of ["en", "ta", "ml", "or", "hi"] as const) {
+      for (const st of states) {
+        // Only the verdict and its hazards decide what is spoken; the 1.25 m sea
+        // that used to be read out must not reach the sentence.
+        const capsule = { risk_class: st.risk_class, hazards: [...st.hazards], wave_hs_m: 1.25 } as unknown as Capsule;
+        expect(spokenAnswer(capsule, lang)).not.toMatch(/\d/);
+      }
+    }
+  });
+});
+
+describe("thunderstorm reason", () => {
+  it("names a forecast thunderstorm, not an unchecked warning", () => {
+    expect(reasonKey({ risk_class: "caution", hazards: ["squall"] })).toBe("caution_thunder");
+    expect(reasonKey({ risk_class: "caution", hazards: [] })).toBe("caution_alert");
   });
 });

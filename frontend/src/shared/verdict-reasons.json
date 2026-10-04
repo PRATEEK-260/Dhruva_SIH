@@ -19,7 +19,9 @@
     "blocked_tsunami": "சுனாமி எச்சரிக்கை அமலில் உள்ளது.",
     "_en_blocked_tsunami": "A tsunami alert is in force.",
     "unavailable": "கடலை சரிபார்க்க முடியவில்லை.",
-    "_en_unavailable": "The sea could not be checked."
+    "_en_unavailable": "The sea could not be checked.",
+    "caution_thunder": "உங்கள் பகுதியில் இடியுடன் கூடிய மழை முன்னறிவிக்கப்பட்டுள்ளது.",
+    "_en_caution_thunder": "Thunderstorms are forecast near you."
   },
   "ml": {
     "safe": "തിരമാലകളും കാറ്റും നിങ്ങളുടെ ബോട്ടിന്റെ പരിധിയിലാണ്.",
@@ -41,7 +43,9 @@
     "blocked_tsunami": "സുനാമി മുന്നറിയിപ്പ് നിലവിലുണ്ട്.",
     "_en_blocked_tsunami": "A tsunami alert is in force.",
     "unavailable": "കടൽ പരിശോധിക്കാൻ കഴിഞ്ഞില്ല.",
-    "_en_unavailable": "The sea could not be checked."
+    "_en_unavailable": "The sea could not be checked.",
+    "caution_thunder": "നിങ്ങളുടെ പ്രദേശത്ത് ഇടിമിന്നലോടുകൂടിയ മഴ പ്രവചിക്കപ്പെട്ടിരിക്കുന്നു.",
+    "_en_caution_thunder": "Thunderstorms are forecast near you."
   },
   "or": {
     "safe": "ତରଙ୍ଗ ଏବଂ ପବନ ଆପଣଙ୍କ ଡଙ୍ଗାର ସୀମା ମଧ୍ୟରେ ଅଛି |",
@@ -63,7 +67,9 @@
     "blocked_tsunami": "ସୁନାମି ସତର୍କ ସୂଚନା ଜାରି କରାଯାଇଛି।",
     "_en_blocked_tsunami": "A tsunami alert is in force.",
     "unavailable": "ସମୁଦ୍ରକୁ ଯାଞ୍ଚ କରାଯାଇପାରିଲା ନାହିଁ।",
-    "_en_unavailable": "The sea could not be checked."
+    "_en_unavailable": "The sea could not be checked.",
+    "caution_thunder": "ଆପଣଙ୍କ ଅଞ୍ଚଳରେ ବଜ୍ରପାତ ସହ ଝଡ଼ବର୍ଷାର ପୂର୍ବାନୁମାନ ରହିଛି।",
+    "_en_caution_thunder": "Thunderstorms are forecast near you."
   },
   "hi": {
     "safe": "लहरें और हवा आपकी नाव की सीमा के भीतर हैं।",
@@ -85,6 +91,8 @@
     "blocked_tsunami": "सुनामी की चेतावनी जारी की गई है।",
     "_en_blocked_tsunami": "A tsunami alert is in force.",
     "unavailable": "समुद्र की जाँच नहीं की जा सकी।",
-    "_en_unavailable": "The sea could not be checked."
+    "_en_unavailable": "The sea could not be checked.",
+    "caution_thunder": "आपके क्षेत्र में आंधी-तूफान का पूर्वानुमान है।",
+    "_en_caution_thunder": "Thunderstorms are forecast near you."
   }
 }
