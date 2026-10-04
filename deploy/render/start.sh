@@ -38,7 +38,8 @@ api=$!
 	done
 ) &
 
-# IMD's National Bulletins: no feed exists, so the archive listing is read now
+# INCOIS PFZ lines and IMD's National Bulletins: no feed exists for either, so
+# both are read now and every 30 minutes. IMD's archive listing is read now
 # and every 30 minutes (dhruva/sources/imd_feed.py). A failed check is recorded
 # and the answer says how old the last good one is. Not waited on: a failed
 # check must not restart the backend.
@@ -46,6 +47,10 @@ api=$!
 	cd /app/backend
 	until curl -sf -o /dev/null "$API/health"; do sleep 2; done
 	while true; do
+		# INCOIS fishing-zone lines: the image's snapshot goes stale in 3 days
+		# (an older advisory is not shown), so read INCOIS's map service again.
+		# A failed read keeps the last lines; they still expire by their date.
+		/opt/api/bin/python -m dhruva.sources.pfz_wfs >>/tmp/pfz_wfs.log 2>&1 || true
 		/opt/api/bin/python -m dhruva.sources.imd_feed >>/tmp/imd_feed.log 2>&1 || true
 		# Warm the Copernicus answers for the demo places. On 0.1 CPU a first
 		# fetch takes over two minutes, past Vercel's limit for a proxied
