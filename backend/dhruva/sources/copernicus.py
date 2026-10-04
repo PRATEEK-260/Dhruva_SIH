@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
+import os
 from typing import TYPE_CHECKING
 
 from dhruva.sources.base import (
@@ -58,6 +59,12 @@ def fetch_grid(
     copernicus_phy_hourly must keep reaching open_dataset exactly as it did
     before this extraction.
     """
+    # Off on a host too small to hold a fetch: Render's free instance (512 MB,
+    # shared with Postgres, Redis and TiTiler) ran out of memory on the 10-year
+    # satellite fetch. The caller records this as a failed source, so the answer
+    # says No data or plays a labelled recording; it never guesses.
+    if os.environ.get("DHRUVA_COPERNICUS", "on").lower() == "off":
+        raise RuntimeError("Copernicus is off on this server (DHRUVA_COPERNICUS=off)")
     import copernicusmarine as cm
 
     kwargs: dict[str, object] = dict(

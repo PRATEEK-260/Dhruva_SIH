@@ -162,3 +162,32 @@ def test_every_demo_boat_is_named_and_inside_the_capsule_grid():
     for b in DEMO_BOATS:
         assert ZONE_LAT_MIN <= b["lat"] < ZONE_LAT_MAX
         assert ZONE_LON_MIN <= b["lon"] < ZONE_LON_MAX
+
+
+def test_a_question_whose_own_answer_failed_plays_the_recording():
+    """On a server with Copernicus off, query #7 answers No data while the
+    weather still answers; the labelled recording is the more useful reply."""
+    from dhruva.demo.replay import live_failed
+
+    errors = ["copernicus_globcolour_my: RuntimeError"]
+    weather = ["wave_height"]
+    assert live_failed(
+        {"observations": weather, "errors": errors, "decline_answer": {"status": "no_data"}}
+    )
+    assert live_failed({"observations": weather, "errors": errors, "answer": {"status": "no_data"}})
+    assert not live_failed(
+        {"observations": weather, "errors": errors, "decline_answer": {"status": "ok"}}
+    )
+    assert not live_failed(
+        {"observations": weather, "errors": [], "decline_answer": {"status": "no_data"}}
+    )
+
+
+def test_copernicus_off_fails_the_fetch_without_importing(monkeypatch):
+    import pytest
+
+    from dhruva.sources.copernicus import fetch_grid
+
+    monkeypatch.setenv("DHRUVA_COPERNICUS", "off")
+    with pytest.raises(RuntimeError, match="off on this server"):
+        fetch_grid("x", ["CHL"], lat_min=0, lat_max=1, lon_min=0, lon_max=1, start=None, end=None)  # type: ignore[arg-type]

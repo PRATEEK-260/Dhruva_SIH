@@ -89,7 +89,14 @@ def find(k: str, path: Path = _DEFAULT) -> dict[str, Any] | None:
 
 
 def live_failed(state: dict[str, Any]) -> bool:
-    """Every source failed: nothing observed and errors recorded. The graph still
-    answers (UNKNOWN), and that is the honest live answer, but a recording of the
+    """The live run could not answer the question asked. Either every source
+    failed (nothing observed, errors recorded), or the question's own answer
+    (query #7, or one of the brief's other queries) came back No data because
+    its sources failed. The graph's live answer is honest, but a recording of the
     same question is more useful to show, labelled as a recording."""
-    return not state.get("observations") and bool(state.get("errors"))
+    if not state.get("errors"):
+        return False
+    if not state.get("observations"):
+        return True
+    answers = (state.get("decline_answer"), state.get("answer"))
+    return any((a or {}).get("status") == "no_data" for a in answers)

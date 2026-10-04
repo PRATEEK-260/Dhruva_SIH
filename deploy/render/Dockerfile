@@ -58,7 +58,10 @@ RUN initdb -U dhruva --auth=trust -D "$PGDATA" >/dev/null \
 		-f /app/boundaries.sql -f /app/pfz.sql >/dev/null \
 	&& pg_ctl -D "$PGDATA" -w stop
 
+# DHRUVA_COPERNICUS=off: the free instance's 512 MB cannot hold a Copernicus
+# fetch next to Postgres, Redis and TiTiler (out of memory on 4 Oct). Answers
+# that need it play the labelled recording instead (dhruva/demo/replay.py).
 ENV DHRUVA_DATA_DIR=/data DHRUVA_REGISTRY=/data/registry.yaml ENV=prod \
-	XDG_DATA_HOME=/tmp/caddy XDG_CONFIG_HOME=/tmp/caddy PORT=10000
+	XDG_DATA_HOME=/tmp/caddy XDG_CONFIG_HOME=/tmp/caddy PORT=10000 DHRUVA_COPERNICUS=off
 EXPOSE 10000
 CMD ["/app/start.sh"]
